@@ -1216,7 +1216,7 @@ selectInstance.toggle();</code></pre>
             <pre><code><span class="keyword">const</span> select = <span class="function">SelectiveUI.find</span>(<span class="string">'#mySelect'</span>);
 
 <span class="comment">// Get value</span>
-console.log(select.value); <span class="comment">// "1" hoặc ["1", "2"]</span>
+console.log(select.value); <span class="comment">// "1" or ["1", "2"]</span>
 
 <span class="comment">// Set value</span>
 select.value = <span class="string">'2'</span>; <span class="comment">// Single</span>
@@ -1821,7 +1821,7 @@ app.<span class="function">post</span>(<span class="string">'/api/search'</span>
             <h3>Tips for AJAX with Groups</h3>
             <div class="info-box alert alert-info">
                 <ol>
-                    <li><strong>Group Detection:</strong> The library automatically detects groups if an item has a <code>label</code> hoặc <code>options</code> property</li>
+                    <li><strong>Group Detection:</strong> The library automatically detects groups if an item has a <code>label</code> or <code>options</code> property</li>
                     <li><strong>Mixed Content:</strong> It is possible to mix groups and single options in the same response</li>
                     <li><strong>Group Data:</strong> Use <code>data.collapsed = "true"</code> to cause the default group to collapse</li>
                     <li><strong>Pagination:</strong> Pagination works the same way for both grouped and non-grouped data</li>
