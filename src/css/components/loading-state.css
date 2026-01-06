@@ -1,0 +1,26 @@
+.selective-ui-loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--seui-empty-state-padding, 20px);
+    text-align: center;
+    font-family: var(--seui-view-text-style);
+    font-size: var(--seui-view-text-size);
+    color: var(--seui-empty-state-color, #999);
+    background-color: var(--seui-empty-state-background, transparent);
+    border-radius: var(--seui-option-border-radius);
+    min-height: 60px;
+
+    position: sticky;
+    bottom: 0;
+}
+
+.selective-ui-loading-state.small {
+    text-align: left;
+    justify-content: flex-start;
+    min-height: 30px;
+}
+
+.selective-ui-loading-state.hide {
+    display: none;
+}

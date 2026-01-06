@@ -1,0 +1,15 @@
+.selective-ui-placeholder {
+    display: flex;
+    align-items: center;
+    
+    margin-left: 10px;
+    max-width: calc(100% - 30px);
+    height: calc(100% - 10px);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+    font-family: var(--seui-view-text-style);
+    font-size: var(--seui-view-text-size) !important;
+    overflow: hidden;
+    color: var(--seui-view-text-color);
+}

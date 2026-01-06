@@ -1,0 +1,20 @@
+.selective-ui-directive {
+    content: " ";
+    position: absolute;
+    display: inline-block;
+    vertical-align: middle;
+    transition: all linear 200ms;
+    border-top: 4px solid var(--seui-directive-color);
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+    width: 0;
+    height: 0;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%) rotate(0deg);
+    z-index: 1;
+    pointer-events: none;
+}
+.selective-ui-directive.drop-down {
+    transform: translateY(-50%) rotate(180deg);
+}

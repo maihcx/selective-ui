@@ -1,0 +1,75 @@
+:root {
+    --seui-transparent-color: #00000000;
+
+    --seui-view-text-color: #121212;
+    --seui-view-ro-text-color: #a3a3a3;
+    --seui-view-text-style: Arial, Helvetica, sans-serif;
+    --seui-view-text-size: 13px;
+    --seui-view-mobile-text-size: 16px;
+    --seui-view-background-color: #ffffff;
+    --seui-view-ro-background-color: #00000029;
+    --seui-view-optgroup-background-color: #a3c6e9;
+    --seui-view-border-color: #a3a3a3;
+    --seui-view-ro-border-color: #bdbdbd;
+    --seui-view-border-size: 1px;
+    --seui-view-border-style: solid;
+    --seui-view-border-radius: 5px;
+
+    --seui-directive-color: #000000;
+    --seui-directive-ro-color: #a3a3a3;
+
+    --seui-option-crtl-text-color: #307ecc;
+    --seui-option-crtl-text-color-hover: #ff0000;
+    --seui-option-crtl-background-color: #f3f3f3;
+    --seui-option-crtl-border-color: #cccccc;
+    --seui-option-crtl-text-size: 13px;
+
+    --seui-option-padding: 5px;
+    --seui-option-border-radius: 5px;
+
+    --seui-accessory-max-width: 100%;
+    --seui-accessory-max-height: 50px;
+    --seui-accessory-padding: 2px 0;
+    --seui-accessory-item-border-color: #a3a3a3;
+    --seui-accessory-item-border-style: solid;
+    --seui-accessory-item-border-width: 1px;
+    --seui-accessory-item-border-radius: 3px;
+    --seui-accessory-item-background: #f7f7f9;
+    --seui-accessory-item-font-size: 11px;
+    --seui-accessory-item-padding: 2px;
+    --seui-accessory-item-gap: 3px;
+    --seui-accessory-item-button-color: #757575;
+    --seui-accessory-item-button-width: 16px;
+    --seui-accessory-item-button-height: 16px;
+    --seui-accessory-item-button-border-color: #a3a3a3;
+    --seui-accessory-item-button-border-style: solid;
+    --seui-accessory-item-button-border-width: 1px;
+    --seui-accessory-item-button-border-radius: 2px;
+    --seui-accessory-item-content-color: #307ecc;
+    --seui-accessory-item-content-font-size: 11px;
+    --seui-accessory-item-content-padding: 0 4px 0 2px;
+
+    --seui-popup-background-color: #fbfbfb;
+    --seui-popup-border-color: #a3a3a3;
+    --seui-popup-border-style: solid;
+    --seui-popup-border-width: 1px;
+    --seui-popup-border-radius: 6px;
+
+    --seui-chkbox-background-color: #ffffff;
+    --seui-chkbox-border-color: #8f9194;
+
+    --seui-chkbox-hover-background-color: #dbdbdb;
+    --seui-chkbox-hover-border-color: #b7b7b7;
+
+    --seui-chkbox-checked-background-color: #9dcff8;
+    --seui-chkbox-checked-border-color: #9dcff8;
+
+    --seui-chkbox-checked-hover-background-color: #9dcff8;
+    --seui-chkbox-checked-hover-border-color: #007eff;
+
+    --seui-chkbox-checked-color: #0075FF;
+
+    --seui-empty-state-color: #999999;
+    --seui-empty-state-background: #f9f9f9;
+    --seui-empty-state-padding: 10px 5px;
+}

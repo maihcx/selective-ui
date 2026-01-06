@@ -1,0 +1,29 @@
+.selective-ui-searchbox {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: absolute;
+    
+    background-color: var(--seui-view-background-color);
+    border-radius: 5px;
+    z-index: 2;
+    width: calc(100% - 30px);
+    height: 100%;
+}
+
+.selective-ui-searchbox-input {
+    width: 100%;
+    height: calc(100% - 10px);
+    border: 0;
+    outline: none !important;
+    background: var(--seui-transparent-color);
+    color: var(--seui-view-text-color);
+    padding: 0 !important;
+    margin-left: 10px;
+    text-indent: 0px;
+    font-family: var(--seui-view-text-style);
+    font-size: var(--seui-view-text-size) !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

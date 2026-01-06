@@ -1,0 +1,2372 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SelectiveUI - Complete Documentation</title>
+    <style>
+        :root {
+            --primary: #0075ff;
+            --primary-dark: #b90000;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --border: #dee2e6;
+            --code-bg: #f5f5f5;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: #fff;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Navigation */
+        .nav {
+            position: sticky;
+            top: 0;
+            background: #ffffff87;
+            border-bottom: 2px solid var(--border);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            backdrop-filter: blur(15px);
+        }
+
+        .nav-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-right: 10px;
+            color: var(--primary);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+            display: block;
+            padding: 0.5rem 0;
+        }
+
+        .nav a:hover {
+            color: var(--primary);
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 7.3px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1001;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--dark);
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(8px, 8px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+
+        /* Mobile Menu Overlay */
+        .nav-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-overlay.start {
+            display: block;
+        }
+
+        .nav-overlay.active {
+            opacity: 1;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1190px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 100px;
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .section h3 {
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+            color: var(--dark);
+        }
+
+        .section h4 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.5rem;
+            color: var(--secondary);
+        }
+
+        /* Code blocks */
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            box-shadow: var(--shadow);
+        }
+
+        code {
+            font-family: monospace;
+            font-size: 13px;
+            color: var(--danger);
+        }
+
+        pre code {
+            color: var(--dark);
+        }
+
+        /* Tables */
+        .table-content {
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 500px;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: white;
+            box-shadow: var(--shadow);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--light);
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: var(--light);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .badge-required {
+            background: var(--danger);
+            color: white;
+        }
+
+        .badge-optional {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .badge-new {
+            background: var(--success);
+            color: white;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: var(--shadow);
+        }
+
+        .card ul {
+            margin-block-start: 1em;
+            margin-block-end: 1em;
+            padding-inline-start: 30px;
+        }
+
+        .card-header {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #cfe2ff;
+            border-color: #0dcaf0;
+            color: #055160;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: var(--warning);
+            color: #664d03;
+        }
+
+        .alert-success {
+            background: #d1e7dd;
+            border-color: var(--success);
+            color: #0f5132;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px 30px;
+            margin: 15px 0;
+        }
+
+        .faq-box {
+            margin: 15px 0;
+        }
+
+        .faq-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f5f5f5;
+        }
+
+        .faq-item strong {
+            color: #1976d2;
+        }
+
+        .faq-item p {
+            margin: 5px 0 0 0;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1350px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .nav #navMenu {
+                display: none;
+                position: fixed;
+                top: 0;
+                right: 0;
+                height: 100vh !important;
+                width: fit-content;
+                background: white;
+                z-index: 999;
+            }
+
+            .nav ul {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                padding: 5rem 2rem 2rem;
+                box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+                justify-content: flex-start;
+            }
+
+            .nav ul li {
+                width: 200px;
+                padding-left: 45px;
+            }
+
+            .nav ul li:last-child {
+                border-bottom: none;
+            }
+
+            .nav a {
+                font-size: 1.1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .nav ul {
+                flex-direction: row;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+            }
+
+            .nav a {
+                white-space: nowrap;
+            }
+        }
+
+        /* Syntax highlighting simulation */
+        .keyword { color: #d73a49; font-weight: bold; }
+        .string { color: #032f62; }
+        .comment { color: #6a737d; font-style: italic; }
+        .function { color: #6f42c1; }
+        .number { color: #005cc5; }
+    </style>
+
+    <link rel="stylesheet" href="https://libraries.ntjc.org/selective-ui/dist/selective-ui.min.css">
+    <script src="https://libraries.ntjc.org/selective-ui/dist/selective-ui.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>📦 SelectiveUI</h1>
+        <p>Advanced Custom Select Component - Pure JavaScript, Zero Dependencies</p>
+        <div class="version-badge">v1.0.2</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="#"><div class="nav-logo">SelectiveUI</div></a>
+            
+            <!-- Hamburger Menu Button -->
+            <button class="hamburger" id="hamburger" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <!-- Navigation Menu -->
+            <div id="navMenu">
+                <ul>
+                    <li><a href="#overview">Overview</a></li>
+                    <li><a href="#installation">Installation</a></li>
+                    <li><a href="#basic-usage">Basic usage</a></li>
+                    <li><a href="#options">Configurations</a></li>
+                    <li><a href="#api">API Methods</a></li>
+                    <li><a href="#events">Events</a></li>
+                    <li><a href="#ajax">AJAX</a></li>
+                    <li><a href="#examples">Examples</a></li>
+                    <li><a href="#customization">Customization</a></li>
+                    <li><a href="#accessibility">Accessibility</a></li>
+                    <li><a href="#versions">Versions</a></li>
+                </ul>
+            </ul>
+        </div>
+
+        <!-- Overlay for mobile menu -->
+        <div class="nav-overlay" id="navOverlay"></div>
+
+        <script>
+        // Mobile Menu Toggle
+        const hamburger = document.getElementById('hamburger');
+        const navMenu = document.getElementById('navMenu');
+        const navOverlay = document.getElementById('navOverlay');
+        let navOverlayTimeout = null;
+        const effector = SelectiveUI.effector(navMenu);
+
+        function toggleMenu(force) {
+            if (navOverlayTimeout) {
+                clearTimeout(navOverlayTimeout);
+                navOverlayTimeout = null;
+            }
+            if (force === null) {
+                hamburger.classList.toggle('active');
+                const isMenuOpen = navMenu.classList.toggle('active')
+                if (isMenuOpen) {
+                    effector.showSwipeWidth({duration: 300, display: 'flex'});
+
+                }
+                else {
+                    effector.hideSwipeWidth({duration: 300});
+                }
+                if (isMenuOpen) {
+                    navOverlay.classList.add('start');
+                    requestAnimationFrame(() => {
+                        navOverlay.classList.add('active');
+                    });
+                }
+                else {
+                    navOverlay.classList.remove('active');
+                    navOverlayTimeout = setTimeout(() => {
+                        navOverlay.classList.remove('start');
+                    }, 300);
+                }
+            }
+            else {
+                hamburger.classList.toggle('active', force);
+                if (navMenu.classList.toggle('active', force)) {
+                    effector.showSwipeWidth({duration: 300, display: 'flex'});
+                }
+                else {
+                    effector.hideSwipeWidth({duration: 300});
+                }
+                if (force) {
+                    navOverlay.classList.add('start');
+                    requestAnimationFrame(() => {
+                        navOverlay.classList.add('active', force);
+                    });
+                }
+                else {
+                    navOverlay.classList.remove('active', force);
+                    navOverlayTimeout = setTimeout(() => {
+                        navOverlay.classList.remove('start');
+                    }, 300);
+                }
+            }
+            
+            // Prevent body scroll when menu is open
+            // if (navMenu.classList.contains('active')) {
+            //     document.body.style.overflow = 'hidden';
+            // } else {
+            //     document.body.style.overflow = '';
+            // }
+        }
+
+        hamburger.addEventListener('click', () => { 
+            toggleMenu(null)
+        });
+
+        navOverlay.addEventListener('click', () => { 
+            toggleMenu(false)
+        });
+
+        // Close menu when clicking on a link
+        const navLinks = navMenu.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 1350) {
+                    toggleMenu(false);
+                }
+            });
+        });
+
+        // Close menu on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+                toggleMenu(false);
+            }
+        });
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1350 && navMenu.classList.contains('active')) {
+                hamburger.classList.remove('active');
+                navMenu.classList.remove('active');
+                navOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    </script>
+    </nav>
+
+    <!-- Content -->
+    <div class="container">
+        <!-- Overview Section -->
+        <section id="overview" class="section">
+            <h2>📖 Overview</h2>
+            
+            <p>SelectiveUI is a powerful JavaScript library for creating custom select boxes with many advanced features:</p>
+
+            <div class="grid">
+                <div class="card">
+                    <div class="card-header">✨ Main features</div>
+                    <ul>
+                        <li>Pure JavaScript, no dependencies</li>
+                        <li>Multiple selection support</li>
+                        <li>AJAX data loading with pagination</li>
+                        <li>Search and filter</li>
+                        <li>Keyboard navigation</li>
+                        <li>Image mode</li>
+                        <li>Customizable styling</li>
+                        <li>Responsive design</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">🚀 Performance</div>
+                    <ul>
+                        <li>RecyclerView pattern</li>
+                        <li>Virtual scrolling (Possible support)</li>
+                        <li>Auto Debouncing</li>
+                        <li>Efficient DOM operations</li>
+                        <li>Memory leak prevention</li>
+                        <li>Size: ~55KB minified</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">🎯 Browser Support</div>
+                    <ul>
+                        <li>Chrome 90+</li>
+                        <li>Firefox 88+</li>
+                        <li>Safari 14+</li>
+                        <li>Edge 90+</li>
+                        <li>Mobile browsers</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Installation Section -->
+        <section id="installation" class="section">
+            <h2>📥 Installation</h2>
+
+            <h3>1. CDN</h3>
+            <pre><code><span class="comment">// Add to your HTML</span>
+<span class="keyword">&lt;link</span> <span class="string">rel="stylesheet"</span> <span class="string">href="https://libraries.ntjc.org/selective-ui/dist/selective-ui.min.css"</span><span class="keyword">&gt;</span>
+<span class="keyword">&lt;script</span> <span class="string">src="https://libraries.ntjc.org/selective-ui/dist/selective-ui.min.js"</span><span class="keyword">&gt;&lt;/script&gt;</span></code></pre>
+
+            <h3>2. NPM (Coming soon)</h3>
+            <pre><code>npm install selective-ui</code></pre>
+
+            <h3>3. Download</h3>
+            <p>Download files directly <a href="https://libraries.ntjc.org/selective-ui/dist/selective-ui.min.js"><code>selective-ui.min.js</code></a> và <a href="https://libraries.ntjc.org/selective-ui/dist/selective-ui.min.css"><code>selective-ui.min.css</code></a></p>
+
+            <div class="alert alert-info">
+                <strong>💡 Note:</strong> Ensure that CSS is loaded before JavaScript to avoid FOUC (Flash of Unstyled Content)
+            </div>
+        </section>
+
+        <!-- Basic Usage Section -->
+        <section id="basic-usage" class="section">
+            <h2>🎓 Basic usage</h2>
+
+            <h3>HTML</h3>
+            <pre><code><span class="keyword">&lt;select</span> <span class="string">id="mySelect"</span> <span class="string">name="myMultiSelect"</span> <span class="string">data-width="200px"</span><span class="keyword">&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="1"</span><span class="keyword">&gt;</span>Option 1<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="2"</span><span class="keyword">&gt;</span>Option 2<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="3"</span><span class="keyword">&gt;</span>Option 3<span class="keyword">&lt;/option&gt;</span>
+<span class="keyword">&lt;/select&gt;</span></code>
+
+<code><span class="keyword">&lt;select</span> <span class="string">id="myGroupSelect"</span> <span class="string">name="myGroupSelect"</span> <span class="string">data-width="200px"</span><span class="keyword">&gt;</span>
+    <span class="keyword">&lt;optgroup</span> <span class="label">label="Fruits"</span><span class="keyword">&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="apple"</span><span class="keyword">&gt;</span>Apple 🍎<span class="keyword">&lt;/option&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="banana"</span><span class="keyword">&gt;</span>Banana 🍌<span class="keyword">&lt;/option&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="orange"</span><span class="keyword">&gt;</span>Orange 🍊<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;/optgroup&gt;</span>
+    <span class="keyword">&lt;optgroup</span> <span class="label">label="Vegetables"</span> <span class="label">data-collapsed="true"</span><span class="keyword">&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="carrot"</span><span class="keyword">&gt;</span>Carrot 🥕<span class="keyword">&lt;/option&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="lettuce"</span><span class="keyword">&gt;</span>Lettuce 🥬<span class="keyword">&lt;/option&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="tomato"</span><span class="keyword">&gt;</span>Tomato 🍅<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;/optgroup&gt;</span>
+<span class="keyword">&lt;/select&gt;</span></code>
+
+<code><span class="keyword">&lt;select</span> <span class="string">id="myMultiSelect"</span> <span class="string">name="myMultiSelect[]"</span> <span class="string">data-width="200px"</span> <span class="string">multiple</span><span class="keyword">&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="1"</span><span class="keyword">&gt;</span>Option 1<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="2"</span><span class="keyword">&gt;</span>Option 2<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="3"</span><span class="keyword">&gt;</span>Option 3<span class="keyword">&lt;/option&gt;</span>
+<span class="keyword">&lt;/select&gt;</span></code>
+
+<code><span class="keyword">&lt;select</span> <span class="string">id="myMultiGroupSelect"</span> <span class="string">name="myMultiGroupSelect[]"</span> <span class="string">data-width="200px"</span> <span class="string">multiple</span><span class="keyword">&gt;</span>
+    <span class="keyword">&lt;optgroup</span> <span class="label">label="Fruits"</span><span class="keyword">&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="apple"</span><span class="keyword">&gt;</span>Apple 🍎<span class="keyword">&lt;/option&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="banana"</span><span class="keyword">&gt;</span>Banana 🍌<span class="keyword">&lt;/option&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="orange"</span><span class="keyword">&gt;</span>Orange 🍊<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;/optgroup&gt;</span>
+    <span class="keyword">&lt;optgroup</span> <span class="label">label="Vegetables"</span> <span class="label">data-collapsed="true"</span><span class="keyword">&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="carrot"</span><span class="keyword">&gt;</span>Carrot 🥕<span class="keyword">&lt;/option&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="lettuce"</span><span class="keyword">&gt;</span>Lettuce 🥬<span class="keyword">&lt;/option&gt;</span>
+        <span class="keyword">&lt;option</span> <span class="string">value="tomato"</span><span class="keyword">&gt;</span>Tomato 🍅<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;/optgroup&gt;</span>
+<span class="keyword">&lt;/select&gt;</span></code></pre>
+
+            <h3>JavaScript - Basic</h3>
+            <pre><code><span class="comment">// Basic initialization</span>
+<span class="comment">// SelectiveUI.bind('#mySelect');</span>
+<span class="comment">// SelectiveUI.bind('#myMultiSelect');</span>
+
+<span class="comment">// Với options</span>
+<span class="function">SelectiveUI.bind</span>(<span class="string">'#mySelect, #myGroupSelect'</span>, {
+    <span class="string">placeholder:</span> <span class="string">'Choose an option'</span>,
+    <span class="string">searchable:</span> <span class="keyword">true</span>
+});
+<span class="function">SelectiveUI.bind</span>(<span class="string">'#myMultiSelect, #myMultiGroupSelect'</span>, {
+    <span class="string">placeholder:</span> <span class="string">'Choose an option'</span>,
+    <span class="string">searchable:</span> <span class="keyword">true</span>
+});</code>
+
+
+<select id="mySelect" name="mySelect" data-width="200px">
+    <option value="1">Option 1</option>
+    <option value="2">Option 2</option>
+    <option value="3">Option 3</option>
+</select>
+
+<select id="myGroupSelect" name="myGroupSelect" data-width="200px">
+    <optgroup label="Fruits">
+        <option value="apple">Apple 🍎</option>
+        <option value="banana">Banana 🍌</option>
+        <option value="orange">Orange 🍊</option>
+    </optgroup>
+    <optgroup label="Vegetables" data-collapsed="true">
+        <option value="carrot">Carrot 🥕</option>
+        <option value="lettuce">Lettuce 🥬</option>
+        <option value="tomato">Tomato 🍅</option>
+    </optgroup>
+</select>
+
+<select id="myMultiSelect" name="myMultiSelect[]" data-width="200px" multiple>
+    <option value="1">Option 1</option>
+    <option value="2">Option 2</option>
+    <option value="3">Option 3</option>
+</select>
+
+<select id="myMultiGroupSelect" name="myMultiGroupSelect[]" data-width="200px" multiple>
+    <optgroup label="Fruits">
+        <option value="apple">Apple 🍎</option>
+        <option value="banana">Banana 🍌</option>
+        <option value="orange">Orange 🍊</option>
+    </optgroup>
+    <optgroup label="Vegetables" data-collapsed="true">
+        <option value="carrot">Carrot 🥕</option>
+        <option value="lettuce">Lettuce 🥬</option>
+        <option value="tomato">Tomato 🍅</option>
+    </optgroup>
+</select>
+<script>
+    SelectiveUI.bind('#mySelect, #myGroupSelect', {
+        placeholder: 'Choose an option',
+        searchable: true
+    });
+    SelectiveUI.bind('#myMultiSelect, #myMultiGroupSelect', {
+        placeholder: 'Choose an option',
+        searchable: true
+    });
+</script></pre>
+
+            <h3>Interaction with APIs</h3>
+            <pre><code><span class="comment">// Get instance</span>
+<span class="keyword">const</span> selectInstance = <span class="function">SelectiveUI.find</span>(<span class="string">'#mySelect'</span>);
+
+<span class="comment">// Get/Set value</span>
+<span class="keyword">const</span> value = selectInstance.value;
+selectInstance.value = <span class="string">'2'</span>;
+
+<span class="comment">// Get selected text</span>
+<span class="keyword">const</span> text = selectInstance.valueText;
+
+<span class="comment">// Open/Close</span>
+selectInstance.open();
+selectInstance.close();
+selectInstance.toggle();</code></pre>
+
+            <h3 id="smartTag">Smart Tag</h3>
+            <pre><code><span class="keyword">&lt;select</span> <span class="string">id="mySelectSmartTag"</span> <span class="string">data-allow-html="true"</span> <span class="string">data-autoclose="true"</span> <span class="string">data-width="200px"</span><span class="keyword">&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="1"</span><span class="keyword">&gt;</span><span class="keyword">&lt;`b style="color: red;"`&gt;</span>Option 1<span class="keyword">&lt;`/b`&gt;</span><span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="2"</span><span class="keyword">&gt;</span><span class="keyword">&lt;`b style="color: green;"`&gt;</span>Option 2<span class="keyword">&lt;`/b`&gt;</span><span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="3"</span><span class="keyword">&gt;</span><span class="keyword">&lt;`b style="color: blue;"`&gt;</span>Option 3<span class="keyword">&lt;`/b`&gt;</span><span class="keyword">&lt;/option&gt;</span>
+<span class="keyword">&lt;/select&gt;</span></code>
+
+<span class="keyword">&lt;script&gt;</span>
+<span class="function">SelectiveUI.bind</span>(<span class="string">'#mySelectSmartTag'</span>);
+<span class="keyword">&lt;/script&gt;</span>
+
+
+<select id="mySelectSmartTag" data-allow-html="true" data-autoclose="true" data-width="200px">
+    <option value="1"><`b style="color: red;"`>Option 1<`/b`></option>
+    <option value="2"><`b style="color: green;"`>Option 2<`/b`></option>
+    <option value="3"><`b style="color: blue;"`>Option 3<`/b`></option>
+</select>
+<script>
+    SelectiveUI.bind('#mySelectSmartTag', {
+        placeholder: 'Chọn một tùy chọn',
+        searchable: true
+    });
+</script></pre>
+        </section>
+
+        <!-- Options Section -->
+        <section id="options" class="section">
+            <h2>⚙️ Configuration Options</h2>
+
+            <h3>Display Options</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th>Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>placeholder</code></td>
+                            <td>String</td>
+                            <td>"Select value"</td>
+                            <td>Text displayed when no selection is made (applies to multiple selections)</td>
+                        </tr>
+                        <tr>
+                            <td><code>width</code></td>
+                            <td>String</td>
+                            <td>"0px"</td>
+                            <td>Width (0px = auto)</td>
+                        </tr>
+                        <tr>
+                            <td><code>height</code></td>
+                            <td>String</td>
+                            <td>"30px"</td>
+                            <td>Height</td>
+                        </tr>
+                        <tr>
+                            <td><code>minWidth</code></td>
+                            <td>String</td>
+                            <td>"50px"</td>
+                            <td>Minimum width</td>
+                        </tr>
+                        <tr>
+                            <td><code>panelHeight</code></td>
+                            <td>String</td>
+                            <td>"220px"</td>
+                            <td>Popup Height</td>
+                        </tr>
+                        <tr>
+                            <td><code>accessoryStyle</code></td>
+                            <td>String</td>
+                            <td>"top"</td>
+                            <td>Function frame position: "top" | "bottom"</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Behavior Options</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th>Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>multiple</code></td>
+                            <td>Boolean</td>
+                            <td>false</td>
+                            <td>Allows multiple selection</td>
+                        </tr>
+                        <tr>
+                            <td><code>searchable</code></td>
+                            <td>Boolean</td>
+                            <td>true</td>
+                            <td>Turn on the search feature</td>
+                        </tr>
+                        <tr>
+                            <td><code>autoclose</code></td>
+                            <td>Boolean</td>
+                            <td>false</td>
+                            <td>Automatically closes after selection</td>
+                        </tr>
+                        <tr>
+                            <td><code>selectall</code></td>
+                            <td>Boolean</td>
+                            <td>true</td>
+                            <td>Show the select all (multiple mode) button</td>
+                        </tr>
+                        <tr>
+                            <td><code>disabled</code></td>
+                            <td>Boolean</td>
+                            <td>false</td>
+                            <td>Disable</td>
+                        </tr>
+                        <tr>
+                            <td><code>readonly</code></td>
+                            <td>Boolean</td>
+                            <td>false</td>
+                            <td>Read-only mode (popups can be opened but data cannot be changed)</td>
+                        </tr>
+                        <tr>
+                            <td><code>visible</code></td>
+                            <td>Boolean</td>
+                            <td>true</td>
+                            <td>Decide whether to hide/show all cards</td>
+                        </tr>
+                        <tr>
+                            <td><code>loadingfield</code></td>
+                            <td>Boolean</td>
+                            <td>true</td>
+                            <td>Display notifications when interacting with the API</td>
+                        </tr>
+                        <tr>
+                            <td><code>customDelimiter</code></td>
+                            <td>String</td>
+                            <td>","</td>
+                            <td>Separators for certain actions</td>
+                        </tr>
+                        <tr>
+                            <td><code>allowHtml</code></td>
+                            <td>Boolean</td>
+                            <td>false</td>
+                            <td>Allow HTML as (<a href="#smartTag">Smart Tag</a>) or data-mask is in the options tab</td>
+                        </tr>
+                        <tr>
+                            <td><code>maxSelected</code></td>
+                            <td>Number</td>
+                            <td>0</td>
+                            <td>Maximum selection limit (applies only to multiple, "0" means no limit)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Image Mode Options</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th>Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>imageMode</code></td>
+                            <td>Boolean</td>
+                            <td>true | false (automatic)</td>
+                            <td>Turn on image mode</td>
+                        </tr>
+                        <tr>
+                            <td><code>imageWidth</code></td>
+                            <td>String</td>
+                            <td>"60px"</td>
+                            <td>Image width</td>
+                        </tr>
+                        <tr>
+                            <td><code>imageHeight</code></td>
+                            <td>String</td>
+                            <td>"60px"</td>
+                            <td>Image height</td>
+                        </tr>
+                        <tr>
+                            <td><code>imageBorderRadius</code></td>
+                            <td>String</td>
+                            <td>"4px"</td>
+                            <td>Image border radius</td>
+                        </tr>
+                        <tr>
+                            <td><code>imagePosition</code></td>
+                            <td>String</td>
+                            <td>"right"</td>
+                            <td>Image location: "left" | "right" | "top" | "bottom"</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Text & Animation Options</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th>Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>textLoading</code></td>
+                            <td>String</td>
+                            <td>"Đang xử lý..."</td>
+                            <td>Text displayed during loading</td>
+                        </tr>
+                        <tr>
+                            <td><code>textNoData</code></td>
+                            <td>String</td>
+                            <td>"Không có dữ liệu"</td>
+                            <td>Text when no data is available</td>
+                        </tr>
+                        <tr>
+                            <td><code>textNotFound</code></td>
+                            <td>String</td>
+                            <td>"Không tìm thấy"</td>
+                            <td>Text when searching yields no results</td>
+                        </tr>
+                        <tr>
+                            <td><code>textSelectAll</code></td>
+                            <td>String</td>
+                            <td>"Chọn tất cả"</td>
+                            <td>Text the select all button</td>
+                        </tr>
+                        <tr>
+                            <td><code>textDeselectAll</code></td>
+                            <td>String</td>
+                            <td>"Bỏ chọn"</td>
+                            <td>Text deselect button</td>
+                        </tr>
+                        <tr>
+                            <td><code>textAccessoryDeselect</code></td>
+                            <td>String</td>
+                            <td>"Bỏ chọn: "</td>
+                            <td>Text annotation for the deselect button in the function frame</td>
+                        </tr>
+                        <tr>
+                            <td><code>animationtime</code></td>
+                            <td>Number</td>
+                            <td>200</td>
+                            <td>Animation duration (ms)</td>
+                        </tr>
+                        <tr>
+                            <td><code>delaysearchtime</code></td>
+                            <td>Number</td>
+                            <td>200</td>
+                            <td>Delay when searching (ms)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Dataset Properties</h3>
+            <div class="card">
+                <h4>Setup instructions</h4>
+                <p>All <a href="options">options</a>:</p>
+                <pre><span class="function">SelectiveUI.bind</span>(<span class="string">'#mySelect'</span>, {
+    <span class="string">searchable:</span> <span class="keyword">true</span>,
+    <span class="string">customDelimiter:</span> <span class="keyword">","</span>,
+    <span class="string">imagePosition:</span> <span class="keyword">"left"</span>,
+    ...
+});</pre>
+
+                <p>Đều có thể sử dụng như sau:</p>
+<pre><code><span class="keyword">&lt;select</span> <span class="string">id="mySelect"</span> <span class="string">data-searchable="true"</span> <span class="string">data-custom-delimiter=","</span> <span class="string">data-image-position="left"</span><span class="keyword">&gt;</span><span class="keyword">&lt;/select&gt;</span></code></pre>
+            </div>
+        </section>
+
+        <!-- API Methods Section -->
+        <section id="api" class="section">
+            <h2>🔌 API Methods</h2>
+
+            <h3>Initialization</h3>
+            <div class="card">
+                <h4>SelectiveUI.bind(selector, options)</h4>
+                <p>Khởi tạo SelectiveUI cho element(s)</p>
+                <pre><code><span class="function">SelectiveUI.bind</span>(<span class="string">'.my-select'</span>, {
+    <span class="string">searchable:</span> <span class="keyword">true</span>
+});</code></pre>
+            </div>
+
+            <div class="card">
+                <h4>SelectiveUI.find(selector)</h4>
+                <p>Get the initialized instance of SelectiveUI</p>
+                <pre><code><span class="keyword">const</span> instance = <span class="function">SelectiveUI.find</span>(<span class="string">'#mySelect'</span>);</code></pre>
+            </div>
+
+            <h3>Instance Methods</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Return</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>open()</code></td>
+                            <td>self</td>
+                            <td>Open popup. Return instance</td>
+                        </tr>
+                        <tr>
+                            <td><code>close()</code></td>
+                            <td>self</td>
+                            <td>Close popup. Return instance</td>
+                        </tr>
+                        <tr>
+                            <td><code>toggle()</code></td>
+                            <td>self</td>
+                            <td>Toggle popup open/close. Return instance</td>
+                        </tr>
+                        <tr>
+                            <td><code>refreshMask()</code></td>
+                            <td>self</td>
+                            <td>Update the displayed text (system-determined). Return instance</td>
+                        </tr>
+                        <tr>
+                            <td><code>setValue(value, trigger)</code></td>
+                            <td>self</td>
+                            <td>Set a value. The value can be a string or an array;<br>
+                            trigger to decide whether or not to trigger the change event. | Boolean default: true. Return instance</td>
+                        </tr>
+                        <tr>
+                            <td><code>selectAll()</code></td>
+                            <td>self</td>
+                            <td>Select all values ​​(only applies to multiple). Return instance</td>
+                        </tr>
+                        <tr>
+                            <td><code>deSelectAll()</code></td>
+                            <td>self</td>
+                            <td>Deselect all values ​​(only applies to multiple). Return instance</td>
+                        </tr>
+                        <tr>
+                            <td><code>ajax(Object)</code></td>
+                            <td>self</td>
+                            <td>Assign configuration <a href="#ajax">ajax</a>. Return instance</td>
+                        </tr>
+                        <tr>
+                            <td><code>on(String, Object)</code></td>
+                            <td>self</td>
+                            <td>Assign configuration <a href="#events">events</a>. Return instance</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Properties</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>value</code></td>
+                            <td>String | Array</td>
+                            <td>Get/Set the selected value</td>
+                        </tr>
+                        <tr>
+                            <td><code>valueArray</code></td>
+                            <td>Array</td>
+                            <td>Get the array of selected values</td>
+                        </tr>
+                        <tr>
+                            <td><code>valueString</code></td>
+                            <td>String</td>
+                            <td>Get the string of values ​​(separated by customDelimiter)</td>
+                        </tr>
+                        <tr>
+                            <td><code>valueText</code></td>
+                            <td>String | Array</td>
+                            <td>Get the text of the selected option</td>
+                        </tr>
+                        <tr>
+                            <td><code>valueOptions</code></td>
+                            <td>Array</td>
+                            <td>Get an array of selected option objects</td>
+                        </tr>
+                        <tr>
+                            <td><code>mask</code></td>
+                            <td>Array</td>
+                            <td>Get array text in display</td>
+                        </tr>
+                        <tr>
+                            <td><code>placeholder</code></td>
+                            <td>String</td>
+                            <td>Get/Set placeholder text</td>
+                        </tr>
+                        <tr>
+                            <td><code>oldValue</code></td>
+                            <td>String | Array</td>
+                            <td>Get the value before the change</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Usage Examples</h3>
+            <pre><code><span class="keyword">const</span> select = <span class="function">SelectiveUI.find</span>(<span class="string">'#mySelect'</span>);
+
+<span class="comment">// Get value</span>
+console.log(select.value); <span class="comment">// "1" hoặc ["1", "2"]</span>
+
+<span class="comment">// Set value</span>
+select.value = <span class="string">'2'</span>; <span class="comment">// Single</span>
+select.value = [<span class="string">'1'</span>, <span class="string">'2'</span>, <span class="string">'3'</span>]; <span class="comment">// Multiple</span>
+
+<span class="comment">// Get text</span>
+console.log(select.valueText); <span class="comment">// "Option 2"</span>
+
+<span class="comment">// Control popup</span>
+select.open();
+select.close();
+select.toggle();</code></pre>
+        </section>
+
+        <!-- Events Section -->
+        <section id="events" class="section">
+            <h2>🎪 Events</h2>
+
+            <h3>Available Events</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Parameters</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>load</code></td>
+                            <td>(callback, instance)</td>
+                            <td>Trigger after initialization</td>
+                        </tr>
+                        <tr>
+                            <td><code>beforeShow</code></td>
+                            <td>(callback, instance)</td>
+                            <td>Before the popup opens, It can be canceled</td>
+                        </tr>
+                        <tr>
+                            <td><code>show</code></td>
+                            <td>(callback, instance)</td>
+                            <td>After opening the popup</td>
+                        </tr>
+                        <tr>
+                            <td><code>beforeChange</code></td>
+                            <td>(callback, instance, value)</td>
+                            <td>Before changing the value. It can be canceled</td>
+                        </tr>
+                        <tr>
+                            <td><code>change</code></td>
+                            <td>(callback, instance, value)</td>
+                            <td>After the value changed</td>
+                        </tr>
+                        <tr>
+                            <td><code>beforeClose</code></td>
+                            <td>(callback, instance)</td>
+                            <td>Before closing the popup, It can be canceled</td>
+                        </tr>
+                        <tr>
+                            <td><code>close</code></td>
+                            <td>(callback, instance)</td>
+                            <td>After closing the popup</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Event Callback Object</h3>
+            <p>Each event callback receives an object with methods:</p>
+            <pre><code><span class="keyword">function</span> <span class="function">eventCallback</span>(callback, instance, ...args) {
+    <span class="comment">// Stop propagation to the next event handler.</span>
+    callback.<span class="function">stopPropagation</span>();
+    
+    <span class="comment">// Cancel event (only works with beforeShow, beforeChange, beforeClose)</span>
+    callback.<span class="function">cancel</span>();
+}</code></pre>
+
+            <h3>Usage Examples</h3>
+            <pre><code><span class="comment">// Method 1: In options</span>
+<span class="function">SelectiveUI.bind</span>(<span class="string">'#mySelect'</span>, {
+    <span class="string">on:</span> {
+        <span class="string">load:</span> (callback, instance) => {
+            console.log(<span class="string">'SelectiveUI loaded!'</span>);
+        },
+        <span class="string">change:</span> (callback, instance, value) => {
+            console.log(<span class="string">'Value changed to:'</span>, value);
+        },
+        <span class="string">beforeChange:</span> (callback, instance, value) => {
+            <span class="keyword">if</span> (value === <span class="string">'3'</span>) {
+                callback.<span class="function">cancel</span>(); <span class="comment">// Prevent change</span>
+            }
+        }
+    }
+});
+
+<span class="comment">// Method 2: Using .on()</span>
+<span class="keyword">const</span> instance = <span class="function">SelectiveUI.find</span>(<span class="string">'#mySelect'</span>);
+instance.<span class="function">on</span>(<span class="string">'change'</span>, (callback, instance, value) => {
+    console.log(<span class="string">'Changed!'</span>, value);
+});</code></pre>
+        </section>
+
+        <!-- AJAX Section -->
+        <section id="ajax" class="section">
+            <h2>🌐 AJAX Configuration</h2>
+
+            <h3>Basic AJAX Setup</h3>
+            <pre><code><span class="function">SelectiveUI.bind</span>(<span class="string">'#mySelect'</span>, {
+    <span class="string">ajax:</span> {
+        <span class="string">url:</span> <span class="string">'/api/search'</span>,
+        <span class="string">method:</span> <span class="string">'POST'</span>, <span class="comment">// 'GET' or 'POST'</span>
+        <span class="string">keepSelected:</span> <span class="keyword">true</span> <span class="comment">// Keep selected items after loading</span>
+    }
+});</code></pre>
+
+            <h3>AJAX Options</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>url</code></td>
+                            <td>String</td>
+                            <td><span class="badge badge-required">Required</span></td>
+                            <td>API endpoint URL</td>
+                        </tr>
+                        <tr>
+                            <td><code>method</code></td>
+                            <td>String</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>"GET" or "POST". Default: "GET"</td>
+                        </tr>
+                        <tr>
+                            <td><code>keepSelected</code></td>
+                            <td>Boolean</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>Keep selected items. Default: false</td>
+                        </tr>
+                        <tr>
+                            <td><code>data</code></td>
+                            <td>Object | Function</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>Additional data sent to the server</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Request Parameters</h3>
+            <p>SelectiveUI automatically sends the following parameters:</p>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>search</code></td>
+                            <td>String</td>
+                            <td>Keyword search</td>
+                        </tr>
+                        <tr>
+                            <td><code>page</code></td>
+                            <td>Number</td>
+                            <td>Current page (pagination)</td>
+                        </tr>
+                        <tr>
+                            <td><code>selectedValue</code></td>
+                            <td>String</td>
+                            <td>Selected values (comma separated)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Response Format</h3>
+            <p>The server needs to return JSON in one of the following formats:</p>
+
+            <h4>Format 1: Simple Array (Options only)</h4>
+            <pre><code>[
+    { <span class="string">"value":</span> <span class="string">"1"</span>, <span class="string">"text":</span> <span class="string">"Option 1"</span> },
+    { <span class="string">"value":</span> <span class="string">"2"</span>, <span class="string">"text":</span> <span class="string">"Option 2"</span> }
+]</code></pre>
+
+            <h4>Format 2: With Groups (Simple)</h4>
+            <pre><code>[
+    {
+        <span class="string">"label":</span> <span class="string">"Fruits"</span>,
+        <span class="string">"options":</span> [
+            { <span class="string">"value":</span> <span class="string">"apple"</span>, <span class="string">"text":</span> <span class="string">"Apple 🍎"</span> },
+            { <span class="string">"value":</span> <span class="string">"banana"</span>, <span class="string">"text":</span> <span class="string">"Banana 🍌"</span> }
+        ]
+    },
+    {
+        <span class="string">"label":</span> <span class="string">"Vegetables"</span>,
+        <span class="string">"options":</span> [
+            { <span class="string">"value":</span> <span class="string">"carrot"</span>, <span class="string">"text":</span> <span class="string">"Carrot 🥕"</span> }
+        ]
+    },
+    { <span class="string">"value":</span> <span class="string">"other"</span>, <span class="string">"text":</span> <span class="string">"Other (no group)"</span> }
+]</code></pre>
+
+            <h4>Format 3: With Groups (Explicit Type)</h4>
+            <pre><code>[
+    {
+        <span class="string">"type":</span> <span class="string">"optgroup"</span>,
+        <span class="string">"label":</span> <span class="string">"Fruits"</span>,
+        <span class="string">"data":</span> {
+            <span class="string">"collapsed":</span> <span class="string">"false"</span>
+        },
+        <span class="string">"options":</span> [
+            { 
+                <span class="string">"value":</span> <span class="string">"apple"</span>, 
+                <span class="string">"text":</span> <span class="string">"Apple 🍎"</span>,
+                <span class="string">"data":</span> {
+                    <span class="string">"imgsrc":</span> <span class="string">"/images/apple.jpg"</span>
+                }
+            }
+        ]
+    },
+    {
+        <span class="string">"type":</span> <span class="string">"option"</span>,
+        <span class="string">"value":</span> <span class="string">"other"</span>,
+        <span class="string">"text":</span> <span class="string">"Other item"</span>
+    }
+]</code></pre>
+
+            <h4>Format 4: With Pagination</h4>
+            <pre><code>{
+    <span class="string">"object":</span> [
+        { <span class="string">"value":</span> <span class="string">"1"</span>, <span class="string">"text":</span> <span class="string">"Option 1"</span> },
+        { <span class="string">"value":</span> <span class="string">"2"</span>, <span class="string">"text":</span> <span class="string">"Option 2"</span> }
+    ],
+    <span class="string">"page":</span> <span class="number">0</span>,
+    <span class="string">"total_page":</span> <span class="number">5</span>
+}</code></pre>
+
+            <h4>Format 5: With Groups & Pagination</h4>
+            <pre><code>{
+    <span class="string">"data":</span> [
+        {
+            <span class="string">"label":</span> <span class="string">"Fruits"</span>,
+            <span class="string">"options":</span> [
+                { <span class="string">"value":</span> <span class="string">"apple"</span>, <span class="string">"text":</span> <span class="string">"Apple 🍎"</span> }
+            ]
+        },
+        { <span class="string">"value":</span> <span class="string">"single"</span>, <span class="string">"text":</span> <span class="string">"Single option"</span> }
+    ],
+    <span class="string">"page":</span> <span class="number">0</span>,
+    <span class="string">"totalPages":</span> <span class="number">5</span>,
+    <span class="string">"hasMore":</span> <span class="keyword">true</span>
+}</code></pre>
+
+            <h4>Format 6: With items key</h4>
+            <pre><code>{
+    <span class="string">"items":</span> [
+        {
+            <span class="string">"type":</span> <span class="string">"optgroup"</span>,
+            <span class="string">"label":</span> <span class="string">"Electronics"</span>,
+            <span class="string">"options":</span> [
+                { <span class="string">"value":</span> <span class="string">"phone"</span>, <span class="string">"text":</span> <span class="string">"Phone"</span> }
+            ]
+        }
+    ],
+    <span class="string">"pagination":</span> {
+        <span class="string">"page":</span> <span class="number">0</span>,
+        <span class="string">"totalPages":</span> <span class="number">5</span>,
+        <span class="string">"hasMore":</span> <span class="keyword">true</span>
+    }
+}</code></pre>
+
+            <h3>Item Object Properties</h3>
+            
+            <h4>Option Properties</h4>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>type</code></td>
+                            <td>String</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>"option" (automatically detect if not available <code>label</code>)</td>
+                        </tr>
+                        <tr>
+                            <td><code>value</code></td>
+                            <td>String</td>
+                            <td><span class="badge badge-required">Required</span></td>
+                            <td>Value of options</td>
+                        </tr>
+                        <tr>
+                            <td><code>text</code></td>
+                            <td>String</td>
+                            <td><span class="badge badge-required">Required</span></td>
+                            <td>Text is displayed</td>
+                        </tr>
+                        <tr>
+                            <td><code>selected</code></td>
+                            <td>Boolean</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>Selected or not</td>
+                        </tr>
+                        <tr>
+                            <td><code>data</code></td>
+                            <td>Object</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>Custom data (data-* attributes)</td>
+                        </tr>
+                        <tr>
+                            <td><code>imgsrc</code></td>
+                            <td>String</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>Image URL (when imageMode = true)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4>OptGroup Properties</h4>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>type</code></td>
+                            <td>String</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>"optgroup" (Automatically detect if there is a <code>label</code> or <code>options</code>)</td>
+                        </tr>
+                        <tr>
+                            <td><code>label</code></td>
+                            <td>String</td>
+                            <td><span class="badge badge-required">Required</span></td>
+                            <td>Group name</td>
+                        </tr>
+                        <tr>
+                            <td><code>data</code></td>
+                            <td>Object</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>Custom data for optgroup (ví dụ: <code>collapsed</code>)</td>
+                        </tr>
+                        <tr>
+                            <td><code>options</code></td>
+                            <td>Array</td>
+                            <td><span class="badge badge-required">Required</span></td>
+                            <td>Array of option objects</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4>Pagination Properties</h4>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Type</th>
+                            <th>Optional</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>page</code></td>
+                            <td>Number</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>Current page number</td>
+                        </tr>
+                        <tr>
+                            <td><code>totalPages</code> | <code>total_page</code></td>
+                            <td>Number</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>Total number of pages</td>
+                        </tr>
+                        <tr>
+                            <td><code>hasMore</code></td>
+                            <td>Boolean</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>The next page will be counted automatically if there is none</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Dynamic Data Function</h3>
+            <pre><code><span class="function">SelectiveUI.bind</span>(<span class="string">'#mySelect'</span>, {
+    <span class="string">ajax:</span> {
+        <span class="string">url:</span> <span class="string">'/api/search'</span>,
+        <span class="string">data:</span> <span class="keyword">function</span>(searchTerm, page) {
+            <span class="keyword">return</span> {
+                <span class="string">search:</span> searchTerm,
+                <span class="string">page:</span> page,
+                <span class="string">category:</span> <span class="string">'electronics'</span>,
+                <span class="string">limit:</span> <span class="number">20</span>,
+                <span class="string">userId:</span> getCurrentUserId()
+            };
+        }
+    }
+});</code></pre>
+
+            <h3>Server-side Examples</h3>
+            
+            <h4>PHP Example (With Groups)</h4>
+            <pre><code><span class="comment">// api/search.php</span>
+<span class="keyword">&lt;?php</span>
+$search = $_POST[<span class="string">'search'</span>] ?? <span class="string">''</span>;
+$page = (int)($_POST[<span class="string">'page'</span>] ?? <span class="number">0</span>);
+$limit = <span class="number">20</span>;
+$offset = $page * $limit;
+
+<span class="comment">// Query với group</span>
+$query = <span class="string">"SELECT 
+    c.name as category_name,
+    p.id as value, 
+    p.name as text,
+    p.image_url as imgsrc
+FROM products p
+LEFT JOIN categories c ON p.category_id = c.id
+WHERE p.name LIKE ? 
+ORDER BY c.name, p.name
+LIMIT ? OFFSET ?"</span>;
+
+$stmt = $pdo-><span class="function">prepare</span>($query);
+$stmt-><span class="function">execute</span>([<span class="string">"%$search%"</span>, $limit, $offset]);
+$results = $stmt-><span class="function">fetchAll</span>(PDO::FETCH_ASSOC);
+
+<span class="comment">// Group results</span>
+$grouped = [];
+$currentGroup = <span class="keyword">null</span>;
+
+<span class="keyword">foreach</span> ($results <span class="keyword">as</span> $row) {
+    <span class="keyword">if</span> ($row[<span class="string">'category_name'</span>]) {
+        <span class="keyword">if</span> ($currentGroup === <span class="keyword">null</span> || $currentGroup[<span class="string">'label'</span>] !== $row[<span class="string">'category_name'</span>]) {
+            <span class="keyword">if</span> ($currentGroup !== <span class="keyword">null</span>) {
+                $grouped[] = $currentGroup;
+            }
+            $currentGroup = [
+                <span class="string">'label'</span> => $row[<span class="string">'category_name'</span>],
+                <span class="string">'options'</span> => []
+            ];
+        }
+        $currentGroup[<span class="string">'options'</span>][] = [
+            <span class="string">'value'</span> => $row[<span class="string">'value'</span>],
+            <span class="string">'text'</span> => $row[<span class="string">'text'</span>],
+            <span class="string">'data'</span> => [<span class="string">'imgsrc'</span> => $row[<span class="string">'imgsrc'</span>]]
+        ];
+    } <span class="keyword">else</span> {
+        <span class="keyword">if</span> ($currentGroup !== <span class="keyword">null</span>) {
+            $grouped[] = $currentGroup;
+            $currentGroup = <span class="keyword">null</span>;
+        }
+        $grouped[] = [
+            <span class="string">'value'</span> => $row[<span class="string">'value'</span>],
+            <span class="string">'text'</span> => $row[<span class="string">'text'</span>]
+        ];
+    }
+}
+<span class="keyword">if</span> ($currentGroup !== <span class="keyword">null</span>) {
+    $grouped[] = $currentGroup;
+}
+
+<span class="comment">// Count total</span>
+$countQuery = <span class="string">"SELECT COUNT(*) FROM products WHERE name LIKE ?"</span>;
+$total = $pdo-><span class="function">query</span>($countQuery, [<span class="string">"%$search%"</span>])-><span class="function">fetchColumn</span>();
+$totalPages = ceil($total / $limit);
+
+<span class="comment">// Response</span>
+header(<span class="string">'Content-Type: application/json'</span>);
+echo json_encode([
+    <span class="string">'data'</span> => $grouped,
+    <span class="string">'page'</span> => $page,
+    <span class="string">'totalPages'</span> => $totalPages,
+    <span class="string">'hasMore'</span> => $page < $totalPages - <span class="number">1</span>
+]);
+<span class="keyword">?&gt;</span></code></pre>
+
+            <h4>Node.js Example (With Groups)</h4>
+            <pre><code><span class="comment">// api/search.js</span>
+app.<span class="function">post</span>(<span class="string">'/api/search'</span>, <span class="keyword">async</span> (req, res) => {
+    <span class="keyword">const</span> { search = <span class="string">''</span>, page = <span class="number">0</span> } = req.body;
+    <span class="keyword">const</span> limit = <span class="number">20</span>;
+    <span class="keyword">const</span> offset = page * limit;
+
+    <span class="comment">// Query database</span>
+    <span class="keyword">const</span> results = <span class="keyword">await</span> db.<span class="function">query</span>(<span class="string">`
+        SELECT 
+            c.name as category_name,
+            p.id as value,
+            p.name as text,
+            p.image_url as imgsrc
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.name ILIKE $1
+        ORDER BY c.name, p.name
+        LIMIT $2 OFFSET $3
+    `</span>, [<span class="string">`%${search}%`</span>, limit, offset]);
+
+    <span class="comment">// Group results</span>
+    <span class="keyword">const</span> grouped = [];
+    <span class="keyword">let</span> currentGroup = <span class="keyword">null</span>;
+
+    results.rows.<span class="function">forEach</span>(row => {
+        <span class="keyword">if</span> (row.category_name) {
+            <span class="keyword">if</span> (!currentGroup || currentGroup.label !== row.category_name) {
+                <span class="keyword">if</span> (currentGroup) grouped.<span class="function">push</span>(currentGroup);
+                currentGroup = {
+                    label: row.category_name,
+                    options: []
+                };
+            }
+            currentGroup.options.<span class="function">push</span>({
+                value: row.value,
+                text: row.text,
+                data: { imgsrc: row.imgsrc }
+            });
+        } <span class="keyword">else</span> {
+            <span class="keyword">if</span> (currentGroup) {
+                grouped.<span class="function">push</span>(currentGroup);
+                currentGroup = <span class="keyword">null</span>;
+            }
+            grouped.<span class="function">push</span>({
+                value: row.value,
+                text: row.text
+            });
+        }
+    });
+    <span class="keyword">if</span> (currentGroup) grouped.<span class="function">push</span>(currentGroup);
+
+    <span class="comment">// Count total</span>
+    <span class="keyword">const</span> total = <span class="keyword">await</span> db.<span class="function">query</span>(
+        <span class="string">'SELECT COUNT(*) FROM products WHERE name ILIKE $1'</span>,
+        [<span class="string">`%${search}%`</span>]
+    );
+    <span class="keyword">const</span> totalPages = Math.<span class="function">ceil</span>(total.rows[<span class="number">0</span>].count / limit);
+
+    res.<span class="function">json</span>({
+        data: grouped,
+        page: page,
+        totalPages: totalPages,
+        hasMore: page < totalPages - <span class="number">1</span>
+    });
+});</code></pre>
+
+            <h3>Complete AJAX Example with Groups</h3>
+            <pre><code><span class="function">SelectiveUI.bind</span>(<span class="string">'#products'</span>, {
+    <span class="string">ajax:</span> {
+        <span class="string">url:</span> <span class="string">'/api/products/search'</span>,
+        <span class="string">method:</span> <span class="string">'POST'</span>,
+        <span class="string">keepSelected:</span> <span class="keyword">true</span>,
+        <span class="string">data:</span> <span class="keyword">function</span>(search, page) {
+            <span class="keyword">return</span> {
+                <span class="string">q:</span> search,
+                <span class="string">page:</span> page,
+                <span class="string">per_page:</span> <span class="number">20</span>,
+                <span class="string">include_categories:</span> <span class="keyword">true</span>
+            };
+        }
+    },
+    <span class="string">placeholder:</span> <span class="string">'Search products...'</span>,
+    <span class="string">searchable:</span> <span class="keyword">true</span>,
+    <span class="string">imageMode:</span> <span class="keyword">true</span>,
+    <span class="string">imageWidth:</span> <span class="string">'60px'</span>,
+    <span class="string">imageHeight:</span> <span class="string">'60px'</span>,
+    <span class="string">multiple:</span> <span class="keyword">true</span>,
+    <span class="string">on:</span> {
+        <span class="string">load:</span> (callback, instance) => {
+            console.<span class="function">log</span>(<span class="string">'Products loaded with groups'</span>);
+        },
+        <span class="string">change:</span> (callback, instance, value) => {
+            console.<span class="function">log</span>(<span class="string">'Selected products:'</span>, value);
+        }
+    }
+});</code></pre>
+            
+            <h3>Tips for AJAX with Groups</h3>
+            <div class="info-box alert alert-info">
+                <ol>
+                    <li><strong>Group Detection:</strong> The library automatically detects groups if an item has a <code>label</code> hoặc <code>options</code> property</li>
+                    <li><strong>Mixed Content:</strong> It is possible to mix groups and single options in the same response</li>
+                    <li><strong>Group Data:</strong> Use <code>data.collapsed = "true"</code> to cause the default group to collapse</li>
+                    <li><strong>Pagination:</strong> Pagination works the same way for both grouped and non-grouped data</li>
+                    <li><strong>KeepSelected:</strong> Option <code>keepSelected: true</code> still works with items in groups</li>
+                    <li><strong>Performance:</strong> Groups help organize data better, especially with large lists</li>
+                </ol>
+            </div>
+
+            <h3>Troubleshooting</h3>
+            <div class="faq-box">
+                <div class="faq-item alert alert-info">
+                    <strong>Q: Groups not showing?</strong>
+                    <p>- Check if the response is in the correct format (<code>label</code> + <code>options</code>)<br>
+                    - Check the console log for parsing errors</p>
+                </div>
+                <div class="faq-item alert alert-info">
+                    <strong>Q: Does pagination not work with groups?</strong>
+                    <p>- Ensure that the <code>page</code>, <code>totalPages</code> are returned correctly<br>
+                    - Check infinite scroll trigger distance</p>
+                </div>
+                <div class="faq-item alert alert-info">
+                    <strong>Q: Are the selected items in the group missing?</strong>
+                    <p>- Use <code>keepSelected: true</code> in your ajax config<br>
+                    - The server needs to return the <code>selectedValue</code> in the request</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Examples Section -->
+        <section id="examples" class="section">
+            <h2>💡 Examples</h2>
+
+            <h3>1. Basic Single Select</h3>
+            <pre><code><span class="keyword">&lt;select</span> <span class="string">id="country"</span><span class="keyword">&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="vn"</span><span class="keyword">&gt;</span>Vietnam<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="us"</span><span class="keyword">&gt;</span>United States<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="uk"</span><span class="keyword">&gt;</span>United Kingdom<span class="keyword">&lt;/option&gt;</span>
+<span class="keyword">&lt;/select&gt;</span>
+
+<span class="keyword">&lt;script&gt;</span>
+<span class="function">SelectiveUI.bind</span>(<span class="string">'#country'</span>, {
+    <span class="string">placeholder:</span> <span class="string">'Select country'</span>,
+    <span class="string">searchable:</span> <span class="keyword">true</span>
+});
+<span class="keyword">&lt;/script&gt;</span></code></pre>
+
+            <h3>2. Multiple Selection</h3>
+            <pre><code><span class="keyword">&lt;select</span> <span class="string">id="human"</span> <span class="string">data-placeholder="Human functions"</span> <span class="string">multiple</span><span class="keyword">&gt;</span> 
+    <span class="keyword">&lt;option</span> <span class="string">value="wa"</span><span class="keyword">&gt;</span>Walk<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="sl"</span><span class="keyword">&gt;</span>Sleep<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="ea"</span><span class="keyword">&gt;</span>Eat<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="dr"</span><span class="keyword">&gt;</span>Drink<span class="keyword">&lt;/option&gt;</span>
+<span class="keyword">&lt;/select&gt;</span>
+
+<span class="keyword">&lt;script&gt;</span>
+<span class="function">SelectiveUI.bind</span>(<span class="string">'#human'</span>);
+<span class="keyword">&lt;/script&gt;</span></code></pre>
+
+            <h3>3. With Images</h3>
+            <pre><code><span class="keyword">&lt;select</span> <span class="string">id="products"</span><span class="keyword">&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="1"</span> <span class="string">data-imgsrc="img/product1.jpg"</span><span class="keyword">&gt;</span>Product 1<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="2"</span> <span class="string">data-imgsrc="img/product2.jpg"</span><span class="keyword">&gt;</span>Product 2<span class="keyword">&lt;/option&gt;</span>
+<span class="keyword">&lt;/select&gt;</span>
+
+<span class="keyword">&lt;script&gt;</span>
+<span class="function">SelectiveUI.bind</span>(<span class="string">'#products'</span>, {
+    <span class="string">imageMode:</span> <span class="keyword">true</span>,
+    <span class="string">imageWidth:</span> <span class="string">'80px'</span>,
+    <span class="string">imageHeight:</span> <span class="string">'80px'</span>,
+    <span class="string">imagePosition:</span> <span class="string">'left'</span>,
+    <span class="string">imageBorderRadius:</span> <span class="string">'8px'</span>
+});
+<span class="keyword">&lt;/script&gt;</span></code></pre>
+
+            <h3>4. AJAX with Pagination</h3>
+            <pre><code><span class="function">SelectiveUI.bind</span>(<span class="string">'#users'</span>, {
+    <span class="string">ajax:</span> {
+        <span class="string">url:</span> <span class="string">'/api/users'</span>,
+        <span class="string">method:</span> <span class="string">'POST'</span>,
+        <span class="string">keepSelected:</span> <span class="keyword">true</span>,
+        <span class="string">data:</span> <span class="keyword">function</span>(search, page) {
+            <span class="keyword">return</span> {
+                <span class="string">q:</span> search,
+                <span class="string">page:</span> page,
+                <span class="string">per_page:</span> <span class="number">20</span>
+            };
+        }
+    },
+    <span class="string">placeholder:</span> <span class="string">'Search users...'</span>,
+    <span class="string">searchable:</span> <span class="keyword">true</span>
+});</code></pre>
+
+            <h3>5. Prevent Change with Validation</h3>
+            <pre><code><span class="function">SelectiveUI.bind</span>(<span class="string">'#restricted'</span>, {
+    <span class="string">on:</span> {
+        <span class="string">beforeChange:</span> (callback, instance, newValue) => {
+            <span class="keyword">if</span> (!<span class="function">hasPermission</span>(newValue)) {
+                <span class="function">alert</span>(<span class="string">'You do not have permission!'</span>);
+                callback.<span class="function">cancel</span>();
+            }
+        }
+    }
+});</code></pre>
+
+            <h3>6. Custom Mask Display</h3>
+            <pre><code><span class="keyword">&lt;select</span> <span class="string">id="users"</span><span class="keyword">&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="1"</span> <span class="string">data-mask="&lt;b&gt;John&lt;/b&gt; Doe"</span><span class="keyword">&gt;</span>John Doe<span class="keyword">&lt;/option&gt;</span>
+    <span class="keyword">&lt;option</span> <span class="string">value="2"</span> <span class="string">data-mask="&lt;b&gt;Jane&lt;/b&gt; Smith"</span><span class="keyword">&gt;</span>Jane Smith<span class="keyword">&lt;/option&gt;</span>
+<span class="keyword">&lt;/select&gt;</span>
+
+<span class="keyword">&lt;script&gt;</span>
+<span class="function">SelectiveUI.bind</span>(<span class="string">'#users'</span>, {
+    <span class="string">allowHtml:</span> <span class="keyword">true</span>
+});
+<span class="keyword">&lt;/script&gt;</span></code></pre>
+
+            <h3>7. Programmatic Control</h3>
+            <pre><code><span class="keyword">const</span> select = <span class="function">SelectiveUI.find</span>(<span class="string">'#mySelect'</span>);
+
+<span class="comment">// Set value</span>
+select.value = <span class="string">'3'</span>;
+
+<span class="comment">// Set multiple values</span>
+select.value = [<span class="string">'1'</span>, <span class="string">'2'</span>, <span class="string">'5'</span>];
+
+<span class="comment">// Get selected text</span>
+console.log(select.valueText);
+
+<span class="comment">// Open programmatically</span>
+select.open();
+
+<span class="comment">// Close after 3 seconds</span>
+<span class="function">setTimeout</span>(() => select.close(), <span class="number">3000</span>);</code></pre>
+
+            <h3>8. Destroy & Rebind</h3>
+            <pre><code><span class="comment">// Destroy instance</span>
+SelectiveUI.destroy(<span class="string">'#mySelect'</span>);
+
+<span class="comment">// Rebind with new options</span>
+SelectiveUI.rebind(<span class="string">'#mySelect'</span>, {
+    <span class="string">multiple:</span> <span class="keyword">true</span>,
+    <span class="string">placeholder:</span> <span class="string">'New placeholder'</span>
+});</code></pre>
+        </section>
+
+        <!-- Customization Section -->
+        <section id="customization" class="section">
+            <h2>🎨 Customization</h2>
+
+            <h3>CSS Variables</h3>
+            <p>SelectiveUI uses CSS variables for easy customization:</p>
+
+            <pre><code><span class="keyword">:root</span> {
+    <span class="comment">/* View/Input colors */</span>
+    <span class="string">--seui-view-text-color:</span> <span class="string">#121212</span>;
+    <span class="string">--seui-view-background-color:</span> <span class="string">#fff</span>;
+    <span class="string">--seui-view-border-color:</span> <span class="string">#a3a3a3</span>;
+    <span class="string">--seui-view-border-radius:</span> <span class="string">5px</span>;
+    
+    <span class="comment">/* Popup colors */</span>
+    <span class="string">--seui-popup-background-color:</span> <span class="string">#fbfbfb</span>;
+    <span class="string">--seui-popup-border-color:</span> <span class="string">#a3a3a3</span>;
+    
+    <span class="comment">/* Checkbox colors */</span>
+    <span class="string">--seui-chkbox-background-color:</span> <span class="string">#fff</span>;
+    <span class="string">--seui-chkbox-checked-background-color:</span> <span class="string">#9dcff8</span>;
+    <span class="string">--seui-chkbox-hover-background-color:</span> <span class="string">#dbdbdb</span>;
+}</code></pre>
+
+            <h3>Custom Theme Example</h3>
+            <pre><code><span class="comment">/* Dark Theme */</span>
+<span class="keyword">.dark-theme</span> {
+    <span class="string">--seui-view-text-color:</span> <span class="string">#fff</span>;
+    <span class="string">--seui-view-background-color:</span> <span class="string">#2d2d2d</span>;
+    <span class="string">--seui-view-border-color:</span> <span class="string">#555</span>;
+    <span class="string">--seui-popup-background-color:</span> <span class="string">#1e1e1e</span>;
+    <span class="string">--seui-popup-border-color:</span> <span class="string">#555</span>;
+    <span class="string">--seui-chkbox-background-color:</span> <span class="string">#3d3d3d</span>;
+    <span class="string">--seui-chkbox-checked-background-color:</span> <span class="string">#0075ff</span>;
+}</code></pre>
+
+            <h3>Override CSS Classes</h3>
+            <pre><code><span class="comment">/* Custom option styling */</span>
+<span class="keyword">.selective-ui-option-view</span> {
+    <span class="string">padding:</span> <span class="string">15px</span>;
+    <span class="string">font-size:</span> <span class="string">16px</span>;
+    <span class="string">border-radius:</span> <span class="string">8px</span>;
+}
+
+<span class="keyword">.selective-ui-option-view:hover</span> {
+    <span class="string">background:</span> <span class="string">linear-gradient(135deg, #667eea 0%, #764ba2 100%)</span>;
+    <span class="string">color:</span> <span class="string">white</span>;
+}
+
+<span class="comment">/* Custom search box */</span>
+<span class="keyword">.selective-ui-searchbox-input</span> {
+    <span class="string">font-size:</span> <span class="string">16px</span>;
+    <span class="string">padding:</span> <span class="string">10px</span>;
+}</code></pre>
+
+            <h3>Available CSS Classes</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Class</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>.selective-ui-MAIN</code></td>
+                            <td>Main container</td>
+                        </tr>
+                        <tr>
+                            <td><code>.selective-ui-view</code></td>
+                            <td>View panel (input area)</td>
+                        </tr>
+                        <tr>
+                            <td><code>.selective-ui-popup</code></td>
+                            <td>Popup container</td>
+                        </tr>
+                        <tr>
+                            <td><code>.selective-ui-option-view</code></td>
+                            <td>Individual option</td>
+                        </tr>
+                        <tr>
+                            <td><code>.selective-ui-option-view.checked</code></td>
+                            <td>Selected option</td>
+                        </tr>
+                        <tr>
+                            <td><code>.selective-ui-option-view.highlight</code></td>
+                            <td>Highlighted option (keyboard nav)</td>
+                        </tr>
+                        <tr>
+                            <td><code>.selective-ui-searchbox</code></td>
+                            <td>Search container</td>
+                        </tr>
+                        <tr>
+                            <td><code>.selective-ui-searchbox-input</code></td>
+                            <td>Search input</td>
+                        </tr>
+                        <tr>
+                            <td><code>.selective-ui-empty-state</code></td>
+                            <td>Empty/no results state</td>
+                        </tr>
+                        <tr>
+                            <td><code>.selective-ui-accessorybox</code></td>
+                            <td>Selected items display (multiple mode)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Accessibility Section -->
+        <section id="accessibility" class="section">
+            <h2>♿ Accessibility</h2>
+
+            <div class="alert alert-info">
+                <strong>📢 Important:</strong> SelectiveUI is designed with accessibility in mind. However, the current version may need improvements to meet WCAG 2.1 AA/AAA standards
+            </div>
+
+            <h3>Keyboard Navigation</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><kbd>Tab</kbd></td>
+                            <td>Focus on the select option, or close the popup if it's currently open</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>Enter</kbd></td>
+                            <td>Open the popup or select the highlighted option</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>↓</kbd> Arrow Down</td>
+                            <td>Navigate to the next option</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>↑</kbd> Arrow Up</td>
+                            <td>Navigate to the previous option</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>Esc</kbd></td>
+                            <td>Close the popup</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <!-- Versions Section -->
+        <section id="versions" class="section">
+            <h2>🔃 Versions</h2>
+
+            <h3>V1.0.2 | 2026-01-06</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Features</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Update A11y</td>
+                        </tr>
+                        <tr>
+                            <td>Updated nodeCloner to support: roles, ariaLive, ariaLabelledby, ariaControls, ariaHaspopup, ariaMultiselectable, ariaAutocomplete</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Optimizations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>The internal directory `view/` has been renamed to `views/` for easier understanding</td>
+                        </tr>
+                        <tr>
+                            <td>Place the guard command file in the `utils/` directory</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fixes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Memory leak with observers when the popup is opened and closed repeatedly</td>
+                        </tr>
+                        <tr>
+                            <td>Exception error in some use cases with find() (detected by unit tests)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>V1.0.1 | 2026-01-02</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Optimizations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Streamline and optimize the source code</td>
+                        </tr>
+                        <tr>
+                            <td>Remove the internal event mounter</td>
+                        </tr>
+                        <tr>
+                            <td>Use normalize for the function to remove the sign</td>
+                        </tr>
+                        <tr>
+                            <td>Streamline the processing of Properties: disabled, readonly, visible</td>
+                        </tr>
+                        <tr>
+                            <td>Remove unused code</td>
+                        </tr>
+                        <tr>
+                            <td>Modernizing the IsIOS check function</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fixes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>The selector disappears after setting the Properties: disabled, readonly, visible</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>V1.0.0 | 2025-12-31</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Features</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Broti compression support</td>
+                        </tr>
+                        <tr>
+                            <td>Add .map scripts for debugging</td>
+                        </tr>
+                        <tr>
+                            <td>Add minify script for esm</td>
+                        </tr>
+                        <tr>
+                            <td>Clarify the source code through internal comments</td>
+                        </tr>
+                        <tr>
+                            <td>Group support via AJAX</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fixes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Sometimes the search function doesn't work when you press enter</td>
+                        </tr>
+                        <tr>
+                            <td>Inconsistent internal APIs make it difficult to maintain compatibility in the long term</td>
+                        </tr>
+                        <tr>
+                            <td>An unexpected error occurred when an option was dynamically loaded with a bound Select tag</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>V1.0.0.beta1 | 2025-12-29</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Features</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Add the maxSelected configuration to limit the selectors</td>
+                        </tr>
+                        <tr>
+                            <td>The visible configuration support determines whether to hide or show all tags</td>
+                        </tr>
+                        <tr>
+                            <td>Restructure some attributes to match real-world conditions<br>
+                            (accessoryStyle, textLoading, textNoData, textNotFound, textSelectAll, textDeselectAll)</td>
+                        </tr>
+                        <tr>
+                            <td>Add the attribute textAccessoryDeselect (comment for the deselect button in the function frame)</td>
+                        </tr>
+                        <tr>
+                            <td>Larger font size for iOS devices</td>
+                        </tr>
+                        <tr>
+                            <td>Supports A11y standard</td>
+                        </tr>
+                        <tr>
+                            <td>Supports access via tabindex and enter key</td>
+                        </tr>
+                        <tr>
+                            <td>Automate the input size system, eliminating pixel-fixing</td>
+                        </tr>
+                        <tr>
+                            <td>Supports single-level groups with optgroup tags</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fixes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>The movement animation did not end as expected</td>
+                        </tr>
+                        <tr>
+                            <td>The placeholder was unexpectedly replaced</td>
+                        </tr>
+                        <tr>
+                            <td>Surface values do not refresh when options are replaced</td>
+                        </tr>
+                        <tr>
+                            <td>Memory leak involving objects that have not been thoroughly cleaned up</td>
+                        </tr>
+                        <tr>
+                            <td>The popup displayed on iOS devices is skewed vertically when the keyboard appears</td>
+                        </tr>
+                        <tr>
+                            <td>Unable to capture the cleanup event during search</td>
+                        </tr>
+                        <tr>
+                            <td>Fix XSS security vulnerability</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>V1.0.0.beta0 | 2025-12-25</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Features</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Starter version</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+    <div class="footer">
+        <div>
+            <span>SelectiveUI (SEUI) Documentation | Maintained by: Huỳnh Công Xuân Mai</span>
+        </div>
+    </div>
+</body>

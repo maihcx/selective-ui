@@ -1,0 +1,62 @@
+.selective-ui-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.selective-ui-group.hide {
+    display: none;
+}
+
+.selective-ui-group-header {
+    font-family: var(--seui-view-text-style);
+    font-size: var(--seui-view-text-size);
+    font-weight: 600;
+    color: var(--seui-view-text-color);
+    padding: 8px 12px;
+    background-color: var(--seui-view-optgroup-background-color);
+    border-radius: var(--seui-option-border-radius);
+    /* position: sticky; */
+    /* top: 0; */
+    z-index: 1;
+    cursor: pointer;
+    user-select: none;
+    
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.selective-ui-group-header::before {
+    content: "";
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 7px solid currentColor;
+    transition: transform 200ms ease;
+    transform: rotate(90deg);
+}
+
+.selective-ui-group.collapsed .selective-ui-group-header::before {
+    transform: rotate(0deg);
+}
+
+.selective-ui-group-items {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-left: 16px;
+}
+
+.selective-ui-group.collapsed .selective-ui-group-items {
+    display: none;
+}
+
+/* Option trong group có indent nhẹ hơn */
+.selective-ui-group-items .selective-ui-option-view {
+    padding-left: 12px;
+    border-left: 2px solid #e0e0e0;
+    margin-left: 4px;
+}

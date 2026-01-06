@@ -1,0 +1,64 @@
+.selective-ui-accessorybox {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    gap: 2px;
+    padding: var(--seui-accessory-padding);
+    max-width: var(--seui-accessory-max-width);
+    max-height: var(--seui-accessory-max-height);
+    overflow-y: scroll;
+}
+
+.accessory-item {
+    display: flex;
+        align-items: center;
+
+    overflow: hidden;
+    border-color: var(--seui-accessory-item-border-color);
+    border-style: var(--seui-accessory-item-border-style);
+    border-width: var(--seui-accessory-item-border-width);
+    border-radius: var(--seui-accessory-item-border-radius);
+
+    background: var(--seui-accessory-item-background);
+    font-size: var(--seui-accessory-item-font-size);
+    padding: var(--seui-accessory-item-padding);
+    gap: var(--seui-accessory-item-gap);
+}
+
+.accessory-item > .accessory-item-button {
+    position: relative;
+    cursor: pointer;
+    color: var(--seui-accessory-item-button-color);
+    font-weight: bold;
+
+    border-color: var(--seui-accessory-item-button-border-color);
+    border-style: var(--seui-accessory-item-button-border-style);
+    border-width: var(--seui-accessory-item-button-border-width);
+    border-radius: var(--seui-accessory-item-button-border-radius);
+
+    width: var(--seui-accessory-item-button-width);
+    min-width: var(--seui-accessory-item-button-width);
+    height: var(--seui-accessory-item-button-height);
+    min-height: var(--seui-accessory-item-button-height);
+}
+
+.accessory-item > .accessory-item-button::after {
+    background: url('data:image/svg+xml,<svg width="16" height="16" xmlns="http://www.w3.org/2000/svg"><g><title>Layer 1</title><g transform="rotate(45 8 8)" stroke="null" id="svg_28"><rect stroke="%23000" rx="1" id="svg_20" height="1.41129" width="7.76211" y="7.29435" x="4.11895" stroke-width="0" fill="%234c4c4c"/><rect stroke="%23000" transform="matrix(0 0.705646 -0.705646 0 12.0262 3.97378)" rx="1" id="svg_27" height="2" width="11" y="4.70572" x="0.20572" stroke-width="0" fill="%234c4c4c"/></g></g></svg>');
+    display: block;
+    content: "";
+    position: absolute;
+    background-repeat: no-repeat;
+    background-position: center center;
+    width: 100%;
+    height: 100%;
+}
+
+.accessory-item > .accessory-item-content {
+    color: var(--seui-accessory-item-content-color);
+    font-size: var(--seui-accessory-item-content-font-size);
+    padding: var(--seui-accessory-item-content-padding);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

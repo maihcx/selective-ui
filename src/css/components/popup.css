@@ -1,0 +1,39 @@
+.selective-ui-popup, .selective-ui-popup * {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+
+    line-height: normal;
+}
+
+.selective-ui-popup {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    overflow: none;
+    flex-direction: column;
+    
+    height: 0px;
+    padding: 2px;
+    gap: 2px;
+
+    background-color: var(--seui-popup-background-color);
+    border-color: var(--seui-popup-border-color);
+    border-style: var(--seui-popup-border-style);
+    border-width: var(--seui-popup-border-width);
+    border-radius: var(--seui-popup-border-radius);
+}
+
+.selective-ui-options-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 2px;
+
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
+.selective-ui-options-container.hide {
+    display: none;
+}
