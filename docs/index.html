@@ -458,7 +458,7 @@
     <div class="header">
         <h1>📦 SelectiveUI</h1>
         <p>Advanced Custom Select Component - Pure JavaScript, Zero Dependencies</p>
-        <div class="version-badge">v1.0.2</div>
+        <div class="version-badge">v1.0.3</div>
     </div>
 
     <!-- Navigation -->
@@ -651,14 +651,14 @@
 
             <h3>1. CDN</h3>
             <pre><code><span class="comment">// Add to your HTML</span>
-<span class="keyword">&lt;link</span> <span class="string">rel="stylesheet"</span> <span class="string">href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.2/dist/selective-ui.min.css"</span><span class="keyword">&gt;</span>
-<span class="keyword">&lt;script</span> <span class="string">src="https://cdn.jsdelivr.net/npm/selective-ui@1.0.2/dist/selective-ui.min.js"</span><span class="keyword">&gt;&lt;/script&gt;</span></code></pre>
+<span class="keyword">&lt;link</span> <span class="string">rel="stylesheet"</span> <span class="string">href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.3/dist/selective-ui.min.css"</span><span class="keyword">&gt;</span>
+<span class="keyword">&lt;script</span> <span class="string">src="https://cdn.jsdelivr.net/npm/selective-ui@1.0.3/dist/selective-ui.min.js"</span><span class="keyword">&gt;&lt;/script&gt;</span></code></pre>
 
             <h3>2. NPM</h3>
             <pre><code>npm install selective-ui</code></pre>
 
             <h3>3. Download</h3>
-            <p>Download files directly <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.2/dist/selective-ui.min.js"><code>selective-ui.min.js</code></a> và <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.2/dist/selective-ui.min.css"><code>selective-ui.min.css</code></a></p>
+            <p>Download files directly <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.3/dist/selective-ui.min.js"><code>selective-ui.min.js</code></a> và <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.3/dist/selective-ui.min.css"><code>selective-ui.min.css</code></a></p>
 
             <div class="alert alert-info">
                 <strong>💡 Note:</strong> Ensure that CSS is loaded before JavaScript to avoid FOUC (Flash of Unstyled Content)
@@ -713,7 +713,7 @@
 <span class="comment">// SelectiveUI.bind('#mySelect');</span>
 <span class="comment">// SelectiveUI.bind('#myMultiSelect');</span>
 
-<span class="comment">// Với options</span>
+<span class="comment">// With options</span>
 <span class="function">SelectiveUI.bind</span>(<span class="string">'#mySelect, #myGroupSelect'</span>, {
     <span class="string">placeholder:</span> <span class="string">'Choose an option'</span>,
     <span class="string">searchable:</span> <span class="keyword">true</span>
@@ -807,7 +807,7 @@ selectInstance.toggle();</code></pre>
 </select>
 <script>
     SelectiveUI.bind('#mySelectSmartTag', {
-        placeholder: 'Chọn một tùy chọn',
+        placeholder: 'Choose an option',
         searchable: true
     });
 </script></pre>
@@ -1012,37 +1012,37 @@ selectInstance.toggle();</code></pre>
                         <tr>
                             <td><code>textLoading</code></td>
                             <td>String</td>
-                            <td>"Đang xử lý..."</td>
+                            <td>"Processing..."</td>
                             <td>Text displayed during loading</td>
                         </tr>
                         <tr>
                             <td><code>textNoData</code></td>
                             <td>String</td>
-                            <td>"Không có dữ liệu"</td>
+                            <td>"No data available"</td>
                             <td>Text when no data is available</td>
                         </tr>
                         <tr>
                             <td><code>textNotFound</code></td>
                             <td>String</td>
-                            <td>"Không tìm thấy"</td>
+                            <td>"Not found"</td>
                             <td>Text when searching yields no results</td>
                         </tr>
                         <tr>
                             <td><code>textSelectAll</code></td>
                             <td>String</td>
-                            <td>"Chọn tất cả"</td>
+                            <td>"Select all"</td>
                             <td>Text the select all button</td>
                         </tr>
                         <tr>
                             <td><code>textDeselectAll</code></td>
                             <td>String</td>
-                            <td>"Bỏ chọn"</td>
+                            <td>"Deselect all"</td>
                             <td>Text deselect button</td>
                         </tr>
                         <tr>
                             <td><code>textAccessoryDeselect</code></td>
                             <td>String</td>
-                            <td>"Bỏ chọn: "</td>
+                            <td>"Deselect: "</td>
                             <td>Text annotation for the deselect button in the function frame</td>
                         </tr>
                         <tr>
@@ -2140,6 +2140,22 @@ SelectiveUI.rebind(<span class="string">'#mySelect'</span>, {
                         <tr>
                             <td><strong>Vietcombank</strong></td>
                             <td>1047526877</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>V1.0.3 | 2026-01-06</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Features</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Use English for default settings.</td>
                         </tr>
                     </tbody>
                 </table>
