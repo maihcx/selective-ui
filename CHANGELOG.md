@@ -1,6 +1,6 @@
 # 1.0.3 (2026-01-06)
 
-### Fixes
+### Features
 
 - **i18n** Use `English` for default settings.
 
