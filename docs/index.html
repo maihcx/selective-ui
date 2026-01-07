@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SelectiveUI is a lightweight JavaScript library for building dynamic select elements. It automatically binds and loads options, making select inputs easier and faster for developers to use.">
     <title>SelectiveUI - Complete Documentation</title>
     <style>
         :root {
@@ -450,15 +451,15 @@
         .number { color: #005cc5; }
     </style>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.3/dist/selective-ui.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/selective-ui@1.0.3/dist/selective-ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.4/dist/selective-ui.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/selective-ui@1.0.4/dist/selective-ui.min.js"></script>
 </head>
 <body>
     <!-- Header -->
     <div class="header">
         <h1>📦 SelectiveUI</h1>
         <p>Advanced Custom Select Component - Pure JavaScript, Zero Dependencies</p>
-        <div class="version-badge">v1.0.3</div>
+        <div class="version-badge">v1.0.4</div>
     </div>
 
     <!-- Navigation -->
@@ -628,7 +629,7 @@
                         <li>Auto Debouncing</li>
                         <li>Efficient DOM operations</li>
                         <li>Memory leak prevention</li>
-                        <li>Size: ~55KB minified</li>
+                        <li>Size: ~60KB minified</li>
                     </ul>
                 </div>
 
@@ -651,14 +652,14 @@
 
             <h3>1. CDN</h3>
             <pre><code><span class="comment">// Add to your HTML</span>
-<span class="keyword">&lt;link</span> <span class="string">rel="stylesheet"</span> <span class="string">href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.3/dist/selective-ui.min.css"</span><span class="keyword">&gt;</span>
-<span class="keyword">&lt;script</span> <span class="string">src="https://cdn.jsdelivr.net/npm/selective-ui@1.0.3/dist/selective-ui.min.js"</span><span class="keyword">&gt;&lt;/script&gt;</span></code></pre>
+<span class="keyword">&lt;link</span> <span class="string">rel="stylesheet"</span> <span class="string">href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.4/dist/selective-ui.min.css"</span><span class="keyword">&gt;</span>
+<span class="keyword">&lt;script</span> <span class="string">src="https://cdn.jsdelivr.net/npm/selective-ui@1.0.4/dist/selective-ui.min.js"</span><span class="keyword">&gt;&lt;/script&gt;</span></code></pre>
 
             <h3>2. NPM</h3>
             <pre><code>npm install selective-ui</code></pre>
 
             <h3>3. Download</h3>
-            <p>Download files directly <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.3/dist/selective-ui.min.js"><code>selective-ui.min.js</code></a> and <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.3/dist/selective-ui.min.css"><code>selective-ui.min.css</code></a></p>
+            <p>Download files directly <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.4/dist/selective-ui.min.js"><code>selective-ui.min.js</code></a> and <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.4/dist/selective-ui.min.css"><code>selective-ui.min.css</code></a></p>
 
             <div class="alert alert-info">
                 <strong>💡 Note:</strong> Ensure that CSS is loaded before JavaScript to avoid FOUC (Flash of Unstyled Content)
@@ -1367,14 +1368,22 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
                             <td><code>data</code></td>
                             <td>Object | Function</td>
                             <td><span class="badge badge-optional">Optional</span></td>
-                            <td>Additional data sent to the server</td>
+                            <td>Additional data sent to the server for search requests</td>
+                        </tr>
+                        <tr>
+                            <td><code>dataByValues</code></td>
+                            <td>Function</td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>Custom function to prepare payload when loading specific values. If not provided, default payload is used.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <h3>Request Parameters</h3>
-            <p>SelectiveUI automatically sends the following parameters:</p>
+    
+            <h4>Search Request (Normal)</h4>
+            <p>SelectiveUI automatically sends the following parameters for search:</p>
             <div class="table-content">
                 <table>
                     <thead>
@@ -1404,17 +1413,53 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
                 </table>
             </div>
 
+            <h4>Load by Values Request (setValue)</h4>
+            <p>When using <code>setValue()</code> with values not yet loaded, SelectiveUI sends:</p>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>load_by_values</code></td>
+                            <td>String</td>
+                            <td>Flag "1" to indicate this is a load-by-values request</td>
+                        </tr>
+                        <tr>
+                            <td><code>values</code></td>
+                            <td>String</td>
+                            <td>Comma-separated list of values to load (e.g., "101,202,303")</td>
+                        </tr>
+                        <tr>
+                            <td><code>+ data params</code></td>
+                            <td>Mixed</td>
+                            <td>Additional parameters from <code>data</code> config (if function)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-box alert alert-info">
+                <strong>💡 Auto-load Missing Values:</strong>
+                <p>When you use <code>setValue()</code> with values that don't exist in the current options, SelectiveUI automatically loads them from the server in the background. This works synchronously - existing values are selected immediately, while missing values are loaded without blocking the UI.</p>
+            </div>
+
             <h3>Response Format</h3>
-            <p>The server needs to return JSON in one of the following formats:</p>
+            <p>The server needs to return JSON in one of the following formats (same for both search and load-by-values requests):</p>
 
             <h4>Format 1: Simple Array (Options only)</h4>
-            <pre><code>[
+    <pre><code>[
     { <span class="string">"value":</span> <span class="string">"1"</span>, <span class="string">"text":</span> <span class="string">"Option 1"</span> },
     { <span class="string">"value":</span> <span class="string">"2"</span>, <span class="string">"text":</span> <span class="string">"Option 2"</span> }
 ]</code></pre>
 
-            <h4>Format 2: With Groups (Simple)</h4>
-            <pre><code>[
+    <h4>Format 2: With Groups (Simple)</h4>
+    <pre><code>[
     {
         <span class="string">"label":</span> <span class="string">"Fruits"</span>,
         <span class="string">"options":</span> [
@@ -1431,8 +1476,8 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
     { <span class="string">"value":</span> <span class="string">"other"</span>, <span class="string">"text":</span> <span class="string">"Other (no group)"</span> }
 ]</code></pre>
 
-            <h4>Format 3: With Groups (Explicit Type)</h4>
-            <pre><code>[
+    <h4>Format 3: With Groups (Explicit Type)</h4>
+    <pre><code>[
     {
         <span class="string">"type":</span> <span class="string">"optgroup"</span>,
         <span class="string">"label":</span> <span class="string">"Fruits"</span>,
@@ -1456,8 +1501,8 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
     }
 ]</code></pre>
 
-            <h4>Format 4: With Pagination</h4>
-            <pre><code>{
+    <h4>Format 4: With Pagination</h4>
+    <pre><code>{
     <span class="string">"object":</span> [
         { <span class="string">"value":</span> <span class="string">"1"</span>, <span class="string">"text":</span> <span class="string">"Option 1"</span> },
         { <span class="string">"value":</span> <span class="string">"2"</span>, <span class="string">"text":</span> <span class="string">"Option 2"</span> }
@@ -1466,8 +1511,8 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
     <span class="string">"total_page":</span> <span class="number">5</span>
 }</code></pre>
 
-            <h4>Format 5: With Groups & Pagination</h4>
-            <pre><code>{
+    <h4>Format 5: With Groups & Pagination</h4>
+    <pre><code>{
     <span class="string">"data":</span> [
         {
             <span class="string">"label":</span> <span class="string">"Fruits"</span>,
@@ -1482,8 +1527,8 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
     <span class="string">"hasMore":</span> <span class="keyword">true</span>
 }</code></pre>
 
-            <h4>Format 6: With items key</h4>
-            <pre><code>{
+    <h4>Format 6: With items key</h4>
+    <pre><code>{
     <span class="string">"items":</span> [
         {
             <span class="string">"type":</span> <span class="string">"optgroup"</span>,
@@ -1501,7 +1546,7 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
 }</code></pre>
 
             <h3>Item Object Properties</h3>
-            
+
             <h4>Option Properties</h4>
             <div class="table-content">
                 <table>
@@ -1629,7 +1674,7 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
             </div>
 
             <h3>Dynamic Data Function</h3>
-            <pre><code><span class="function">SelectiveUI.bind</span>(<span class="string">'#mySelect'</span>, {
+    <pre><code><span class="function">SelectiveUI.bind</span>(<span class="string">'#mySelect'</span>, {
     <span class="string">ajax:</span> {
         <span class="string">url:</span> <span class="string">'/api/search'</span>,
         <span class="string">data:</span> <span class="keyword">function</span>(searchTerm, page) {
@@ -1654,7 +1699,7 @@ $page = (int)($_POST[<span class="string">'page'</span>] ?? <span class="number"
 $limit = <span class="number">20</span>;
 $offset = $page * $limit;
 
-<span class="comment">// Query với group</span>
+<span class="comment">// Query with group</span>
 $query = <span class="string">"SELECT 
     c.name as category_name,
     p.id as value, 
@@ -2145,6 +2190,40 @@ SelectiveUI.rebind(<span class="string">'#mySelect'</span>, {
                 </table>
             </div>
 
+            <h3>V1.0.4 | 2026-01-07</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Features</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Add a loadByValues mechanism to the `setValue` and `value` instances if the value does not exist (for use with Ajax)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fixes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>The aria-* errors cause the Lighthouse score to drop</td>
+                        </tr>
+                        <tr>
+                            <td>The map versions are not loading correctly in the current version</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <h3>V1.0.3 | 2026-01-06</h3>
             <div class="table-content">
                 <table>
@@ -2155,7 +2234,7 @@ SelectiveUI.rebind(<span class="string">'#mySelect'</span>, {
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Use English for default settings.</td>
+                            <td>Use English for default settings</td>
                         </tr>
                     </tbody>
                 </table>

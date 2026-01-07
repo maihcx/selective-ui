@@ -26,7 +26,7 @@ import { checkDuplicate, markLoaded } from "./utils/guard";
 import { Libs } from "./utils/libs";
 import { Effector } from "./services/effector";
 
-export const version = "1.0.3";
+export const version = "1.0.4";
 export const name = "SelectiveUI";
 
 const alreadyLoaded = checkDuplicate(name);

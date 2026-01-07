@@ -1,8 +1,20 @@
+# 1.0.4 (2026-01-07)
+
+### Features
+
+- **SearchController,SelectBox** Add a loadByValues mechanism to the `setValue` and `value` instances if the value does not exist (for use with Ajax)
+
+### Fixes
+
+- **SelectBox** The `aria-*` errors cause the `Lighthouse` score to drop
+
+- **rollup** The map versions are not loading correctly in the current version
+
 # 1.0.3 (2026-01-06)
 
 ### Features
 
-- **i18n** Use `English` for default settings.
+- **i18n** Use `English` for default settings
 
 # 1.0.2 (2026-01-06)
 

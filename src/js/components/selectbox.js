@@ -137,13 +137,7 @@ export class SelectBox {
                         tag: {
                             node: "div", 
                             classList: "selective-ui-view", 
-                            tabIndex: 0, 
-                            role: "combobox",
-                            ariaExpanded: "false",
-                            ariaLabelledby: options.SEID_HOLDER,
-                            ariaControls: options.SEID_LIST,
-                            ariaHaspopup: "true",
-                            ariaMultiselectable: options.multiple ? "true" : "false",
+                            tabIndex: 0,
                             onkeydown: (e) => {
                                 if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
                                     e.preventDefault();
@@ -463,10 +457,21 @@ export class SelectBox {
             },
             setValue(evtToken = null, value, trigger = true, force = false) {
                 !Array.isArray(value) && (value = [value]);
+                
+                value = value.filter(v => v !== "" && v != null);
+                
+                if (value.length === 0) {
+                    superThis.getModelOption().forEach(modelOption => {
+                        modelOption["selectedNonTrigger"] = false;
+                    });
+                    this.change(false, trigger);
+                    return;
+                }
 
                 if (bindedOptions.multiple && bindedOptions.maxSelected > 0) {
                     if (value.length > bindedOptions.maxSelected) {
-                        return
+                        console.warn(`Cannot select more than ${bindedOptions.maxSelected} items`);
+                        return;
                     }
                 }
 
@@ -474,12 +479,58 @@ export class SelectBox {
                     return;
                 }
 
+                if (container.searchController?.isAjax()) {
+                    const { existing, missing } = container.searchController.checkMissingValues(value);
+                    
+                    if (missing.length > 0) {
+                        console.log(`Loading ${missing.length} missing values from server...`);
+                        
+                        (async () => {
+                            if (bindedOptions.loadingfield) {
+                                container.popup?.showLoading();
+                            }
+                            
+                            try {
+                                const result = await container.searchController.loadByValues(missing);
+                                
+                                if (result.success && result.items.length > 0) {
+                                    result.items.forEach(item => {
+                                        if (missing.includes(item.value)) {
+                                            item.selected = true;
+                                        }
+                                    });
+                                    
+                                    container.searchController['#applyAjaxResult'](
+                                        result.items, 
+                                        true,
+                                        true
+                                    );
+                                    
+                                    setTimeout(() => {
+                                        superThis.getModelOption().forEach(modelOption => {
+                                            modelOption["selectedNonTrigger"] = value.some(v => v == modelOption["value"]);
+                                        });
+                                        this.change(false, false);
+                                    }, 100);
+                                } else if (missing.length > 0) {
+                                    console.warn(`Could not load ${missing.length} values:`, missing);
+                                }
+                            } catch (error) {
+                                console.error("Error loading missing values:", error);
+                            } finally {
+                                if (bindedOptions.loadingfield) {
+                                    container.popup?.hideLoading();
+                                }
+                            }
+                        })();
+                    }
+                }
+
                 if (trigger) {
                     const beforeChangeToken = iEvents.callEvent([this], ...bindedOptions.on.beforeChange);
                     if (beforeChangeToken.isCancel) {
                         return;
                     }
-
                     superThis.oldValue = this.value;
                 }
 
@@ -487,7 +538,7 @@ export class SelectBox {
                     modelOption["selectedNonTrigger"] = value.some(v => v == modelOption["value"]);
                 });
                 
-                if (!bindedOptions.multiple){
+                if (!bindedOptions.multiple && value.length > 0) {
                     container.targetElement.value = value[0];
                 }
                 
@@ -539,8 +590,14 @@ export class SelectBox {
                 
                 container.popup.open();
                 container.searchbox.show();
-
-                container.tags.ViewPanel.setAttribute("aria-expanded", "true");
+                const ViewPanel = /** @type {HTMLElement} */ (container.tags.ViewPanel);
+                ViewPanel.setAttribute("aria-expanded", "true");
+                ViewPanel.setAttribute("aria-controls", bindedOptions.SEID_LIST);
+                ViewPanel.setAttribute("aria-haspopup", "listbox");
+                ViewPanel.setAttribute("aria-labelledby", bindedOptions.SEID_HOLDER);
+                if (bindedOptions.multiple) { 
+                    ViewPanel.setAttribute("aria-multiselectable", "true");
+                }
                 
                 iEvents.callEvent([this], ...bindedOptions.on.show);
 

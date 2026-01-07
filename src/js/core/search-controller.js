@@ -47,6 +47,88 @@ export class SearchController {
     }
 
     /**
+     * Load specific options by their values from server
+     * @param {string|string[]} values - Values to load
+     * @returns {Promise<{success: boolean, items: Array, message?: string}>}
+     */
+    async loadByValues(values) {
+        if (!this.#ajaxConfig) {
+            return { success: false, items: [], message: "Ajax not configured" };
+        }
+
+        const valuesArray = Array.isArray(values) ? values : [values];
+        if (valuesArray.length === 0) {
+            return { success: true, items: [] };
+        }
+        
+        try {
+            const cfg = this.#ajaxConfig;
+            
+            let payload;
+            if (typeof cfg.dataByValues === "function") {
+                payload = cfg.dataByValues(valuesArray);
+            } else {
+                payload = {
+                    values: valuesArray.join(","),
+                    load_by_values: "1",
+                    ...(typeof cfg.data === "function" ? cfg.data("", 0) : (cfg.data || {}))
+                };
+            }
+
+            let response;
+            if (cfg.method === "POST") {
+                const formData = new URLSearchParams();
+                Object.keys(payload).forEach(key => {
+                    formData.append(key, payload[key]);
+                });
+
+                response = await fetch(cfg.url, {
+                    method: "POST",
+                    body: formData,
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" }
+                });
+            } else {
+                const params = new URLSearchParams(payload).toString();
+                response = await fetch(`${cfg.url}?${params}`);
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const result = this.#parseResponse(data);
+            
+            return {
+                success: true,
+                items: result.items
+            };
+        } catch (error) {
+            console.error("Load by values error:", error);
+            return { 
+                success: false, 
+                message: error.message,
+                items: []
+            };
+        }
+    }
+
+    /**
+     * Check if values exist in current options
+     * @param {string[]} values - Values to check
+     * @returns {{existing: string[], missing: string[]}}
+     */
+    checkMissingValues(values) {
+        const allOptions = Array.from(this.#select.options);
+        const existingValues = allOptions.map(opt => opt.value);
+        
+        const existing = values.filter(v => existingValues.includes(v));
+        const missing = values.filter(v => !existingValues.includes(v));
+        
+        return { existing, missing };
+    }
+
+    /**
      * Configures AJAX settings used for remote searching and pagination.
      *
      * @param {object} config - AJAX configuration object (e.g., endpoint, headers, query params).
