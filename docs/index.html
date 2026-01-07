@@ -35,6 +35,34 @@
             background: #fff;
         }
 
+        .button-arrow-down {
+            width: 80px;
+            height: 80px;
+            mask-image: url('data:image/svg+xml,<svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M300 150C300 232.843 232.843 300 150 300C67.1573 300 2.93554e-06 232.843 6.55671e-06 150C1.01779e-05 67.1573 67.1573 2.93554e-06 150 6.55671e-06C232.843 1.01779e-05 300 67.1573 300 150ZM275 150C275 80.9644 219.036 25 150 25C80.9644 25 25 80.9644 25 150C25 219.036 80.9644 275 150 275C219.036 275 275 219.036 275 150Z" fill="black"/><path d="M196.02 131.295C207.566 131.295 214.783 143.795 209.01 153.795L162.99 233.503C157.217 243.503 142.783 243.502 137.01 233.503L90.9902 153.795C85.2172 143.795 92.4338 131.295 103.98 131.295L137.199 131.295L137.199 56.4707C137.199 49.5833 142.783 44 149.67 44C156.557 44.0002 162.141 49.5835 162.141 56.4707L162.141 131.295L196.02 131.295ZM113.67 152.079L149.67 214.434L185.67 152.079L113.67 152.079Z" fill="black"/></svg>');
+            mask-size: 80%;
+            mask-repeat: no-repeat;
+            mask-position: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            margin: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+        }
+
+        #buttonArrowDown {
+            transition: transform 200ms;
+        }
+
+        #buttonArrowDown:active {
+            transform: scale(0.8);
+        }
+
+        #buttonArrowDown span {
+            color: rgba(0, 0, 0, 0.7);
+            font-family: system-ui;
+            font-weight: bold;
+        }
+
         /* Header */
         .header {
             position: relative;
@@ -44,15 +72,30 @@
             gap: 10px;
             background: linear-gradient(135deg, var(--cover-bg-color-light) 0%, var(--cover-bg-color) 100%);
             color: white;
-            padding: 0 2rem;
+            padding: 1rem;
             text-align: center;
             box-shadow: var(--shadow);
+            height: 100vh;
+            justify-content: center;
+        }
+
+        .header .header-frame {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .header .header-frame:first-of-type {
+            flex: 2;
         }
 
         .header img {
             width: auto;
             max-width: 90%;
-            height: 140px;
+            max-height: calc(100% - 100px);
+            height: 150px;
         }
 
         .header h1 {
@@ -389,6 +432,22 @@
         }
 
         /* Responsive */
+        @media (max-height: 370px) {
+            .header {
+                flex-direction: row;
+                gap: 15px;
+            }
+            
+            .header .header-frame {
+                flex: unset !important;
+            }
+
+            .version-badge {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
         @media (max-width: 1350px) {
             .header h1 {
                 font-size: 2rem;
@@ -473,11 +532,19 @@
 </head>
 <body>
     <!-- Header -->
-    <div class="header">
-        <div class="cache"></div>
-        <img alt="Header Content Layout" src="./Conten-Layout.svg">
-        <div class="cache">
-            <span class="version-badge" id="versionBadge">Unknow</span>
+    <div class="header" id="header">
+        <div class="header-frame">
+            <div class="cache"></div>
+            <img alt="Header Content Layout" src="./Conten-Layout.svg">
+            <div class="cache">
+                <span class="version-badge" id="versionBadge">Unknow</span>
+            </div>
+        </div>
+        <div class="header-frame">
+            <div class="header-frame" id="buttonArrowDown">
+                <button class="button-arrow-down" id="buttonArrowDown"></button>
+                <span>CLICK</span>
+            </div>
         </div>
     </div>
 
@@ -587,6 +654,10 @@
 
         navOverlay.addEventListener('click', () => { 
             toggleMenu(false)
+        });
+
+        document.getElementById('buttonArrowDown').addEventListener('click', () => { 
+            window.scrollTo({top: document.getElementById('header').offsetHeight, behavior: "smooth"  });
         });
 
         // Close menu when clicking on a link
