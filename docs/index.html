@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +8,9 @@
     <link rel="icon" type="image/x-icon" href="./favicon.svg">
     <style>
         :root {
-            --primary: #979551;
-            --primary-light: #ccbbae;
+            --cover-bg-color: #979551;
+            --cover-bg-color-light: #ccbbae;
+            --primary: #231f81;
             --secondary: #6c757d;
             --success: #28a745;
             --danger: #dc3545;
@@ -39,7 +40,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            background: linear-gradient(135deg, var(--cover-bg-color-light) 0%, var(--cover-bg-color) 100%);
             color: white;
             padding: 2rem;
             text-align: center;
@@ -222,7 +223,7 @@
         code {
             font-family: monospace;
             font-size: 13px;
-            color: var(--danger);
+            color: #001ba9;
         }
 
         pre code {
@@ -365,7 +366,7 @@
         }
 
         .faq-item strong {
-            color: #1976d2;
+            color: #084d91;
         }
 
         .faq-item p {
@@ -455,9 +456,9 @@
         }
 
         /* Syntax highlighting simulation */
-        .keyword { color: #d73a49; font-weight: bold; }
+        .keyword { color: #001ba9; font-weight: bold; }
         .string { color: #032f62; }
-        .comment { color: #6a737d; font-style: italic; }
+        .comment { color: #2b720b; font-style: italic; }
         .function { color: #6f42c1; }
         .number { color: #005cc5; }
     </style>
@@ -468,7 +469,7 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <img src="./Conten-Layout.svg">
+        <img alt="Header Content Layout" src="./Conten-Layout.svg">
         <div class="version-badge" id="versionBadge">Unknow</div>
     </div>
 
@@ -610,7 +611,7 @@
     </nav>
 
     <!-- Content -->
-    <div class="container">
+    <main class="container">
         <!-- Overview Section -->
         <section id="overview" class="section">
             <h2>📖 Overview</h2>
@@ -2491,7 +2492,9 @@ SelectiveUI.rebind(<span class="string">'#mySelect'</span>, {
                 </table>
             </div>
         </section>
-    </div>
+    </main>
+
+    <!-- footer -->
     <div class="footer">
         <div>
             <span>SelectiveUI (SEUI) Documentation | Maintained by: Huỳnh Công Xuân Mai</span>
