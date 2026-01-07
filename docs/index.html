@@ -1453,13 +1453,13 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
             <p>The server needs to return JSON in one of the following formats (same for both search and load-by-values requests):</p>
 
             <h4>Format 1: Simple Array (Options only)</h4>
-    <pre><code>[
+            <pre><code>[
     { <span class="string">"value":</span> <span class="string">"1"</span>, <span class="string">"text":</span> <span class="string">"Option 1"</span> },
     { <span class="string">"value":</span> <span class="string">"2"</span>, <span class="string">"text":</span> <span class="string">"Option 2"</span> }
 ]</code></pre>
 
-    <h4>Format 2: With Groups (Simple)</h4>
-    <pre><code>[
+            <h4>Format 2: With Groups (Simple)</h4>
+            <pre><code>[
     {
         <span class="string">"label":</span> <span class="string">"Fruits"</span>,
         <span class="string">"options":</span> [
@@ -1476,8 +1476,8 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
     { <span class="string">"value":</span> <span class="string">"other"</span>, <span class="string">"text":</span> <span class="string">"Other (no group)"</span> }
 ]</code></pre>
 
-    <h4>Format 3: With Groups (Explicit Type)</h4>
-    <pre><code>[
+            <h4>Format 3: With Groups (Explicit Type)</h4>
+            <pre><code>[
     {
         <span class="string">"type":</span> <span class="string">"optgroup"</span>,
         <span class="string">"label":</span> <span class="string">"Fruits"</span>,
@@ -1501,8 +1501,8 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
     }
 ]</code></pre>
 
-    <h4>Format 4: With Pagination</h4>
-    <pre><code>{
+            <h4>Format 4: With Pagination</h4>
+            <pre><code>{
     <span class="string">"object":</span> [
         { <span class="string">"value":</span> <span class="string">"1"</span>, <span class="string">"text":</span> <span class="string">"Option 1"</span> },
         { <span class="string">"value":</span> <span class="string">"2"</span>, <span class="string">"text":</span> <span class="string">"Option 2"</span> }
@@ -1511,8 +1511,8 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
     <span class="string">"total_page":</span> <span class="number">5</span>
 }</code></pre>
 
-    <h4>Format 5: With Groups & Pagination</h4>
-    <pre><code>{
+            <h4>Format 5: With Groups & Pagination</h4>
+            <pre><code>{
     <span class="string">"data":</span> [
         {
             <span class="string">"label":</span> <span class="string">"Fruits"</span>,
@@ -1527,8 +1527,8 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
     <span class="string">"hasMore":</span> <span class="keyword">true</span>
 }</code></pre>
 
-    <h4>Format 6: With items key</h4>
-    <pre><code>{
+            <h4>Format 6: With items key</h4>
+            <pre><code>{
     <span class="string">"items":</span> [
         {
             <span class="string">"type":</span> <span class="string">"optgroup"</span>,
