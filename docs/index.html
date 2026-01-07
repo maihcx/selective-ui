@@ -42,6 +42,18 @@
             line-height: 1.6;
             color: var(--dark);
             background: #fff;
+            animation: 700ms fadeInUp;
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0%);
+                opacity: 1;
+            }
         }
 
         .button-arrow-down {
