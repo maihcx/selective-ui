@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="SelectiveUI is a lightweight JavaScript library for building dynamic select elements. It automatically binds and loads options, making select inputs easier and faster for developers to use.">
     <title>SelectiveUI - Complete Documentation</title>
+    <link rel="icon" type="image/x-icon" href="./favicon.svg">
     <style>
         :root {
-            --primary: #0075ff;
-            --primary-dark: #b90000;
+            --primary: #979551;
+            --primary-light: #ccbbae;
             --secondary: #6c757d;
             --success: #28a745;
             --danger: #dc3545;
@@ -35,11 +36,20 @@
 
         /* Header */
         .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
             color: white;
-            padding: 3rem 2rem;
+            padding: 2rem;
             text-align: center;
             box-shadow: var(--shadow);
+        }
+
+        .header img {
+            width: auto;
+            max-width: 90%;
+            height: 140px;
         }
 
         .header h1 {
@@ -55,7 +65,8 @@
 
         .version-badge {
             display: inline-block;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.3);
+            color: rgba(0,0,0,0.6);
             padding: 0.3rem 1rem;
             border-radius: 20px;
             margin-top: 1rem;
@@ -457,9 +468,8 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <h1>📦 SelectiveUI</h1>
-        <p>Advanced Custom Select Component - Pure JavaScript, Zero Dependencies</p>
-        <div class="version-badge">v1.0.4</div>
+        <img src="./Conten-Layout.svg">
+        <div class="version-badge" id="versionBadge">Unknow</div>
     </div>
 
     <!-- Navigation -->
@@ -502,6 +512,7 @@
         const navOverlay = document.getElementById('navOverlay');
         let navOverlayTimeout = null;
         const effector = SelectiveUI.effector(navMenu);
+        document.getElementById('versionBadge').textContent = `v${SelectiveUI.version}`;
 
         function toggleMenu(force) {
             if (navOverlayTimeout) {
