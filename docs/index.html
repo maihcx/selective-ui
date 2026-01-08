@@ -151,7 +151,10 @@
 
         .version-badge {
             display: inline-block;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.26);
+            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             color: rgba(0,0,0,0.6);
             padding: 0.3rem 1rem;
             border-radius: 20px;
@@ -569,6 +572,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/selective-ui@1.0.4/dist/selective-ui.min.css">
     <script src="https://cdn.jsdelivr.net/npm/selective-ui@1.0.4/dist/selective-ui.min.js"></script>
+    <script src="./javascript.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -631,33 +635,61 @@
         const effector = SelectiveUI.effector(navMenu);
         document.getElementById('versionBadge').textContent = `v${SelectiveUI.version}`;
 
-        function generateBrightHexColor(minLuminance = 0.6) {
-            while (true) {
-                const r = Math.floor(Math.random() * 256);
-                const g = Math.floor(Math.random() * 256);
-                const b = Math.floor(Math.random() * 256);
+        const SAFE_HUES = [
+            0,
+            15,
+            30,
+            45,
+            60,
+            75,
+            100,
+            120,
+            145,
+            165,
+            180,
+            195,
+            210,
+            225,
+            240,
+            255,
+            270,
+            285,
+            300,
+            315,
+            330,
+            345
+        ];
 
-                // Relative luminance (WCAG)
-                const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+        function randomNiceColor() {
+            const base = SAFE_HUES[Math.floor(Math.random() * SAFE_HUES.length)];
+            const h = (base + (Math.random() * 20 - 10) + 360) % 360;
+            const s = 65 + Math.random() * 15;
+            const l = 55 + Math.random() * 10;
 
-                if (luminance >= minLuminance) {
-                    return (
-                        "#" +
-                        r.toString(16).padStart(2, "0") +
-                        g.toString(16).padStart(2, "0") +
-                        b.toString(16).padStart(2, "0")
-                    );
-                }
-            }
+            return hslToHex(h, s, l);
+        }
+
+        function hslToHex(h, s, l) {
+            s /= 100;
+            l /= 100;
+
+            const k = n => (n + h / 30) % 12;
+            const a = s * Math.min(l, 1 - l);
+            const f = n =>
+                l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+
+            return "#" + [f(0), f(8), f(4)]
+                .map(x => Math.round(255 * x).toString(16).padStart(2, "0"))
+                .join("");
         }
 
         function applyCoverColors() {
             const root = document.documentElement;
 
-            root.style.setProperty("--cover-bg-color-1", generateBrightHexColor());
-            root.style.setProperty("--cover-bg-color-2", generateBrightHexColor());
-            root.style.setProperty("--cover-bg-color-3", generateBrightHexColor());
-            root.style.setProperty("--cover-bg-color-4", generateBrightHexColor());
+            root.style.setProperty("--cover-bg-color-1", randomNiceColor());
+            root.style.setProperty("--cover-bg-color-2", randomNiceColor());
+            root.style.setProperty("--cover-bg-color-3", randomNiceColor());
+            root.style.setProperty("--cover-bg-color-4", randomNiceColor());
 
             var gradient = new Gradient();
             gradient.initGradient("#gradient-canvas");
@@ -2656,6 +2688,4 @@ SelectiveUI.rebind(<span class="string">'#mySelect'</span>, {
             <span>SelectiveUI (SEUI) Documentation | Maintained by: Huỳnh Công Xuân Mai</span>
         </div>
     </div>
-    
-    <script src="./javascript.js"></script>
 </body>
