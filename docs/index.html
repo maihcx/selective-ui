@@ -179,6 +179,14 @@
             font-weight: 600;
 
             mix-blend-mode: difference;
+            overflow: hidden;
+        }
+
+        .header .header-logo .header-logo-badge * {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
         }
 
         .header h1 {
@@ -519,6 +527,24 @@
         }
 
         /* Responsive */
+        @media (max-width: 440px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header .header-logo .header-logo-badge {
+                font-size: 0.8rem;
+            }
+        }
+        @media (max-width: 390px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .header .header-logo .header-logo-badge {
+                font-size: 0.7rem;
+            }
+        }
         @media (max-height: 440px) {
             .header {
                 flex-direction: row;
@@ -541,10 +567,6 @@
             }
         }
         @media (max-width: 1350px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-
             .header p {
                 font-size: 1rem;
             }
