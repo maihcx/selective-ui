@@ -631,6 +631,42 @@
         const effector = SelectiveUI.effector(navMenu);
         document.getElementById('versionBadge').textContent = `v${SelectiveUI.version}`;
 
+        function generateBrightHexColor(minLuminance = 0.6) {
+            while (true) {
+                const r = Math.floor(Math.random() * 256);
+                const g = Math.floor(Math.random() * 256);
+                const b = Math.floor(Math.random() * 256);
+
+                // Relative luminance (WCAG)
+                const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+                if (luminance >= minLuminance) {
+                    return (
+                        "#" +
+                        r.toString(16).padStart(2, "0") +
+                        g.toString(16).padStart(2, "0") +
+                        b.toString(16).padStart(2, "0")
+                    );
+                }
+            }
+        }
+
+        function applyCoverColors() {
+            const root = document.documentElement;
+
+            root.style.setProperty("--cover-bg-color-1", generateBrightHexColor());
+            root.style.setProperty("--cover-bg-color-2", generateBrightHexColor());
+            root.style.setProperty("--cover-bg-color-3", generateBrightHexColor());
+            root.style.setProperty("--cover-bg-color-4", generateBrightHexColor());
+
+            var gradient = new Gradient();
+            gradient.initGradient("#gradient-canvas");
+        }
+
+        window.onload = () => {
+            applyCoverColors();
+        }
+
         function toggleMenu(force) {
             if (navOverlayTimeout) {
                 clearTimeout(navOverlayTimeout);
