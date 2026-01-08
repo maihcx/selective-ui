@@ -194,11 +194,17 @@
             max-width: 100%;
         }
 
-        .header h1 {
+        .header .header-logo .header-logo-badge h1 {
             font-size: 2.4rem;
             margin-bottom: 1rem;
             font-weight: 700;
-            line-height: 30px;
+            line-height: 2rem;
+
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            -webkit-line-clamp: 1;
         }
 
         .header p {
@@ -533,7 +539,7 @@
 
         /* Responsive */
         @media (max-width: 500px) {
-            .header h1 {
+            .header .header-logo .header-logo-badge h1 {
                 font-size: 2rem;
             }
 
@@ -542,7 +548,7 @@
             }
         }
         @media (max-width: 445px) {
-            .header h1 {
+            .header .header-logo .header-logo-badge h1 {
                 font-size: 1.5rem;
             }
 
@@ -551,7 +557,7 @@
             }
         }
         @media (max-width: 355px) {
-            .header h1 {
+            .header .header-logo .header-logo-badge h1 {
                 font-size: 1.2rem;
             }
         }
