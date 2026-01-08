@@ -661,8 +661,9 @@
         ];
 
         function randomNiceColor() {
-            const base = SAFE_HUES[Math.floor(Math.random() * SAFE_HUES.length)];
-            const h = (base + (Math.random() * 20 - 10) + 360) % 360;
+            const baseHue = SAFE_HUES[Math.floor(Math.random() * SAFE_HUES.length)];
+
+            const h = (baseHue + (Math.random() * 16 - 8) + 360) % 360;
             const s = 65 + Math.random() * 15;
             const l = 55 + Math.random() * 10;
 
