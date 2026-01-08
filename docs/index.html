@@ -65,14 +65,27 @@
             mask-size: 80%;
             mask-repeat: no-repeat;
             mask-position: center;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.8);
             margin: 0;
             padding: 0;
             border: none;
             outline: none;
         }
 
+        .button-arrow-down + span {
+            margin-bottom: 0.4rem;
+        }
+
         #buttonArrowDown {
+            background: rgba(255, 255, 255, 0.26);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: rgba(0, 0, 0, 0.8);
+            padding: 0.3rem 1.3rem;
+            border-radius: 20px;
+            max-height: fit-content;
+            
             transition: transform 200ms;
             cursor: pointer;
         }
@@ -86,7 +99,7 @@
         }
 
         #buttonArrowDown span {
-            color: rgba(0, 0, 0, 0.7);
+            color: rgba(0, 0, 0, 0.8);
             font-family: system-ui;
             font-weight: bold;
         }
@@ -131,17 +144,48 @@
             flex: 2;
         }
 
-        .header img {
+        .header .header-logo {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 20px;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+
+        .header .header-logo img {
             width: auto;
             max-width: 90%;
-            max-height: calc(100% - 100px);
-            height: 150px;
+            max-height: 100%;
+            height: 135px;
+        }
+        
+        .header .header-logo .header-logo-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: normal;
+            justify-content: center;
+            gap: 0.2rem;
+
+            background: rgba(255, 255, 255, 0.26);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: rgba(0, 0, 0, 0.8);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+
+            mix-blend-mode: difference;
         }
 
         .header h1 {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
+            font-size: 2.4rem;
+            margin-bottom: 1rem;
             font-weight: 700;
+            line-height: 30px;
         }
 
         .header p {
@@ -475,10 +519,10 @@
         }
 
         /* Responsive */
-        @media (max-height: 370px) {
+        @media (max-height: 440px) {
             .header {
                 flex-direction: row;
-                gap: 15px;
+                gap: 20px;
             }
 
             .header .header-frame {
@@ -489,6 +533,11 @@
                 position: absolute;
                 left: 50%;
                 transform: translateX(-50%);
+            }
+
+            #buttonArrowDown {
+                min-width: 135px;
+                min-height: 135px;
             }
         }
         @media (max-width: 1350px) {
@@ -580,14 +629,21 @@
         <canvas id="gradient-canvas"></canvas>
         <div class="header-frame">
             <div class="cache"></div>
-            <img alt="Header Content Layout" src="./Conten-Layout.svg">
+            <div class="header-logo">
+                <img alt="Header Content Layout" src="./favicon.svg">
+                <div class="header-logo-badge">
+                    <h1>Selective UI</h1>
+                    <span>Advanced Custom Select Component</span>
+                    <span>Pure Javascript, Zero Dependencies</span>
+                </div>
+            </div>
             <div class="cache">
                 <span class="version-badge" id="versionBadge">Unknow</span>
             </div>
         </div>
         <div class="header-frame">
             <div class="header-frame" id="buttonArrowDown">
-                <button class="button-arrow-down" id="buttonArrowDown"></button>
+                <button class="button-arrow-down"></button>
                 <span>CLICK</span>
             </div>
         </div>
@@ -638,27 +694,46 @@
         let goldenHue = Math.random();
 
         function randomNiceColor() {
-            // Golden ratio conjugate
+             // Golden ratio
             goldenHue = (goldenHue + 0.618033988749895) % 1;
 
-            const h = Math.floor(goldenHue * 360);
-            const s = 60 + Math.random() * 20;
-            const l = 50 + Math.random() * 15;
+            // OKLCH parameters (đã test UI-safe)
+            const h = goldenHue * 360; // Hue
+            const l = 0.75;      // Lightness (ổn định)
+            const c = 0.22;      // Chroma (không neon)
 
-            return hslToHex(h, s, l);
+            return oklchToHex(l, c, h);
         }
 
-        function hslToHex(h, s, l) {
-            s /= 100;
-            l /= 100;
+        function oklchToHex(l, c, h) {
+            const a = c * Math.cos(h * Math.PI / 180);
+            const b = c * Math.sin(h * Math.PI / 180);
 
-            const k = n => (n + h / 30) % 12;
-            const a = s * Math.min(l, 1 - l);
-            const f = n =>
-                l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+            // OKLab → Linear RGB
+            let L = l;
+            let M = l - 0.1055613458 * a - 0.0638541728 * b;
+            let S = l - 0.0894841775 * a - 1.2914855480 * b;
 
-            return "#" + [f(0), f(8), f(4)]
-                .map(x => Math.round(255 * x).toString(16).padStart(2, "0"))
+            L = L ** 3;
+            M = M ** 3;
+            S = S ** 3;
+
+            let r = +4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * S;
+            let g = -1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * S;
+            let b2 = -0.0041960863 * L - 0.7034186147 * M + 1.7076147010 * S;
+
+            // Gamma correction
+            r = r <= 0.0031308 ? 12.92 * r : 1.055 * Math.pow(r, 1 / 2.4) - 0.055;
+            g = g <= 0.0031308 ? 12.92 * g : 1.055 * Math.pow(g, 1 / 2.4) - 0.055;
+            b2 = b2 <= 0.0031308 ? 12.92 * b2 : 1.055 * Math.pow(b2, 1 / 2.4) - 0.055;
+
+            return rgbToHex(r, g, b2);
+        }
+
+        function rgbToHex(r, g, b) {
+            return "#" + [r, g, b]
+                .map(v => Math.round(Math.min(Math.max(v, 0), 1) * 255)
+                .toString(16).padStart(2, "0"))
                 .join("");
         }
 
