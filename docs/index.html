@@ -635,37 +635,15 @@
         const effector = SelectiveUI.effector(navMenu);
         document.getElementById('versionBadge').textContent = `v${SelectiveUI.version}`;
 
-        const SAFE_HUES = [
-            0,
-            15,
-            30,
-            45,
-            60,
-            75,
-            100,
-            120,
-            145,
-            165,
-            180,
-            195,
-            210,
-            225,
-            240,
-            255,
-            270,
-            285,
-            300,
-            315,
-            330,
-            345
-        ];
+        let goldenHue = Math.random();
 
         function randomNiceColor() {
-            const baseHue = SAFE_HUES[Math.floor(Math.random() * SAFE_HUES.length)];
+            // Golden ratio conjugate
+            goldenHue = (goldenHue + 0.618033988749895) % 1;
 
-            const h = (baseHue + (Math.random() * 16 - 8) + 360) % 360;
-            const s = 65 + Math.random() * 15;
-            const l = 55 + Math.random() * 10;
+            const h = Math.floor(goldenHue * 360);
+            const s = 60 + Math.random() * 20;
+            const l = 50 + Math.random() * 15;
 
             return hslToHex(h, s, l);
         }
