@@ -145,8 +145,6 @@ export class MixedAdapter extends Adapter {
 
         if (!optionModel.isInit) {
             super.onViewHolder(optionModel, optionViewer, position);
-        } else {
-            optionViewer.update();
         }
 
         optionModel.view = optionViewer;
@@ -154,8 +152,12 @@ export class MixedAdapter extends Adapter {
         if (optionModel.hasImage) {
             const imageTag = optionViewer.getTag("OptionImage");
             if (imageTag) {
-                imageTag.src = optionModel.imageSrc;
-                imageTag.alt = optionModel.text;
+                if (imageTag.src != optionModel.imageSrc) {
+                    imageTag.src = optionModel.imageSrc;
+                }
+                if (imageTag.alt != optionModel.text) {
+                    imageTag.alt = optionModel.text;
+                }
             }
         }
 

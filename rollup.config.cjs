@@ -10,7 +10,7 @@ const brotliPlugin = require('rollup-plugin-brotli');
 const autoprefixer = require('autoprefixer');
 const cssnano = require('cssnano');
 
-const banner = '/*! Selective UI v1.0.4 | MIT License */';
+const banner = '/*! Selective UI v1.0.5 | MIT License */';
 const treeshake = { preset: 'recommended' };
 
 const brotliOptions = {

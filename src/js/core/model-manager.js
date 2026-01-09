@@ -22,6 +22,8 @@ export class ModelManager {
     /** @type {RecyclerViewContract<TAdapter>} */
     #privRecyclerViewHandle;
 
+    #lastFingerprint = null;
+
     options = null;
     
     /**
@@ -49,6 +51,48 @@ export class ModelManager {
      */
     setupRecyclerView(recyclerView) {
         this.#privRecyclerView = recyclerView;
+    }
+
+    /**
+     * Checks whether the provided model data differs from the last recorded fingerprint.
+     * Computes a new fingerprint and compares it to the previous one; if different,
+     * updates the stored fingerprint and returns true, otherwise returns false.
+     *
+     * @param {Array<HTMLOptionElement|HTMLOptGroupElement>} modelData - The current model data (options/optgroups).
+     * @returns {boolean} True if there are real changes; false otherwise.
+     */
+    hasRealChanges(modelData) {
+        const newFingerprint = this.#createFingerprint(modelData);
+        const hasChanges = newFingerprint !== this.#lastFingerprint;
+        
+        if (hasChanges) {
+            this.#lastFingerprint = newFingerprint;
+        }
+        
+        return hasChanges;
+    }
+
+    /**
+     * Produces a stable string fingerprint for the given model data.
+     * For <optgroup>, includes the label and a pipe-joined hash of its child options
+     * (value:text:selected). For plain <option>, includes its value, text, and selected state.
+     * The entire list is joined by '||' to form the final fingerprint.
+     *
+     * @param {Array<HTMLOptionElement|HTMLOptGroupElement>} modelData - The current model data to fingerprint.
+     * @returns {string} A deterministic fingerprint representing the structure and selection state.
+     */
+    #createFingerprint(modelData) {
+        return modelData.map(item => {
+            if (item.tagName === "OPTGROUP") {
+                const optionsHash = Array.from(item.children)
+                    .map((/** @type {HTMLOptionElement} */ opt) => `${opt.value}:${opt.text}:${opt.selected}`)
+                    .join('|');
+                return `G:${item.label}:${optionsHash}`;
+            } else {
+                const oItem = /** @type {HTMLOptionElement} */ (item);
+                return `O:${oItem.value}:${oItem.text}:${oItem.selected}`;
+            }
+        }).join('||');
     }
 
     /**
@@ -91,6 +135,8 @@ export class ModelManager {
      * @param {Array<HTMLOptGroupElement|HTMLOptionElement>} modelData - New source elements to rebuild models from.
      */
     replace(modelData) {
+        this.#lastFingerprint = null;
+        
         this.createModelResources(modelData);
 
         if (this.#privAdapterHandle) {
@@ -135,6 +181,10 @@ export class ModelManager {
      * @param {Array<HTMLOptGroupElement|HTMLOptionElement>} modelData - Fresh DOM elements reflecting the latest state.
      */
     update(modelData) {
+        if (!this.hasRealChanges(modelData)) {
+            return;
+        }
+
         const oldModels = this.#privModelList;
         const newModels = [];
         
@@ -145,20 +195,29 @@ export class ModelManager {
             if (model instanceof GroupModel) {
                 oldGroupMap.set(model.label, model);
             } else if (model instanceof OptionModel) {
-                oldOptionMap.set(model.value, model);
+                const key = `${model.value}::${model.textContent}`;
+                oldOptionMap.set(key, model);
             }
         });
 
         let currentGroup = null;
         let position = 0;
+        const changesToApply = [];
 
         modelData.forEach((data, index) => {
             if (data.tagName === "OPTGROUP") {
                 let dataVset = /** @type {HTMLOptGroupElement} */ (data);
-                const existingGroup = oldGroupMap.get(dataVset.label);
+                const existingGroup = /** @type {GroupModel} */ (oldGroupMap.get(dataVset.label));
                 
                 if (existingGroup) {
-                    existingGroup.update(dataVset);
+                    const hasLabelChange = existingGroup.label !== dataVset.label;
+                    
+                    if (hasLabelChange) {
+                        changesToApply.push(() => {
+                            existingGroup.update(dataVset);
+                        });
+                    }
+                    
                     existingGroup.position = position;
                     existingGroup.items = [];
                     currentGroup = existingGroup;
@@ -173,11 +232,21 @@ export class ModelManager {
             }
             else if (data.tagName === "OPTION") {
                 let dataVset = /** @type {HTMLOptionElement} */ (data);
-                const existingOption = oldOptionMap.get(dataVset.value);
+                const key = `${dataVset.value}::${dataVset.text}`;
+                const existingOption = /** @type {OptionModel} */ (oldOptionMap.get(key));
                 
                 if (existingOption) {
-                    existingOption.update(dataVset);
-                    existingOption.position = position;
+                    const hasSelectedChange = existingOption.selected !== dataVset.selected;
+                    const hasPositionChange = existingOption.position !== position;
+                    
+                    if (hasSelectedChange || hasPositionChange) {
+                        changesToApply.push(() => {
+                            existingOption.update(dataVset);
+                            existingOption.position = position;
+                        });
+                    } else {
+                        existingOption.position = position;
+                    }
                     
                     if (dataVset["__parentGroup"] && currentGroup) {
                         currentGroup.addItem(existingOption);
@@ -187,7 +256,7 @@ export class ModelManager {
                         newModels.push(existingOption);
                     }
                     
-                    oldOptionMap.delete(dataVset.value);
+                    oldOptionMap.delete(key);
                 } else {
                     const newOption = new OptionModel(this.options, dataVset);
                     newOption.position = position;
@@ -202,6 +271,12 @@ export class ModelManager {
                 position++;
             }
         });
+
+        if (changesToApply.length > 0) {
+            requestAnimationFrame(() => {
+                changesToApply.forEach(change => change());
+            });
+        }
 
         oldGroupMap.forEach(removedGroup => {
             if (removedGroup.view) {

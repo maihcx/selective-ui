@@ -1,0 +1,123 @@
+
+/**
+ * Unit Tests for Model
+ */
+
+import { Model } from "../../../../src/js/core/base/model";
+
+describe("Model", () => {
+    beforeEach(() => {
+        document.body.innerHTML = "";
+        jest.clearAllMocks();
+    });
+
+    test("constructor without target/view initializes defaults", () => {
+        const options = { any: "config" };
+        const model = new Model(options);
+
+        expect(model.options).toBe(options);
+        expect(model.targetElement).toBeNull();
+        expect(model.view).toBeNull();
+
+        expect(model.position).toBe(-1);
+        expect(model.isInit).toBe(false);
+    });
+
+    test("constructor with options, target, and view assigns fields", () => {
+        const options = { some: "config" };
+        const target = document.createElement("option");
+        target.setAttribute("value", "abc");
+        const view = {};
+
+        const model = new Model(options, target, view);
+
+        expect(model.options).toBe(options);
+        expect(model.targetElement).toBe(target);
+        expect(model.view).toBe(view);
+        expect(model.position).toBe(-1);
+        expect(model.isInit).toBe(false);
+    });
+
+    describe("value getter", () => {
+        test("returns attribute 'value' when present", () => {
+            const target = document.createElement("option");
+            target.setAttribute("value", "xyz");
+
+            const model = new Model({}, target, null);
+
+            expect(model.value).toBe("xyz");
+        });
+
+        test("returns null when attribute 'value' is absent", () => {
+            const target = document.createElement("option");
+            const model = new Model({}, target, null);
+
+            expect(model.value).toBeNull();
+        });
+
+        test("throws when targetElement is null", () => {
+            const model = new Model({}, null, null);
+
+            expect(() => {
+                // access getter triggers getAttribute on null
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const _ = model.value;
+            }).toThrow(TypeError);
+        });
+    });
+
+    describe("update()", () => {
+        test("updates targetElement and invokes onTargetChanged()", () => {
+            const initialTarget = document.createElement("option");
+            initialTarget.setAttribute("value", "old");
+            const model = new Model({}, initialTarget, null);
+
+            const spy = jest.spyOn(model, "onTargetChanged");
+
+            const newTarget = document.createElement("option");
+            newTarget.setAttribute("value", "new");
+
+            model.update(newTarget);
+
+            expect(model.targetElement).toBe(newTarget);
+            expect(spy).toHaveBeenCalledTimes(1);
+        });
+
+        test("allows updating to null and still invokes onTargetChanged()", () => {
+            const target = document.createElement("option");
+            const model = new Model({}, target, null);
+
+            const spy = jest.spyOn(model, "onTargetChanged");
+
+            model.update(null);
+
+            expect(model.targetElement).toBeNull();
+            expect(spy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("onTargetChanged()", () => {
+        test("default implementation does not throw", () => {
+            const model = new Model({}, null, null);
+
+            expect(() => model.onTargetChanged()).not.toThrow();
+        });
+
+        test("overridden in subclass is called on update()", () => {
+            class TestModel extends Model {
+                onTargetChanged() { /* custom hook */ }
+            }
+
+            const target = document.createElement("option");
+            const model = new TestModel({}, target, null);
+
+            const spy = jest.spyOn(model, "onTargetChanged");
+
+            const nextTarget = document.createElement("option");
+            model.update(nextTarget);
+
+            expect(spy).toHaveBeenCalledTimes(1);
+            expect(model.targetElement).toBe(nextTarget);
+        });
+    });
+});

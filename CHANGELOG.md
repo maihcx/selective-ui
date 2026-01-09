@@ -1,3 +1,17 @@
+# 1.0.5 (2026-01-09)
+
+### Optimizations
+
+- **MixedAdapter** Avoid reloading images in option tags
+
+- **SelectObserver** Reduce overreaction to data in select tags if they are changed
+
+- **SelectObserver,OptionView** Optimize the processing speed of dynamic load options tags
+
+### Fixes
+
+- **Refresher** The select box sometimes displays at minimum size
+
 # 1.0.4 (2026-01-07)
 
 ### Features

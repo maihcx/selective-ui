@@ -27,6 +27,14 @@ export class Refresher {
         
         let width = `${select.offsetWidth}px`,
             height = `${select.offsetHeight}px`;
+            
+        const getCStyle = getComputedStyle(select);
+        if (width == "0px" && getCStyle.width != "auto") {
+            width = getCStyle.width;
+        }
+        if (height == "0px" && getCStyle.height != "auto") {
+            height = getCStyle.height;
+        }
         
         if (cfgWidth > 0) {
             width = options.width;
