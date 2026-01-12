@@ -4,7 +4,7 @@
  */
 
 describe('E2E User Flows', () => {
-    const SelectiveUI = require("../../src/js/index.js");
+    const SelectiveUI = require("../../src/js/index");
 
     beforeEach(() => {
         // Clear document before each test

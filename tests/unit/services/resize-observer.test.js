@@ -109,8 +109,8 @@ describe("ResizeObserverService", () => {
     });
 
     test("connect throws error when element is invalid", () => {
-        expect(() => service.connect(null)).toThrow("Element không hợp lệ");
-        expect(() => service.connect({})).toThrow("Element không hợp lệ");
+        expect(() => service.connect(null)).toThrow("Invalid element");
+        expect(() => service.connect({})).toThrow("Invalid element");
     });
 
     test("connect initializes observers and listeners", () => {

@@ -55,14 +55,10 @@ describe("Model", () => {
             expect(model.value).toBeNull();
         });
 
-        test("throws when targetElement is null", () => {
+        test("return null", () => {
             const model = new Model({}, null, null);
 
-            expect(() => {
-                // access getter triggers getAttribute on null
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const _ = model.value;
-            }).toThrow(TypeError);
+            expect(model.value).toBe(null);
         });
     });
 

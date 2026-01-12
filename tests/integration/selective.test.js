@@ -18,7 +18,7 @@ describe('Selective UI Integration', () => {
         document.head.appendChild(style);
         
         // Load JS
-        SelectiveUI = require("../../src/js/index.js");
+        SelectiveUI = require("../../src/js/index");
     });
 
     afterEach(() => {

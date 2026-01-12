@@ -13,9 +13,9 @@ module.exports = {
     
     // Coverage configuration
     collectCoverageFrom: [
-        'src/**/*.js',
-        '!src/**/*.type.js',
-        '!src/js/index.js'
+        'src/**/*.ts',
+        '!src/**/*.type.ts',
+        '!src/ts/index.ts'
     ],
     
     coverageDirectory: 'coverage',
