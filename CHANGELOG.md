@@ -1,3 +1,9 @@
+# 1.1.0 (2026-01-12)
+
+### Features
+
+- **ALL** Convert library logic from `JavaScript` to `TypeScript`
+
 # 1.0.5 (2026-01-09)
 
 ### Optimizations
