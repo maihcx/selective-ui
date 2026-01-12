@@ -10,7 +10,9 @@ const brotliPlugin = require('rollup-plugin-brotli');
 const autoprefixer = require('autoprefixer');
 const cssnano = require('cssnano');
 
-const banner = '/*! Selective UI v1.0.5 | MIT License */';
+const typescript = require('@rollup/plugin-typescript');
+
+const banner = '/*! Selective UI v1.1.0 | MIT License */';
 const treeshake = { preset: 'recommended' };
 
 const brotliOptions = {
@@ -117,7 +119,7 @@ const terserESM = terser({
 module.exports = defineConfig([
   // UMD (non-min)
   {
-    input: 'src/js/index.js',
+    input: 'src/ts/index.ts',
     output: {
       file: 'dist/selective-ui.umd.js',
       format: 'umd',
@@ -130,13 +132,17 @@ module.exports = defineConfig([
       resolve(),
       commonjs(),
       postcssNonMin,
+      typescript({
+        tsconfig: './tsconfig.json',
+        sourceMap: true
+      }),
     ],
     treeshake,
   },
 
   // ESM (non-min)
   {
-    input: 'src/js/index.js',
+    input: 'src/ts/index.ts',
     output: {
       file: 'dist/selective-ui.esm.js',
       format: 'esm',
@@ -148,13 +154,17 @@ module.exports = defineConfig([
       resolve(),
       commonjs(),
       postcssNonMin,
+      typescript({
+        tsconfig: './tsconfig.json',
+        sourceMap: true
+      }),
     ],
     treeshake,
   },
 
   // UMD minified
   {
-    input: 'src/js/index.js',
+    input: 'src/ts/index.ts',
     output: {
       file: 'dist/selective-ui.min.js',
       format: 'umd',
@@ -169,13 +179,17 @@ module.exports = defineConfig([
       postcssMin,
       terserUMD,
       brotliPlugin(brotliOptions),
+      typescript({
+        tsconfig: './tsconfig.json',
+        sourceMap: false
+      }),
     ],
     treeshake,
   },
 
   // ESM minified - single file bundle
   {
-    input: 'src/js/index.js',
+    input: 'src/ts/index.ts',
     output: {
       file: 'dist/selective-ui.esm.min.js',
       format: 'esm',
@@ -189,6 +203,10 @@ module.exports = defineConfig([
       postcssMin,
       terserESM,
       brotliPlugin(brotliOptions),
+      typescript({
+        tsconfig: './tsconfig.json',
+        sourceMap: false
+      }),
     ],
     treeshake,
   },

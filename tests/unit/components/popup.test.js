@@ -7,11 +7,7 @@ import { Libs } from "../../../src/js/utils/libs";
 import { ResizeObserverService } from "../../../src/js/services/resize-observer";
 import { ModelManager } from "../../../src/js/core/model-manager";
 
-/* =====================================================
- * MOCKS (KHÔNG DÙNG document TRONG FACTORY)
- * ===================================================== */
-
-jest.mock("../../../src/js/utils/libs.js", () => ({
+jest.mock("../../../src/js/utils/libs", () => ({
     Libs: {
         mountNode: jest.fn(),
         getBinderMap: jest.fn(),
@@ -35,10 +31,6 @@ jest.mock("../../../src/js/components/loading-state", () => ({
 jest.mock("../../../src/js/services/resize-observer", () => ({
     ResizeObserverService: jest.fn()
 }));
-
-/* =====================================================
- * HELPERS
- * ===================================================== */
 
 function createModelManager() {
     const mm = new ModelManager({});

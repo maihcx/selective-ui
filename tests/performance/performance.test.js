@@ -4,7 +4,7 @@
  */
 
 describe('Performance Tests', () => {
-    const SelectiveUI = require("../../src/js/index.js");
+    const SelectiveUI = require("../../compiled/ts/index");
 
     afterEach(() => {
         SelectiveUI.destroy();
