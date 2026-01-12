@@ -239,6 +239,7 @@ export class ModelManager<
                 const existingOption = oldOptionMap.get(key);
 
                 if (existingOption) {
+                    existingOption.targetElement = dataVset;
                     const hasSelectedChange = existingOption.selected !== dataVset.selected;
                     const hasPositionChange = existingOption.position !== position;
 
