@@ -3,8 +3,11 @@
  * Benchmarks key operations
  */
 
+import * as SelectiveUI from '../../src/ts/index';
+
+declare function waitFor(ms: number): Promise<void>;
+
 describe('Performance Tests', () => {
-    const SelectiveUI = require("../../compiled/ts/index");
 
     afterEach(() => {
         SelectiveUI.destroy();
@@ -17,7 +20,7 @@ describe('Performance Tests', () => {
                 text: `Option ${i + 1}`
             }));
 
-            const select = createSelect({
+            createSelect({
                 id: 'perf-select',
                 options
             });
@@ -28,8 +31,6 @@ describe('Performance Tests', () => {
 
             const duration = endTime - startTime;
             expect(duration).toBeLessThan(500);
-
-            console.log(`✓ Initialized 100 options in ${duration.toFixed(2)}ms`);
         });
 
         test('should initialize 1000 options in < 2000ms', () => {
@@ -38,7 +39,7 @@ describe('Performance Tests', () => {
                 text: `Option ${i + 1}`
             }));
 
-            const select = createSelect({
+            createSelect({
                 id: 'perf-large-select',
                 options
             });
@@ -49,8 +50,6 @@ describe('Performance Tests', () => {
 
             const duration = endTime - startTime;
             expect(duration).toBeLessThan(2000);
-
-            console.log(`✓ Initialized 1000 options in ${duration.toFixed(2)}ms`);
         });
     });
 
@@ -61,7 +60,7 @@ describe('Performance Tests', () => {
                 text: `Item ${i + 1}`
             }));
 
-            const select = createSelect({
+            createSelect({
                 id: 'search-perf',
                 options
             });
@@ -72,18 +71,18 @@ describe('Performance Tests', () => {
             api.open();
             await waitFor(250);
 
-            const searchInput = document.querySelector('.selective-ui-searchbox-input');
+            const searchInput = document.querySelector(
+                '.selective-ui-searchbox-input'
+            ) as HTMLInputElement;
 
             const startTime = performance.now();
             searchInput.value = '500';
-            searchInput.dispatchEvent(new Event('input'));
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
             await waitFor(250);
             const endTime = performance.now();
 
             const duration = endTime - startTime - 250;
             expect(duration).toBeLessThan(200);
-
-            console.log(`✓ Searched 1000 items in ${duration.toFixed(2)}ms`);
         });
     });
 
@@ -94,7 +93,7 @@ describe('Performance Tests', () => {
                 text: `Option ${i + 1}`
             }));
 
-            const select = createSelect({
+            createSelect({
                 id: 'render-perf',
                 options
             });
@@ -109,22 +108,23 @@ describe('Performance Tests', () => {
 
             const duration = endTime - startTime - 250;
             expect(duration).toBeLessThan(300);
-
-            console.log(`✓ Rendered 100 options in ${duration.toFixed(2)}ms`);
         });
     });
 
     describe('Memory Usage', () => {
         test('should not leak memory on destroy', () => {
-            if (typeof performance.memory === 'undefined') {
-                console.log('⚠ Memory measurement not available in this environment');
+            const perf = performance as unknown as {
+                memory?: { usedJSHeapSize: number };
+            };
+
+            if (!perf.memory) {
                 return;
             }
 
-            const initialMemory = performance.memory.usedJSHeapSize;
+            const initialMemory = perf.memory.usedJSHeapSize;
 
             for (let i = 0; i < 50; i++) {
-                const select = createSelect({
+                createSelect({
                     id: `mem-test-${i}`,
                     options: [
                         { value: '1', text: 'Option 1' },
@@ -136,22 +136,20 @@ describe('Performance Tests', () => {
                 SelectiveUI.destroy(`#mem-test-${i}`);
             }
 
-            if (global.gc) {
-                global.gc();
+            if ((global as any).gc) {
+                (global as any).gc();
             }
 
-            const finalMemory = performance.memory.usedJSHeapSize;
+            const finalMemory = perf.memory.usedJSHeapSize;
             const memoryDiff = finalMemory - initialMemory;
 
             expect(memoryDiff).toBeLessThan(5 * 1024 * 1024);
-
-            console.log(`✓ Memory diff after 50 create/destroy cycles: ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
         });
     });
 
     describe('Selection Performance', () => {
-        test('should handle rapid selection changes', async () => {
-            const select = createSelect({
+        test('should handle rapid selection changes', () => {
+            createSelect({
                 id: 'rapid-select',
                 multiple: true,
                 options: Array.from({ length: 100 }, (_, i) => ({
@@ -166,16 +164,13 @@ describe('Performance Tests', () => {
             const startTime = performance.now();
 
             for (let i = 0; i < 50; i++) {
-                const values = [String(i + 1), String(i + 2)];
-                api.setValue(values, false);
+                api.setValue([String(i + 1), String(i + 2)], false);
             }
 
             const endTime = performance.now();
             const duration = endTime - startTime;
 
             expect(duration).toBeLessThan(500);
-
-            console.log(`✓ 50 rapid selections in ${duration.toFixed(2)}ms (${(duration/50).toFixed(2)}ms avg)`);
         });
     });
 
@@ -186,7 +181,7 @@ describe('Performance Tests', () => {
                 text: `Option ${i + 1}`
             }));
 
-            const select = createSelect({
+            createSelect({
                 id: 'nav-perf',
                 options
             });
@@ -197,31 +192,31 @@ describe('Performance Tests', () => {
             api.open();
             await waitFor(250);
 
-            const searchInput = document.querySelector('.selective-ui-searchbox-input');
+            const searchInput = document.querySelector(
+                '.selective-ui-searchbox-input'
+            ) as HTMLInputElement;
 
             const startTime = performance.now();
 
-            // Simulate keyboard navigation (không dùng waitFor trong loop)
             for (let i = 0; i < 50; i++) {
-                searchInput.dispatchEvent(new KeyboardEvent('keydown', { 
-                    key: 'ArrowDown',
-                    bubbles: true 
-                }));
+                searchInput.dispatchEvent(
+                    new KeyboardEvent('keydown', {
+                        key: 'ArrowDown',
+                        bubbles: true
+                    })
+                );
             }
 
             const endTime = performance.now();
             const duration = endTime - startTime;
 
-            // Tăng threshold vì keyboard events khá chậm trong JSDOM
             expect(duration).toBeLessThan(1000);
-
-            console.log(`✓ 50 keyboard navigations in ${duration.toFixed(2)}ms`);
         });
     });
 
     describe('DOM Updates Performance', () => {
         test('should efficiently update visibility states', async () => {
-            const select = createSelect({
+            createSelect({
                 id: 'visibility-perf',
                 options: Array.from({ length: 200 }, (_, i) => ({
                     value: String(i + 1),
@@ -235,13 +230,15 @@ describe('Performance Tests', () => {
             api.open();
             await waitFor(250);
 
-            const searchInput = document.querySelector('.selective-ui-searchbox-input');
+            const searchInput = document.querySelector(
+                '.selective-ui-searchbox-input'
+            ) as HTMLInputElement;
 
             const startTime = performance.now();
 
             for (let i = 0; i < 10; i++) {
                 searchInput.value = String(i);
-                searchInput.dispatchEvent(new Event('input'));
+                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
                 await waitFor(50);
             }
 
@@ -249,14 +246,12 @@ describe('Performance Tests', () => {
             const duration = endTime - startTime - 500;
 
             expect(duration).toBeLessThan(300);
-
-            console.log(`✓ 10 visibility updates on 200 items in ${duration.toFixed(2)}ms`);
         });
     });
 
     describe('Scroll Performance', () => {
         test('should handle smooth scrolling with many options', async () => {
-            const select = createSelect({
+            createSelect({
                 id: 'scroll-perf',
                 options: Array.from({ length: 500 }, (_, i) => ({
                     value: String(i + 1),
@@ -270,7 +265,9 @@ describe('Performance Tests', () => {
             api.open();
             await waitFor(250);
 
-            const popup = document.querySelector('.selective-ui-popup');
+            const popup = document.querySelector(
+                '.selective-ui-popup'
+            ) as HTMLElement;
 
             const startTime = performance.now();
 
@@ -284,8 +281,6 @@ describe('Performance Tests', () => {
             const duration = endTime - startTime - 200;
 
             expect(duration).toBeLessThan(500);
-
-            console.log(`✓ 20 scroll events with 500 options in ${duration.toFixed(2)}ms`);
         });
     });
 });

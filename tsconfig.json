@@ -3,6 +3,7 @@
     "target": "ES2020",
     "module": "ES2020",
     "moduleResolution": "Node",
+    "esModuleInterop": true,
     "lib": ["DOM", "ES2019"],
     "useDefineForClassFields": false,
 
@@ -19,7 +20,7 @@
     "noEmit": true
   },
   "include": [
-    "src/ts/**/*.ts"
+    "**/*.ts"
   ],
   "exclude": [
     "node_modules",

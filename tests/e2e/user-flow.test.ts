@@ -4,7 +4,7 @@
  */
 
 describe('E2E User Flows', () => {
-    const SelectiveUI = require("../../src/js/index");
+    const SelectiveUI = require("../../src/ts/index");
 
     beforeEach(() => {
         // Clear document before each test
@@ -36,17 +36,16 @@ describe('E2E User Flows', () => {
             expect(api).toBeTruthy();
             expect(api.isEmpty).toBe(false);
             
-            // Test API có methods cần thiết
             expect(typeof api.open).toBe('function');
             expect(typeof api.setValue).toBe('function');
 
             const viewPanel = document.querySelector('.selective-ui-view');
             expect(viewPanel).toBeTruthy();
 
-            viewPanel.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+            viewPanel?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
             await waitFor(250);
 
-            const option = document.querySelectorAll('.selective-ui-option-view')[1];
+            const option = document.querySelectorAll('.selective-ui-option-view')[1] as HTMLDivElement;
             option.click();
             await waitFor(100);
 
@@ -71,15 +70,15 @@ describe('E2E User Flows', () => {
             api.open();
             await waitFor(250);
 
-            const searchInput = document.querySelector('.selective-ui-searchbox-input');
-            searchInput.value = 'ban';
+            const searchInput = document.querySelector('.selective-ui-searchbox-input') as HTMLInputElement;
+            searchInput!.value = 'ban';
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
             await waitFor(250);
 
             const visibleOptions = document.querySelectorAll('.selective-ui-option-view:not(.hide)');
             expect(visibleOptions.length).toBe(1);
 
-            visibleOptions[0].click();
+            (visibleOptions[0] as HTMLDivElement).click();
             await waitFor(100);
 
             expect(api.value).toBe('2');
@@ -107,9 +106,9 @@ describe('E2E User Flows', () => {
             await waitFor(250);
 
             const options = document.querySelectorAll('.selective-ui-option-view');
-            options[0].click();
+            (options[0] as HTMLDivElement).click();
             await waitFor(150);
-            options[1].click();
+            (options[1] as HTMLDivElement).click();
             await waitFor(150);
 
             expect(api.valueArray).toEqual(['1', '2']);
@@ -137,7 +136,7 @@ describe('E2E User Flows', () => {
             api.open();
             await waitFor(250);
 
-            const selectAllBtn = document.querySelector('.selective-ui-option-handle-item');
+            const selectAllBtn = document.querySelector('.selective-ui-option-handle-item') as HTMLDivElement;
             if (selectAllBtn) {
                 selectAllBtn.click();
                 await waitFor(100);
@@ -164,7 +163,7 @@ describe('E2E User Flows', () => {
             api.setValue(['1', '2'], false);
             await waitFor(100);
 
-            const removeBtn = document.querySelector('.accessory-item-button');
+            const removeBtn = document.querySelector('.accessory-item-button') as HTMLDivElement;
             if (removeBtn) {
                 removeBtn.click();
                 await waitFor(100);
@@ -193,7 +192,7 @@ describe('E2E User Flows', () => {
             api.open();
             await waitFor(250);
 
-            const searchInput = document.querySelector('.selective-ui-searchbox-input');
+            const searchInput = document.querySelector('.selective-ui-searchbox-input')  as HTMLInputElement;
 
             searchInput.dispatchEvent(new KeyboardEvent('keydown', { 
                 key: 'ArrowDown',
@@ -228,7 +227,7 @@ describe('E2E User Flows', () => {
             api.open();
             await waitFor(250);
 
-            const searchInput = document.querySelector('.selective-ui-searchbox-input');
+            const searchInput = document.querySelector('.selective-ui-searchbox-input') as HTMLInputElement;
 
             searchInput.dispatchEvent(new KeyboardEvent('keydown', { 
                 key: 'ArrowDown',
@@ -259,7 +258,7 @@ describe('E2E User Flows', () => {
             api.open();
             await waitFor(250);
 
-            const searchInput = document.querySelector('.selective-ui-searchbox-input');
+            const searchInput = document.querySelector('.selective-ui-searchbox-input') as HTMLInputElement;
             
             searchInput.dispatchEvent(new KeyboardEvent('keydown', { 
                 key: 'Escape',
@@ -267,7 +266,7 @@ describe('E2E User Flows', () => {
             }));
             await waitFor(250);
 
-            const popup = document.querySelector('.selective-ui-popup');
+            const popup = document.querySelector('.selective-ui-popup') as HTMLDivElement;
             const isHidden = popup.style.display === 'none' || 
                            popup.classList.contains('hide');
             expect(isHidden).toBeTruthy();
@@ -348,12 +347,12 @@ describe('E2E User Flows', () => {
             api.open();
             await waitFor(250);
 
-            const groupHeader = document.querySelector('.selective-ui-group-header');
+            const groupHeader = document.querySelector('.selective-ui-group-header') as HTMLDivElement;
             if (groupHeader) {
                 groupHeader.click();
                 await waitFor(100);
 
-                const group = document.querySelector('.selective-ui-group');
+                const group = document.querySelector('.selective-ui-group') as HTMLDivElement;
                 expect(group.classList.contains('collapsed')).toBe(true);
             }
         });
@@ -377,12 +376,12 @@ describe('E2E User Flows', () => {
             api.open();
             await waitFor(250);
 
-            const searchInput = document.querySelector('.selective-ui-searchbox-input');
+            const searchInput = document.querySelector('.selective-ui-searchbox-input') as HTMLInputElement;
             searchInput.value = 'xyz';
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
             await waitFor(250);
 
-            let emptyState = document.querySelector('.selective-ui-empty-state');
+            let emptyState = document.querySelector('.selective-ui-empty-state') as HTMLInputElement;
             expect(emptyState.classList.contains('hide')).toBe(false);
 
             searchInput.value = '';

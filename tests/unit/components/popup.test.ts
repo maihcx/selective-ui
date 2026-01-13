@@ -2,12 +2,12 @@
  * @jest-environment jsdom
  */
 
-import { Popup } from "../../../src/js/components/popup";
-import { Libs } from "../../../src/js/utils/libs";
-import { ResizeObserverService } from "../../../src/js/services/resize-observer";
-import { ModelManager } from "../../../src/js/core/model-manager";
+import { Popup } from "../../../src/ts/components/popup";
+import { Libs } from "../../../src/ts/utils/libs";
+import { ResizeObserverService } from "../../../src/ts/services/resize-observer";
+import { ModelManager } from "../../../src/ts/core/model-manager";
 
-jest.mock("../../../src/js/utils/libs", () => ({
+jest.mock("../../../src/ts/utils/libs", () => ({
     Libs: {
         mountNode: jest.fn(),
         getBinderMap: jest.fn(),
@@ -16,24 +16,31 @@ jest.mock("../../../src/js/utils/libs", () => ({
     }
 }));
 
-jest.mock("../../../src/js/components/option-handle", () => ({
+jest.mock("../../../src/ts/components/option-handle", () => ({
     OptionHandle: jest.fn()
 }));
 
-jest.mock("../../../src/js/components/empty-state", () => ({
+jest.mock("../../../src/ts/components/empty-state", () => ({
     EmptyState: jest.fn()
 }));
 
-jest.mock("../../../src/js/components/loading-state", () => ({
+jest.mock("../../../src/ts/components/loading-state", () => ({
     LoadingState: jest.fn()
 }));
 
-jest.mock("../../../src/js/services/resize-observer", () => ({
+jest.mock("../../../src/ts/services/resize-observer", () => ({
     ResizeObserverService: jest.fn()
 }));
 
+type MockAdapter = {
+    getVisibilityStats: jest.Mock;
+    onVisibilityChanged: jest.Mock;
+    onPropChanged: jest.Mock;
+    checkAll: jest.Mock;
+};
+
 function createModelManager() {
-    const mm = new ModelManager({});
+    const mm = new ModelManager<any, any>({} as any);
 
     const adapter = {
         getVisibilityStats: jest.fn(() => ({
@@ -47,9 +54,9 @@ function createModelManager() {
         checkAll: jest.fn()
     };
 
-    mm.load = jest.fn();
-    mm.skipEvent = jest.fn();
-    mm.getResources = jest.fn(() => ({
+    (mm as any).load = jest.fn();
+    (mm as any).skipEvent = jest.fn();
+    (mm as any).getResources = jest.fn(() => ({
         adapter,
         recyclerView: {}
     }));
@@ -57,11 +64,19 @@ function createModelManager() {
     return { mm, adapter };
 }
 
-function createEffector() {
+type MockEffector = {
+    setElement: jest.Mock;
+    expand: jest.Mock;
+    collapse: jest.Mock;
+    resize: jest.Mock;
+    getHiddenDimensions: jest.Mock;
+};
+
+function createEffector(): MockEffector {
     return {
         setElement: jest.fn(),
-        expand: jest.fn(({ onComplete }) => onComplete && onComplete()),
-        collapse: jest.fn(({ onComplete }) => onComplete && onComplete()),
+        expand: jest.fn(({ onComplete }: { onComplete?: () => void }) => onComplete?.()),
+        collapse: jest.fn(({ onComplete }: { onComplete?: () => void }) => onComplete?.()),
         resize: jest.fn(),
         getHiddenDimensions: jest.fn(() => ({
             scrollHeight: 150
@@ -69,16 +84,12 @@ function createEffector() {
     };
 }
 
-/* =====================================================
- * TESTS
- * ===================================================== */
-
 describe("Popup", () => {
-    let popup;
-    let adapter;
-    let effector;
-    let select;
-    let options;
+    let popup: Popup;
+    let adapter: MockAdapter;
+    let effector: MockEffector;
+    let select: HTMLSelectElement;
+    let options: Record<string, any>;
 
     beforeEach(() => {
         document.body.innerHTML = "";
@@ -95,7 +106,6 @@ describe("Popup", () => {
             loadingfield: true
         };
 
-        /* --------- runtime DOM (SAFE) --------- */
         const optionHandleInstance = {
             node: document.createElement("div"),
             hide: jest.fn(),
@@ -116,16 +126,16 @@ describe("Popup", () => {
             hide: jest.fn()
         };
 
-        require("../../../src/js/components/option-handle").OptionHandle
+        (require("../../../src/ts/components/option-handle").OptionHandle as jest.Mock)
             .mockImplementation(() => optionHandleInstance);
 
-        require("../../../src/js/components/empty-state").EmptyState
+        (require("../../../src/ts/components/empty-state").EmptyState as jest.Mock)
             .mockImplementation(() => emptyStateInstance);
 
-        require("../../../src/js/components/loading-state").LoadingState
+        (require("../../../src/ts/components/loading-state").LoadingState as jest.Mock)
             .mockImplementation(() => loadingStateInstance);
 
-        ResizeObserverService.mockImplementation(() => ({
+        (ResizeObserverService as jest.Mock).mockImplementation(() => ({
             connect: jest.fn(),
             disconnect: jest.fn(),
             trigger: jest.fn(),
@@ -135,14 +145,14 @@ describe("Popup", () => {
         const { mm, adapter: ad } = createModelManager();
         adapter = ad;
 
-        Libs.mountNode.mockReturnValue({
+        (Libs.mountNode as jest.Mock).mockReturnValue({
             view: document.createElement("div"),
             tags: {
                 OptionsContainer: document.createElement("div")
             }
         });
 
-        Libs.getBinderMap.mockReturnValue({
+        (Libs.getBinderMap as jest.Mock).mockReturnValue({
             container: {
                 tags: {
                     ViewPanel: document.createElement("div")
@@ -152,10 +162,8 @@ describe("Popup", () => {
 
         popup = new Popup(select, options, mm);
         effector = createEffector();
-        popup.setupEffector(effector);
+        popup.setupEffector(effector as any);
     });
-
-    /* ================================================= */
 
     test("init creates popup structure", () => {
         expect(popup.node).toBeInstanceOf(HTMLElement);
@@ -166,7 +174,7 @@ describe("Popup", () => {
 
     test("showLoading enables loading state", async () => {
         await popup.showLoading();
-        expect(popup.loadingState.show).toHaveBeenCalled();
+        expect(popup.loadingState?.show).toHaveBeenCalled();
     });
 
     test("hideLoading restores state", async () => {
@@ -175,7 +183,7 @@ describe("Popup", () => {
         await popup.hideLoading();
         jest.runAllTimers();
 
-        expect(popup.loadingState.hide).toHaveBeenCalled();
+        expect(popup.loadingState?.hide).toHaveBeenCalled();
     });
 
     test("open mounts popup and runs expand", () => {
@@ -197,7 +205,7 @@ describe("Popup", () => {
         });
 
         popup.open();
-        expect(popup.emptyState.show).toHaveBeenCalledWith("nodata");
+        expect(popup.emptyState?.show).toHaveBeenCalledWith("nodata");
     });
 
     test("empty state shows notfound", () => {
@@ -207,7 +215,7 @@ describe("Popup", () => {
         });
 
         popup.open();
-        expect(popup.emptyState.show).toHaveBeenCalledWith("notfound");
+        expect(popup.emptyState?.show).toHaveBeenCalledWith("notfound");
     });
 
     test("setupInfiniteScroll triggers loadMore", async () => {
@@ -223,7 +231,7 @@ describe("Popup", () => {
         };
 
         popup.open();
-        popup.setupInfiniteScroll(searchController);
+        popup.setupInfiniteScroll(searchController as any);
 
         Object.defineProperty(popup.node, "scrollHeight", {
             configurable: true,
@@ -235,9 +243,9 @@ describe("Popup", () => {
             value: 150
         });
 
-        popup.node.scrollTop = 200;
+        popup.node!.scrollTop = 200;
+        popup.node?.dispatchEvent(new Event("scroll"));
 
-        popup.node.dispatchEvent(new Event("scroll"));
         expect(loadMore).toHaveBeenCalled();
     });
 });

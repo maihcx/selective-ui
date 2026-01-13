@@ -1,15 +1,17 @@
-import { ElementAdditionObserver } from '../../../src/js/services/ea-observer';
+import { ElementAdditionObserver } from '../../../src/ts/services/ea-observer';
 
 let mutationCallback;
 
 beforeAll(() => {
-    global.MutationObserver = jest.fn((cb) => {
-        mutationCallback = cb;
-        return {
-            observe: jest.fn(),
-            disconnect: jest.fn()
-        };
-    });
+    global.MutationObserver = jest.fn(
+        (cb: (mutations: MutationRecord[]) => void) => {
+            mutationCallback = cb;
+            return {
+                observe: jest.fn(),
+                disconnect: jest.fn()
+            } as unknown as MutationObserver;
+        }
+    ) as unknown as typeof MutationObserver;
 });
 
 describe('ElementAdditionObserver', () => {
@@ -106,7 +108,7 @@ describe('ElementAdditionObserver', () => {
     test('stop() disconnects observer when active', () => {
         observer.start('select');
 
-        const instance = MutationObserver.mock.results[0].value;
+        const instance = (MutationObserver as jest.Mock).mock.results[0].value;
         observer.stop();
 
         expect(instance.disconnect).toHaveBeenCalledTimes(1);

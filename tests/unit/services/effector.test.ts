@@ -1,51 +1,54 @@
-import { Effector } from '../../../src/js/services/effector';
+import { Effector } from "../../../src/ts/services/effector";
 
-describe('Effector', () => {
+describe("Effector", () => {
     beforeAll(() => {
         jest.useFakeTimers();
 
-        // Force RAF to run sync
-        global.requestAnimationFrame = (cb) => cb();
+        global.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+            cb(0);
+            return 0;
+        }) as typeof requestAnimationFrame;
     });
 
     afterAll(() => {
         jest.useRealTimers();
     });
 
-    function createElement() {
-        const el = document.createElement('div');
+    function createElement(): HTMLDivElement {
+        const el = document.createElement("div");
 
-        Object.defineProperty(el, 'offsetHeight', {
+        Object.defineProperty(el, "offsetHeight", {
             value: 100,
             configurable: true
         });
 
-        Object.defineProperty(el, 'scrollHeight', {
+        Object.defineProperty(el, "scrollHeight", {
             value: 200,
             configurable: true
         });
 
-        Object.defineProperty(el, 'offsetTop', {
+        Object.defineProperty(el, "offsetTop", {
             value: 10,
             configurable: true
         });
 
-        el.getBoundingClientRect = () => ({
-            width: 300,
-            height: 150
-        });
+        el.getBoundingClientRect = () =>
+            ({
+                width: 300,
+                height: 150
+            } as DOMRect);
 
         document.body.appendChild(el);
         return el;
     }
 
     afterEach(() => {
-        document.body.innerHTML = '';
+        document.body.innerHTML = "";
         jest.clearAllTimers();
         jest.clearAllMocks();
     });
 
-    test('setElement accepts HTMLElement', () => {
+    test("setElement accepts HTMLElement", () => {
         const el = createElement();
         const eff = Effector();
 
@@ -54,16 +57,16 @@ describe('Effector', () => {
         expect(eff.element).toBe(el);
     });
 
-    test('constructor accepts selector', () => {
+    test("constructor accepts selector", () => {
         const el = createElement();
-        el.id = 'target';
+        el.id = "target";
 
-        const eff = Effector('#target');
+        const eff = Effector("#target");
 
         expect(eff.element).toBe(el);
     });
 
-    test('cancel clears timers and resets isAnimating', () => {
+    test("cancel clears timers and resets isAnimating", () => {
         const el = createElement();
         const eff = Effector(el);
 
@@ -83,11 +86,11 @@ describe('Effector', () => {
         expect(eff.isAnimating).toBe(false);
     });
 
-    test('getHiddenDimensions returns width, height, scrollHeight', () => {
+    test("getHiddenDimensions returns width, height, scrollHeight", () => {
         const el = createElement();
         const eff = Effector(el);
 
-        const dims = eff.getHiddenDimensions();
+        const dims = eff.getHiddenDimensions("flex");
 
         expect(dims).toEqual(
             expect.objectContaining({
@@ -98,7 +101,7 @@ describe('Effector', () => {
         );
     });
 
-    test('expand sets animating state and calls onComplete', () => {
+    test("expand sets animating state and calls onComplete", () => {
         const el = createElement();
         const eff = Effector(el);
         const onComplete = jest.fn();
@@ -121,9 +124,9 @@ describe('Effector', () => {
         expect(eff.isAnimating).toBe(false);
     });
 
-    test('collapse hides element and calls onComplete', () => {
+    test("collapse hides element and calls onComplete", () => {
         const el = createElement();
-        el.style.display = 'block';
+        el.style.display = "block";
 
         const eff = Effector(el);
         const onComplete = jest.fn();
@@ -132,12 +135,12 @@ describe('Effector', () => {
 
         jest.advanceTimersByTime(100);
 
-        expect(el.style.display).toBe('none');
+        expect(el.style.display).toBe("none");
         expect(onComplete).toHaveBeenCalled();
         expect(eff.isAnimating).toBe(false);
     });
 
-    test('showSwipeWidth animates width and completes', () => {
+    test("showSwipeWidth animates width and completes", () => {
         const el = createElement();
         const eff = Effector(el);
         const onComplete = jest.fn();
@@ -155,7 +158,7 @@ describe('Effector', () => {
         expect(eff.isAnimating).toBe(false);
     });
 
-    test('hideSwipeWidth animates width and completes', () => {
+    test("hideSwipeWidth animates width and completes", () => {
         const el = createElement();
         const eff = Effector(el);
         const onComplete = jest.fn();
@@ -171,7 +174,7 @@ describe('Effector', () => {
         expect(eff.isAnimating).toBe(false);
     });
 
-    test('resize without animation calls onComplete immediately', () => {
+    test("resize without animation calls onComplete immediately", () => {
         const el = createElement();
         const eff = Effector(el);
         const onComplete = jest.fn();
@@ -190,7 +193,7 @@ describe('Effector', () => {
         expect(onComplete).toHaveBeenCalled();
     });
 
-    test('resize with animation calls onComplete after duration', () => {
+    test("resize with animation calls onComplete after duration", () => {
         const el = createElement();
         const eff = Effector(el);
         const onComplete = jest.fn();
@@ -211,7 +214,7 @@ describe('Effector', () => {
         expect(onComplete).toHaveBeenCalled();
     });
 
-    test('isAnimating reflects animation state', () => {
+    test("isAnimating reflects animation state", () => {
         const el = createElement();
         const eff = Effector(el);
 

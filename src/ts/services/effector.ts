@@ -345,7 +345,9 @@ class EffectorImpl implements EffectorInterface {
                 styles.transition = `height ${duration}ms, top ${duration}ms`;
             } else {
                 this._resizeTimeout = setTimeout(() => {
-                    this.element.style.transition = "none";
+                    if (this.element?.style) {
+                        this.element.style.transition = "none";
+                    }
                 }, duration);
             }
 

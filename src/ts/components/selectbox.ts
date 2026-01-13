@@ -696,4 +696,8 @@ export class SelectBox {
 
         return flatOptions;
     }
+
+    detroy() {
+        this.container.popup!.detroy();
+    }
 }

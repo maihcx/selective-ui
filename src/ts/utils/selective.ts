@@ -4,6 +4,7 @@ import { SelectBox } from "../components/selectbox";
 import { ElementAdditionObserver } from "../services/ea-observer";
 import { SelectiveActionApi, SelectiveOptions } from "../types/utils/selective.type";
 import { BinderMap, PropertiesType } from "../types/utils/istorage.type";
+import { Popup } from "../components/popup";
 
 export class Selective {
     /** @type {ElementAdditionObserver|null} */
@@ -176,6 +177,9 @@ export class Selective {
     static destroyElement(selectElement: HTMLSelectElement): void {
         const bindMap = Libs.getBinderMap(selectElement) as BinderMap | null;
         if (!bindMap) return;
+
+        const popup = bindMap.container?.popup as Popup | null;
+        popup?.detroy();
 
         Libs.setUnbinderMap(selectElement, bindMap);
 

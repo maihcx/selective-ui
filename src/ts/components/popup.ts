@@ -330,6 +330,9 @@ export class Popup {
     /**
      * Enables infinite scroll by listening to container scroll events and loading more data
      * when nearing the bottom, respecting pagination state (enabled/loading/hasMore).
+     *
+     * @param searchController - Provides pagination state and a method to load more items.
+     * @param _options - Optional SelectiveOptions (reserved for future behavior tuning).
      */
     setupInfiniteScroll(
         searchController: {
@@ -361,6 +364,73 @@ export class Popup {
         };
 
         this.node.addEventListener("scroll", this._scrollListener);
+    }
+    
+    /**
+     * Completely tear down the popup instance and release all resources.
+     * 
+     * Responsibilities:
+     *  - Clear any pending timeouts and cancel animations/effects.
+     *  - Remove event listeners (scroll, mousedown) and disconnect ResizeObserver.
+     *  - Unmount and remove the DOM node; sever references to Effector/ModelManager.
+     *  - Dispose adapter/recycler and child components (OptionHandle, EmptyState, LoadingState).
+     *  - Reset flags and null out references to avoid memory leaks.
+     * 
+     * Safe to call multiple times; all operations are guarded via optional chaining.
+     */
+    detroy(): void {
+        if (this._hideLoadHandle) {
+            clearTimeout(this._hideLoadHandle);
+            this._hideLoadHandle = null;
+        }
+
+        if (this.node && this._scrollListener) {
+            this.node.removeEventListener("scroll", this._scrollListener);
+            this._scrollListener = null;
+        }
+
+        try {
+            this._resizeObser?.disconnect();
+        } catch (_) {}
+        this._resizeObser = null;
+
+        try {
+            this._effSvc?.setElement?.(null as any);
+        } catch (_) {}
+        this._effSvc = null;
+
+        if (this.node) {
+            try {
+                const clone = this.node.cloneNode(true) as HTMLDivElement;
+                this.node.replaceWith(clone);
+                clone.remove();
+            } catch (_) {
+                this.node.remove();
+            }
+        }
+        this.node = null;
+        this._optionsContainer = null;
+
+        try {
+            this._modelManager?.skipEvent?.(false);
+
+            this.recyclerView?.clear?.();
+            this.recyclerView = null;
+
+            this.optionAdapter = null;
+
+            this.node.remove();
+        } catch (_) {}
+
+        this._modelManager = null;
+        this.optionHandle = null;
+        this.emptyState = null;
+        this.loadingState = null;
+
+        this._parent = null;
+        this.options = null;
+
+        this.isCreated = false;
     }
 
     /**

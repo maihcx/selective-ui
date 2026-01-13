@@ -2,17 +2,19 @@
  * Unit Tests for SearchController
  */
 
+import { SearchController } from "../../../src/ts/core/search-controller";
+import { ModelManager } from "../../../src/ts/core/model-manager";
+import { MixedAdapter } from "../../../src/ts/adapter/mixed-adapter";
+import { RecyclerView } from "../../../src/ts/core/base/recyclerview";
+import { Libs } from "../../../src/ts/utils/libs";
+import { AjaxConfig } from "src/ts/types/core/search-controller.type";
+
 describe("SearchController", () => {
-    const { SearchController } = require("../../../src/js/core/search-controller");
-    const { ModelManager } = require("../../../src/js/core/model-manager");
-    const { MixedAdapter } = require("../../../src/js/adapter/mixed-adapter");
-    const { RecyclerView } = require("../../../src/js/core/base/recyclerview");
-    const { Libs } = require("../../../src/js/utils/libs");
 
-    /** @type {SearchController} */
-    let controller;
+    let controller: SearchController;
+    let abortSpy: jest.Mock;
 
-    function createController(select) {
+    function createController(select: HTMLSelectElement) {
         const mm = new ModelManager({});
         mm.setupAdapter(MixedAdapter);
         mm.setupRecyclerView(RecyclerView);
@@ -114,6 +116,13 @@ describe("SearchController", () => {
 
     beforeEach(() => {
         global.fetch = jest.fn();
+
+        abortSpy = jest.fn();
+
+        global.AbortController = jest.fn(() => ({
+            signal: {},
+            abort: abortSpy
+        })) as any;
     });
 
     afterEach(() => {
@@ -121,7 +130,7 @@ describe("SearchController", () => {
     });
 
     test("ajax POST request", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({ data: [{ value: "1", text: "X" }] })
         });
 
@@ -143,7 +152,7 @@ describe("SearchController", () => {
     });
 
     test("ajax GET request", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({ data: [] })
         });
 
@@ -157,7 +166,7 @@ describe("SearchController", () => {
     });
 
     test("ajax handles missing data field", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({})
         });
 
@@ -169,7 +178,7 @@ describe("SearchController", () => {
     });
 
     test("ajax allows non-array data (treated as empty)", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({ data: "invalid" })
         });
 
@@ -181,7 +190,7 @@ describe("SearchController", () => {
     });
 
     test("ajax handles JSON parse error", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => { throw new Error("Invalid JSON"); }
         });
 
@@ -193,7 +202,7 @@ describe("SearchController", () => {
     });
 
     test("ajax handles fetch error", async () => {
-        fetch.mockRejectedValue(new Error("Network error"));
+        (global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
 
         controller.setAjax({ url: "/api/search" });
         const result = await controller.search("x");
@@ -203,13 +212,7 @@ describe("SearchController", () => {
     });
 
     test("ajax aborts previous request", async () => {
-        const abortSpy = jest.fn();
-        global.AbortController = jest.fn(() => ({
-            signal: {},
-            abort: abortSpy
-        }));
-
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({ data: [] })
         });
 
@@ -219,10 +222,11 @@ describe("SearchController", () => {
         await controller.search("b");
 
         expect(global.AbortController).toHaveBeenCalledTimes(2);
+        expect(abortSpy).toHaveBeenCalledTimes(1);
     });
 
     test("pagination enabled when totalPages > 1", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({
                 data: [{ value: "1", text: "X" }],
                 page: 0,
@@ -238,7 +242,7 @@ describe("SearchController", () => {
     });
 
     test("loadMore loads next page", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({
                 data: [{ value: "1", text: "X" }],
                 page: 1,
@@ -255,7 +259,7 @@ describe("SearchController", () => {
     });
 
     test("loadMore fails when no more pages", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({
                 data: [{ value: "1", text: "X" }],
                 page: 2,
@@ -273,7 +277,7 @@ describe("SearchController", () => {
     });
 
     test("loadMore fails when pagination disabled", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({ data: [] })
         });
 
@@ -293,7 +297,7 @@ describe("SearchController", () => {
     });
 
     test("loadMore blocked while loading", async () => {
-        fetch.mockImplementation(() =>
+        (global.fetch as jest.Mock).mockImplementation(() =>
             new Promise(resolve =>
                 setTimeout(() => resolve({ json: async () => ({ data: [] }) }), 100)
             )
@@ -317,7 +321,7 @@ describe("SearchController", () => {
     });
 
     test("resetPagination during loading is safe", async () => {
-        fetch.mockImplementation(() =>
+        (global.fetch as jest.Mock).mockImplementation(() =>
             new Promise(resolve =>
                 setTimeout(() => resolve({ json: async () => ({ data: [] }) }), 50)
             )
@@ -333,7 +337,7 @@ describe("SearchController", () => {
     });
 
     test("search returns error when ajax enabled but no url", async () => {
-        controller.setAjax({});
+        controller.setAjax({} as AjaxConfig);
 
         const result = await controller.search("x");
 
@@ -355,7 +359,7 @@ describe("SearchController", () => {
     });
 
     test("ajax response without pagination fields disables pagination", async () => {
-    fetch.mockResolvedValue({
+    (global.fetch as jest.Mock).mockResolvedValue({
         json: async () => ({
             data: [{ value: "1", text: "A" }]
         })
@@ -368,7 +372,7 @@ describe("SearchController", () => {
     });
 
     test("resetPagination during loading does not throw", async () => {
-        fetch.mockImplementation(() =>
+        (global.fetch as jest.Mock).mockImplementation(() =>
             new Promise(resolve =>
                 setTimeout(() =>
                     resolve({ json: async () => ({ data: [] }) }), 50)
@@ -382,7 +386,7 @@ describe("SearchController", () => {
     });
 
     test("ajax supports root array response", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ([
                 { value: "1", text: "A" }
             ])
@@ -396,7 +400,7 @@ describe("SearchController", () => {
     });
 
     test("ajax supports data.object response", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({
                 object: [{ value: "1", text: "A" }],
                 page: 0,
@@ -411,7 +415,7 @@ describe("SearchController", () => {
     });
 
     test("ajax supports items with pagination object", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({
                 items: [{ value: "1", text: "A" }],
                 pagination: {
@@ -429,7 +433,7 @@ describe("SearchController", () => {
     });
 
     test("ajax parses optgroup response", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({
                 data: [{
                     label: "Group A",
@@ -455,7 +459,7 @@ describe("SearchController", () => {
 
         controller = createController(select);
 
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({
                 data: [{ value: "1", text: "A" }]
             })
@@ -468,7 +472,7 @@ describe("SearchController", () => {
     });
 
     test("ajax supports data as function", async () => {
-        fetch.mockResolvedValue({
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({ data: [] })
         });
 
@@ -486,7 +490,7 @@ describe("SearchController", () => {
         const abortError = new Error("aborted");
         abortError.name = "AbortError";
 
-        fetch.mockRejectedValue(abortError);
+        (global.fetch as jest.Mock).mockRejectedValue(abortError);
 
         controller.setAjax({ url: "/api/search" });
 

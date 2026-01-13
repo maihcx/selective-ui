@@ -18,7 +18,7 @@ import { Effector } from "./services/effector";
 import { SelectiveActionApi, SelectiveOptions, SelectiveUIGlobal } from "./types/utils/selective.type";
 import { EffectorInterface } from "./types/services/effector.type";
 
-export const version = "1.1.0" as const;
+export const version = "1.1.1" as const;
 export const name = "SelectiveUI" as const;
 
 declare global {
@@ -61,7 +61,7 @@ export function find(query: string): SelectiveActionApi {
  * Destroys Selective instances associated with the given query.
  * Proxies to a global loaded instance if available; otherwise uses local Selective.destroy.
  */
-export function destroy(query: string): void {
+export function destroy(query: string | null = null): void {
     const global = getGlobal();
     if (alreadyLoaded && global) 
         return global.destroy(query);

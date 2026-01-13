@@ -2,7 +2,7 @@
  * Unit Tests for LoadingState
  */
 
-import { LoadingState } from "../../../src/js/components/loading-state";
+import { LoadingState } from "../../../src/ts/components/loading-state";
 
 describe("LoadingState", () => {
     const options = {
@@ -25,11 +25,11 @@ describe("LoadingState", () => {
 
         expect(ls.node).toBeInstanceOf(HTMLDivElement);
         expect(ls.options).toBe(options);
-        expect(ls.node.textContent).toBe(options.textLoading);
-        expect(ls.node.classList.contains("selective-ui-loading-state")).toBe(true);
-        expect(ls.node.classList.contains("hide")).toBe(true);
-        expect(ls.node.getAttribute("role")).toBe("status");
-        expect(ls.node.getAttribute("aria-live")).toBe("polite");
+        expect(ls.node?.textContent).toBe(options.textLoading);
+        expect(ls.node?.classList.contains("selective-ui-loading-state")).toBe(true);
+        expect(ls.node?.classList.contains("hide")).toBe(true);
+        expect(ls.node?.getAttribute("role")).toBe("status");
+        expect(ls.node?.getAttribute("aria-live")).toBe("polite");
     });
 
     test("show(false) shows loading state without small class", () => {
@@ -37,9 +37,9 @@ describe("LoadingState", () => {
 
         ls.show(false);
 
-        expect(ls.node.textContent).toBe(options.textLoading);
-        expect(ls.node.classList.contains("hide")).toBe(false);
-        expect(ls.node.classList.contains("small")).toBe(false);
+        expect(ls.node?.textContent).toBe(options.textLoading);
+        expect(ls.node?.classList.contains("hide")).toBe(false);
+        expect(ls.node?.classList.contains("small")).toBe(false);
         expect(ls.isVisible).toBe(true);
     });
 
@@ -48,8 +48,8 @@ describe("LoadingState", () => {
 
         ls.show(true);
 
-        expect(ls.node.classList.contains("small")).toBe(true);
-        expect(ls.node.classList.contains("hide")).toBe(false);
+        expect(ls.node?.classList.contains("small")).toBe(true);
+        expect(ls.node?.classList.contains("hide")).toBe(false);
         expect(ls.isVisible).toBe(true);
     });
 
@@ -59,7 +59,7 @@ describe("LoadingState", () => {
         ls.show(true);
         ls.hide();
 
-        expect(ls.node.classList.contains("hide")).toBe(true);
+        expect(ls.node?.classList.contains("hide")).toBe(true);
         expect(ls.isVisible).toBe(false);
     });
 

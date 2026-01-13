@@ -3,7 +3,10 @@
  * Unit Tests for Model
  */
 
-import { Model } from "../../../../src/js/core/base/model";
+import { Model } from "../../../../src/ts/core/base/model";
+import { DefaultConfig } from "../../../../src/ts/types/utils/istorage.type";
+import { OptionViewTags } from "../../../../src/ts/types/views/view.option.type";
+import { OptionView } from "../../../../src/ts/views/option-view";
 
 describe("Model", () => {
     beforeEach(() => {
@@ -27,7 +30,7 @@ describe("Model", () => {
         const options = { some: "config" };
         const target = document.createElement("option");
         target.setAttribute("value", "abc");
-        const view = {};
+        const view = {} as any;
 
         const model = new Model(options, target, view);
 
@@ -100,7 +103,7 @@ describe("Model", () => {
         });
 
         test("overridden in subclass is called on update()", () => {
-            class TestModel extends Model {
+            class TestModel extends Model<HTMLOptionElement, OptionViewTags, OptionView, DefaultConfig> {
                 onTargetChanged() { /* custom hook */ }
             }
 

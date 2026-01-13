@@ -1,3 +1,13 @@
+# 1.1.1 (2026-01-13)
+
+### Fixes
+
+- **Popup,SelectBox** Popup object classes are not being cleaned up properly
+
+- **Selective** Items do not retrieve new data from `option` tags
+
+- **ALL** Some errors occurred during the `JS` -> `TS` conversion process
+
 # 1.1.0 (2026-01-12)
 
 ### Features

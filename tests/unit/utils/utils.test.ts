@@ -1,9 +1,10 @@
 /**
  * Unit Tests for Utility Functions
  */
+import { iEvents } from "../../../src/ts/utils/ievents";
+import { Libs } from "../../../src/ts/utils/libs";
 
 describe('Libs Utility Functions', () => {
-    const { Libs } = require("../../../src/js/utils/libs");
 
     describe('isNullOrEmpty()', () => {
         test('should return true for null', () => {
@@ -196,7 +197,7 @@ describe('Libs Utility Functions', () => {
             const result = Libs.parseSelectToArray(select);
             expect(result[0].tagName).toBe('OPTGROUP');
             expect(result[1].tagName).toBe('OPTION');
-            expect(result[1].__parentGroup).toBe(result[0]);
+            expect((result[1] as any).__parentGroup).toBe(result[0]);
         });
     });
 
@@ -218,7 +219,6 @@ describe('Libs Utility Functions', () => {
 });
 
 describe('iEvents Utility', () => {
-    const { iEvents } = require("../../../src/js/utils/ievents");
 
     describe('buildEventToken()', () => {
         test('should create token with initial state', () => {

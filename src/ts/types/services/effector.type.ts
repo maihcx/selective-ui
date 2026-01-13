@@ -52,6 +52,20 @@ export interface EffectorInterface {
     collapse(object: Record<string, unknown>): EffectorInterface;
 
     /**
+     * Show Swipe animation
+     * @param object - Configuration options for Show.
+     * @returns EffectorInterface for method chaining.
+     */
+    showSwipeWidth(config: SwipeConfig): EffectorInterface;
+
+    /**
+     * hide Swipe animation
+     * @param object - Configuration options for hide.
+     * @returns EffectorInterface for method chaining.
+     */
+    hideSwipeWidth(config: SwipeConfig): EffectorInterface;
+
+    /**
      * Resize the element with animation and custom configuration.
      * @param object - Configuration options for resizing.
      * @returns EffectorInterface for method chaining.
