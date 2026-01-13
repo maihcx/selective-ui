@@ -18,7 +18,7 @@ import { Effector } from "./services/effector";
 import { SelectiveActionApi, SelectiveOptions, SelectiveUIGlobal } from "./types/utils/selective.type";
 import { EffectorInterface } from "./types/services/effector.type";
 
-export const version = "1.1.0" as const;
+export const version = "1.1.1" as const;
 export const name = "SelectiveUI" as const;
 
 declare global {
