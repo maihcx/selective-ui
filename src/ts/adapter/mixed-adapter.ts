@@ -88,7 +88,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
         super.onViewHolder(groupModel as any, groupView as any, position);
         groupModel.view = groupView;
 
-        const header = groupView.getTag("GroupHeader");
+        const header = groupView.view.tags.GroupHeader;
         header.textContent = groupModel.label;
 
         if (!groupModel.isInit) {
@@ -154,17 +154,17 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
         optionModel.view = optionViewer;
 
         if (optionModel.hasImage) {
-            const imageTag = optionViewer.getTag("OptionImage") as HTMLImageElement | null;
+            const imageTag = optionViewer.view.tags.OptionImage as HTMLImageElement | null;
             if (imageTag) {
                 if (imageTag.src !== optionModel.imageSrc) imageTag.src = optionModel.imageSrc;
                 if (imageTag.alt !== optionModel.text) imageTag.alt = optionModel.text;
             }
         }
 
-        optionViewer.getTag("LabelContent").innerHTML = optionModel.text;
+        optionViewer.view.tags.LabelContent.innerHTML = optionModel.text;
 
         if (!optionModel.isInit) {
-            optionViewer.getTag("OptionView").addEventListener("click", (ev: MouseEvent) => {
+            optionViewer.view.tags.OptionView.addEventListener("click", (ev: MouseEvent) => {
                 ev.stopPropagation();
                 ev.preventDefault();
 
@@ -184,9 +184,9 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
                 }
             });
 
-            optionViewer.getTag("OptionView").title = optionModel.textContent;
+            optionViewer.view.tags.OptionView.title = optionModel.textContent;
 
-            optionViewer.getTag("OptionView").addEventListener("mouseenter", () => {
+            optionViewer.view.tags.OptionView.addEventListener("mouseenter", () => {
                 if (this.isSkipEvent) return;
                 this.setHighlight(this.flatOptions.indexOf(optionModel), false);
             });

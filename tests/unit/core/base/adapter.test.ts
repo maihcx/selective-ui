@@ -4,8 +4,8 @@ import { Libs } from "../../../../src/ts/utils/libs";
 describe("Adapter", () => {
 
     beforeEach(() => {
-        jest.spyOn(Libs.timerProcess, "setExecute").mockImplementation(() => {});
-        jest.spyOn(Libs.timerProcess, "run").mockImplementation(() => {});
+        jest.spyOn(Libs.callbackScheduler, "on").mockImplementation(() => {});
+        jest.spyOn(Libs.callbackScheduler, "run").mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -82,10 +82,10 @@ describe("Adapter", () => {
 
         adapter.onPropChanging("items", cb);
 
-        expect(Libs.timerProcess.setExecute).toHaveBeenCalledWith(
+        expect(Libs.callbackScheduler.on).toHaveBeenCalledWith(
             expect.stringContaining("itemsing_"),
             cb,
-            1
+            { once: true }
         );
     });
 
@@ -95,7 +95,7 @@ describe("Adapter", () => {
 
         adapter.onPropChanged("items", cb);
 
-        expect(Libs.timerProcess.setExecute).toHaveBeenCalledWith(
+        expect(Libs.callbackScheduler.on).toHaveBeenCalledWith(
             expect.stringContaining("items_"),
             cb
         );
@@ -106,7 +106,7 @@ describe("Adapter", () => {
 
         adapter.changingProp("items", 1, 2);
 
-        expect(Libs.timerProcess.run).toHaveBeenCalledWith(
+        expect(Libs.callbackScheduler.run).toHaveBeenCalledWith(
             expect.stringContaining("itemsing_"),
             1,
             2
@@ -118,7 +118,7 @@ describe("Adapter", () => {
 
         adapter.changeProp("items", "a");
 
-        expect(Libs.timerProcess.run).toHaveBeenCalledWith(
+        expect(Libs.callbackScheduler.run).toHaveBeenCalledWith(
             expect.stringContaining("items_"),
             "a"
         );
@@ -130,14 +130,14 @@ describe("Adapter", () => {
 
         adapter.setItems(items);
 
-        expect(Libs.timerProcess.run).toHaveBeenCalledWith(
+        expect(Libs.callbackScheduler.run).toHaveBeenCalledWith(
             expect.stringContaining("itemsing_"),
             items
         );
 
         expect(adapter.items).toBe(items);
 
-        expect(Libs.timerProcess.run).toHaveBeenCalledWith(
+        expect(Libs.callbackScheduler.run).toHaveBeenCalledWith(
             expect.stringContaining("items_"),
             items
         );

@@ -1,4 +1,6 @@
-module.exports = {
+import type { Config } from 'jest';
+
+const config: Config = {
     testEnvironment: 'jsdom',
 
     preset: 'ts-jest',
@@ -26,10 +28,10 @@ module.exports = {
 
     coverageThreshold: {
         global: {
-        branches: 70,
-        functions: 70,
-        lines: 70,
-        statements: 70
+            branches: 70,
+            functions: 70,
+            lines: 70,
+            statements: 70
         }
     },
 
@@ -46,3 +48,5 @@ module.exports = {
     verbose: true,
     testTimeout: 10000
 };
+
+export default config;

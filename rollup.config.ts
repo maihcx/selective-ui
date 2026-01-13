@@ -1,25 +1,123 @@
+import { defineConfig } from 'rollup';
+import type { RollupOptions } from 'rollup';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import replace from '@rollup/plugin-replace';
+import postcss from 'rollup-plugin-postcss';
+import terser from '@rollup/plugin-terser';
+import brotliPlugin from 'rollup-plugin-brotli';
+import typescript from '@rollup/plugin-typescript';
+import autoprefixer from 'autoprefixer';
+import cssnano from 'cssnano';
 
-const { defineConfig } = require('rollup');
-const resolve = require('@rollup/plugin-node-resolve');
-const commonjs = require('@rollup/plugin-commonjs');
-const replace = require('@rollup/plugin-replace');
-const postcss = require('rollup-plugin-postcss');
-const terser = require('@rollup/plugin-terser');
-const brotliPlugin = require('rollup-plugin-brotli');
+const banner = '/*! Selective UI v1.1.1 | MIT License */';
+const treeshake: RollupOptions['treeshake'] = { preset: 'recommended' };
 
-const autoprefixer = require('autoprefixer');
-const cssnano = require('cssnano');
 
-const typescript = require('@rollup/plugin-typescript');
+const PUBLIC_IDENTIFIERS = [
+  'SelectiveUI',
+  'bind', 'find', 'destroy', 'rebind', 'effector', 'version'
+];
 
-const banner = '/*! Selective UI v1.1.0 | MIT License */';
-const treeshake = { preset: 'recommended' };
+const EFFECTOR_METHODS = [
+  'cancel',
+  'expand',
+  'collapse',
+  'showSwipeWidth',
+  'hideSwipeWidth'
+];
+
+const FIND_PROPERTIES = [
+  'placeholder',
+  'oldValue',
+  'value',
+  'valueArray',
+  'valueString',
+  'valueOptions',
+  'mask',
+  'valueText',
+  'isOpen',
+  'selectAll',
+  'deSelectAll',
+  'setValue',
+  'open',
+  'close',
+  'toggle',
+  'change',
+  'refreshMask',
+  'on',
+  'ajax',
+  'isEmpty',
+  'load',
+  'beforeShow',
+  'show',
+  'beforeChange',
+  'change',
+  'beforeClose',
+  'close',
+  'stopPropagation',
+  'cancel',
+  'isCancel',
+  'isContinue'
+];
+
+const DATA_PROPERTIES = [
+  'showPanel',
+  'accessoryStyle',
+  'multiple',
+  'minWidth',
+  'width',
+  'offsetWidth',
+  'minHeight',
+  'height',
+  'panelHeight',
+  'panelMinHeight',
+  'disabled',
+  'readonly',
+  'selectall',
+  'keepSelected',
+  'placeholder',
+  'altMask',
+  'autoclose',
+  'autoscroll',
+  'autofocus',
+  'searchable',
+  'loadingfield',
+  'visible',
+  'skipError',
+  'customDelimiter',
+  'textLoading',
+  'textNoData',
+  'textNotFound',
+  'textSelectAll',
+  'textDeselectAll',
+  'textAccessoryDeselect',
+  'animationtime',
+  'delaysearchtime',
+  'allowHtml',
+  'maxSelected',
+  'labelHalign',
+  'labelValign',
+  'imageMode',
+  'imageWidth',
+  'imageHeight',
+  'imageBorderRadius',
+  'imagePosition',
+  'ajax',
+];
+
+const PUBLIC_PROPERTIES = [
+  'bind', 'find', 'destroy', 'rebind', 'effector', 'version',
+  ...EFFECTOR_METHODS,
+  ...FIND_PROPERTIES,
+  ...DATA_PROPERTIES
+];
 
 const brotliOptions = {
   filter: /\.(js|css|mjs|json|html|svg)$/i,
-  additionalFiles: [],
+  additionalFiles: [] as string[],
   minSize: 0,
-  fileName: (filename) => `${filename}.br`,
+  fileName: (filename: string) => `${filename}.br`,
   options: { quality: 11 },
 };
 
@@ -70,9 +168,11 @@ const terserUMD = terser({
   },
   mangle: {
     toplevel: true,
+    reserved: PUBLIC_IDENTIFIERS,
     properties: {
-      regex: /^_/,
-      keep_quoted: true,
+      reserved: PUBLIC_PROPERTIES,
+      regex: /.*/,
+      keep_quoted: true
     },
   },
 });
@@ -116,7 +216,7 @@ const terserESM = terser({
   },
 });
 
-module.exports = defineConfig([
+export default defineConfig([
   // UMD (non-min)
   {
     input: 'src/ts/index.ts',
@@ -128,13 +228,16 @@ module.exports = defineConfig([
       banner,
     },
     plugins: [
-      replace({ preventAssignment: true, 'process.env.NODE_ENV': JSON.stringify('production') }),
+      replace({
+        preventAssignment: true,
+        'process.env.NODE_ENV': JSON.stringify('production'),
+      }),
       resolve(),
       commonjs(),
       postcssNonMin,
       typescript({
         tsconfig: './tsconfig.json',
-        sourceMap: true
+        sourceMap: true,
       }),
     ],
     treeshake,
@@ -150,13 +253,16 @@ module.exports = defineConfig([
       banner,
     },
     plugins: [
-      replace({ preventAssignment: true, 'process.env.NODE_ENV': JSON.stringify('production') }),
+      replace({
+        preventAssignment: true,
+        'process.env.NODE_ENV': JSON.stringify('production'),
+      }),
       resolve(),
       commonjs(),
       postcssNonMin,
       typescript({
         tsconfig: './tsconfig.json',
-        sourceMap: true
+        sourceMap: true,
       }),
     ],
     treeshake,
@@ -173,21 +279,24 @@ module.exports = defineConfig([
       banner,
     },
     plugins: [
-      replace({ preventAssignment: true, 'process.env.NODE_ENV': JSON.stringify('production') }),
+      replace({
+        preventAssignment: true,
+        'process.env.NODE_ENV': JSON.stringify('production'),
+      }),
+      typescript({
+        tsconfig: './tsconfig.json',
+        sourceMap: false,
+      }),
       resolve(),
       commonjs(),
       postcssMin,
       terserUMD,
       brotliPlugin(brotliOptions),
-      typescript({
-        tsconfig: './tsconfig.json',
-        sourceMap: false
-      }),
     ],
     treeshake,
   },
 
-  // ESM minified - single file bundle
+  // ESM minified
   {
     input: 'src/ts/index.ts',
     output: {
@@ -197,16 +306,19 @@ module.exports = defineConfig([
       banner,
     },
     plugins: [
-      replace({ preventAssignment: true, 'process.env.NODE_ENV': JSON.stringify('production') }),
+      replace({
+        preventAssignment: true,
+        'process.env.NODE_ENV': JSON.stringify('production'),
+      }),
+      typescript({
+        tsconfig: './tsconfig.json',
+        sourceMap: false,
+      }),
       resolve(),
       commonjs(),
       postcssMin,
       terserESM,
       brotliPlugin(brotliOptions),
-      typescript({
-        tsconfig: './tsconfig.json',
-        sourceMap: false
-      }),
     ],
     treeshake,
   },

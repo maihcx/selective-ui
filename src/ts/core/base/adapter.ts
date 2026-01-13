@@ -62,7 +62,7 @@ export class Adapter<
      * @param {Function} callback - Function to execute before the property changes.
      */
     onPropChanging(propName: string, callback: (...args: unknown[]) => void): void {
-        Libs.timerProcess.setExecute(`${propName}ing_${this.adapterKey}`, callback as any, 1);
+        Libs.callbackScheduler.on(`${propName}ing_${this.adapterKey}`, callback, { debounce: 1 });
     }
 
     /**
@@ -73,7 +73,7 @@ export class Adapter<
      * @param {Function} callback - Function to execute after the property changes.
      */
     onPropChanged(propName: string, callback: (...args: unknown[]) => void): void {
-        Libs.timerProcess.setExecute(`${propName}_${this.adapterKey}`, callback as any);
+        Libs.callbackScheduler.on(`${propName}_${this.adapterKey}`, callback);
     }
 
     /**
@@ -84,7 +84,7 @@ export class Adapter<
      * @param {...any} params - Parameters forwarded to the callbacks.
      */
     changeProp(propName: string, ...params: unknown[]): void {
-        Libs.timerProcess.run(`${propName}_${this.adapterKey}`, ...params);
+        Libs.callbackScheduler.run(`${propName}_${this.adapterKey}`, ...params);
     }
 
     /**
@@ -95,7 +95,7 @@ export class Adapter<
      * @param {...any} params - Parameters forwarded to the callbacks.
      */
     changingProp(propName: string, ...params: unknown[]): void {
-        Libs.timerProcess.run(`${propName}ing_${this.adapterKey}`, ...params);
+        Libs.callbackScheduler.run(`${propName}ing_${this.adapterKey}`, ...params);
     }
 
     /**

@@ -1,6 +1,7 @@
 import { BinderMap } from "../types/utils/istorage.type";
-import { MountViewResult, NodeSpec, TimerProcess } from "../types/utils/libs.type.js";
+import { MountViewResult, NodeSpec } from "../types/utils/libs.type";
 import { iStorage } from "./istorage";
+import { CallbackScheduler } from "./callback-scheduler";
 
 
 /**
@@ -23,43 +24,7 @@ export class Libs {
      * Schedules and batches function executions keyed by name, with debounced timers.
      * Provides setExecute(), clearExecute(), and run() to manage deferred callbacks.
      */
-    static timerProcess: TimerProcess = {
-        executeStored: {},
-        timerRunner: {},
-
-        setExecute(keyExecute, execute, timeout = 50, once = false) {
-            if (!this.executeStored[keyExecute]) this.executeStored[keyExecute] = [];
-            this.executeStored[keyExecute].push({ execute, timeout, once });
-        },
-
-        clearExecute(keyExecute) {
-            delete this.executeStored[keyExecute];
-        },
-
-        run(keyExecute, ...params) {
-            const executes = this.executeStored[keyExecute];
-            if (!executes) return;
-
-            if (!this.timerRunner[keyExecute]) this.timerRunner[keyExecute] = {};
-
-            for (const key in executes) {
-                const entry = executes[Number(key)];
-                if (!entry) continue;
-
-                if (!this.timerRunner[keyExecute][key]) {
-                    // placeholder, will be overwritten by setTimeout
-                    this.timerRunner[keyExecute][key] = setTimeout(() => { }, 0);
-                    clearTimeout(this.timerRunner[keyExecute][key]);
-                }
-
-                clearTimeout(this.timerRunner[keyExecute][key]);
-                this.timerRunner[keyExecute][key] = setTimeout(() => {
-                    entry.execute(params.length > 0 ? params : null);
-                    if (entry.once) delete this.executeStored[keyExecute][Number(key)];
-                }, entry.timeout);
-            }
-        },
-    };
+    static readonly callbackScheduler = new CallbackScheduler();
 
     /**
      * Checks whether a value is null/undefined/empty-string/"0"/0.
@@ -83,9 +48,9 @@ export class Libs {
         if (obj === null || typeof obj !== "object") return obj;
 
         const copy: any = Array.isArray(obj) ? [] : {};
-        for (const key in obj as any) {
+        for (const key in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                copy[key] = this.jsCopyObject((obj as any)[key]);
+                copy[key] = this.jsCopyObject(obj[key]);
             }
         }
         return copy as T;
