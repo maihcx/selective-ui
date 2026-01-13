@@ -2,8 +2,8 @@
  * Unit Tests for EmptyState
  */
 
-import { EmptyState } from "../../../src/js/components/empty-state";
-import { Libs } from "../../../src/js/utils/libs";
+import { EmptyState } from "../../../src/ts/components/empty-state";
+import { Libs } from "../../../src/ts/utils/libs";
 
 describe("EmptyState", () => {
     const options = {
@@ -26,10 +26,10 @@ describe("EmptyState", () => {
 
         expect(es.node).toBeInstanceOf(HTMLDivElement);
         expect(es.options).toBe(options);
-        expect(es.node.classList.contains("selective-ui-empty-state")).toBe(true);
-        expect(es.node.classList.contains("hide")).toBe(true);
-        expect(es.node.getAttribute("role")).toBe("status");
-        expect(es.node.getAttribute("aria-live")).toBe("polite");
+        expect(es.node?.classList.contains("selective-ui-empty-state")).toBe(true);
+        expect(es.node?.classList.contains("hide")).toBe(true);
+        expect(es.node?.getAttribute("role")).toBe("status");
+        expect(es.node?.getAttribute("aria-live")).toBe("polite");
     });
 
     test("show() displays nodata text by default", () => {
@@ -37,8 +37,8 @@ describe("EmptyState", () => {
 
         es.show();
 
-        expect(es.node.textContent).toBe(options.textNoData);
-        expect(es.node.classList.contains("hide")).toBe(false);
+        expect(es.node?.textContent).toBe(options.textNoData);
+        expect(es.node?.classList.contains("hide")).toBe(false);
         expect(es.isVisible).toBe(true);
     });
 
@@ -47,8 +47,8 @@ describe("EmptyState", () => {
 
         es.show("notfound");
 
-        expect(es.node.textContent).toBe(options.textNotFound);
-        expect(es.node.classList.contains("hide")).toBe(false);
+        expect(es.node?.textContent).toBe(options.textNotFound);
+        expect(es.node?.classList.contains("hide")).toBe(false);
         expect(es.isVisible).toBe(true);
     });
 
@@ -58,7 +58,7 @@ describe("EmptyState", () => {
         es.show();
         es.hide();
 
-        expect(es.node.classList.contains("hide")).toBe(true);
+        expect(es.node?.classList.contains("hide")).toBe(true);
         expect(es.isVisible).toBe(false);
     });
 

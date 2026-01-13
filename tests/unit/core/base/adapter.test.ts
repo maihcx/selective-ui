@@ -1,5 +1,5 @@
-import { Adapter } from "../../../../src/js/core/base/adapter";
-import { Libs } from "../../../../src/js//utils/libs";
+import { Adapter } from "../../../../src/ts/core/base/adapter";
+import { Libs } from "../../../../src/ts/utils/libs";
 
 describe("Adapter", () => {
 
@@ -12,7 +12,15 @@ describe("Adapter", () => {
         jest.restoreAllMocks();
     });
 
-    function createItem(isInit = false) {
+    interface TestItem {
+        isInit: boolean;
+        view: {
+            render: jest.Mock;
+            update: jest.Mock;
+        };
+    }
+
+    function createItem(isInit = false): TestItem {
         return {
             isInit,
             view: {
@@ -23,8 +31,15 @@ describe("Adapter", () => {
     }
 
     test("constructor initializes items and calls onInit", () => {
-        class TestAdapter extends Adapter {
-            onInit() {
+        class TestAdapter extends Adapter<any, unknown> {
+            inited = false;
+
+            constructor(items) {
+                super(items);
+                this.onInit();
+            }
+
+            onInit(): void {
                 this.inited = true;
             }
         }
@@ -37,32 +52,32 @@ describe("Adapter", () => {
     });
 
     test("itemCount returns number of items", () => {
-        const adapter = new Adapter([1, 2, 3]);
+        const adapter = new Adapter<any, unknown>([1, 2, 3]);
         expect(adapter.itemCount()).toBe(3);
     });
 
     test("onViewHolder renders when item is not initialized", () => {
-        const adapter = new Adapter();
+        const adapter = new Adapter<any, unknown>();
         const item = createItem(false);
 
-        adapter.onViewHolder(item, item.view, 0);
+        adapter.onViewHolder(item, item.view as any, 0);
 
         expect(item.view.render).toHaveBeenCalled();
         expect(item.view.update).not.toHaveBeenCalled();
     });
 
     test("onViewHolder updates when item is initialized", () => {
-        const adapter = new Adapter();
+        const adapter = new Adapter<any, unknown>();
         const item = createItem(true);
 
-        adapter.onViewHolder(item, item.view, 0);
+        adapter.onViewHolder(item, item.view as any, 0);
 
         expect(item.view.update).toHaveBeenCalled();
         expect(item.view.render).not.toHaveBeenCalled();
     });
 
     test("onPropChanging registers debounced callback", () => {
-        const adapter = new Adapter();
+        const adapter = new Adapter<any, unknown>();
         const cb = jest.fn();
 
         adapter.onPropChanging("items", cb);
@@ -75,7 +90,7 @@ describe("Adapter", () => {
     });
 
     test("onPropChanged registers callback", () => {
-        const adapter = new Adapter();
+        const adapter = new Adapter<any, unknown>();
         const cb = jest.fn();
 
         adapter.onPropChanged("items", cb);
@@ -87,7 +102,7 @@ describe("Adapter", () => {
     });
 
     test("changingProp runs pre-change pipeline", () => {
-        const adapter = new Adapter();
+        const adapter = new Adapter<any, unknown>();
 
         adapter.changingProp("items", 1, 2);
 
@@ -99,7 +114,7 @@ describe("Adapter", () => {
     });
 
     test("changeProp runs post-change pipeline", () => {
-        const adapter = new Adapter();
+        const adapter = new Adapter<any, unknown>();
 
         adapter.changeProp("items", "a");
 
@@ -110,7 +125,7 @@ describe("Adapter", () => {
     });
 
     test("setItems triggers changing and changed pipelines in order", () => {
-        const adapter = new Adapter();
+        const adapter = new Adapter<any, unknown>();
         const items = [1, 2];
 
         adapter.setItems(items);
@@ -129,7 +144,7 @@ describe("Adapter", () => {
     });
 
     test("syncFromSource delegates to setItems", () => {
-        const adapter = new Adapter();
+        const adapter = new Adapter<any, unknown>();
         const spy = jest.spyOn(adapter, "setItems");
         const items = [3];
 
@@ -139,8 +154,8 @@ describe("Adapter", () => {
     });
 
     test("viewHolder default implementation returns null", () => {
-        const adapter = new Adapter();
-        expect(adapter.viewHolder(document.createElement("div"), {})).toBeNull();
+        const adapter = new Adapter<any, unknown>();
+        expect(adapter.viewHolder(document.createElement("div"), {} as any)).toBeNull();
     });
 
     test("updateRecyclerView initializes items and binds viewers", () => {
@@ -149,12 +164,13 @@ describe("Adapter", () => {
         const item1 = createItem(false);
         const item2 = createItem(true);
 
-        const adapter = new class extends Adapter {
-            viewHolder(parent, item) {
-                return item.view;
+        class TestAdapter extends Adapter<any, unknown> {
+            viewHolder(_parent: HTMLElement, item: TestItem) {
+                return item.view as any;
             }
-        }([item1, item2]);
+        }
 
+        const adapter = new TestAdapter([item1, item2]);
         adapter.updateRecyclerView(parent);
 
         expect(item1.view.render).toHaveBeenCalled();
@@ -165,8 +181,7 @@ describe("Adapter", () => {
     });
 
     test("updateData is a no-op but callable", () => {
-        const adapter = new Adapter();
-
+        const adapter = new Adapter<any, unknown>();
         expect(() => adapter.updateData([1, 2])).not.toThrow();
     });
 });

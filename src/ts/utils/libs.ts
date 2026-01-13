@@ -1,6 +1,6 @@
 import { BinderMap } from "../types/utils/istorage.type";
 import { MountViewResult, NodeSpec, TimerProcess } from "../types/utils/libs.type.js";
-import { iStorage } from "./istorage.js";
+import { iStorage } from "./istorage";
 
 
 /**

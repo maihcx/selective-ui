@@ -1,10 +1,10 @@
-import { ResizeObserverService } from "../../../src/js/services/resize-observer";
+import { ResizeObserverService } from "../../../src/ts/services/resize-observer";
 
 describe("ResizeObserverService", () => {
-    let service;
-    let originalResizeObserver;
-    let originalMutationObserver;
-    let originalVisualViewport;
+    let service: ResizeObserverService;
+    let originalResizeObserver: typeof ResizeObserver | undefined;
+    let originalMutationObserver: typeof MutationObserver | undefined;
+    let originalVisualViewport: VisualViewport | undefined;
 
     beforeEach(() => {
         service = new ResizeObserverService();
@@ -16,23 +16,23 @@ describe("ResizeObserverService", () => {
         global.ResizeObserver = jest.fn(() => ({
             observe: jest.fn(),
             disconnect: jest.fn()
-        }));
+        })) as unknown as typeof ResizeObserver;
 
         global.MutationObserver = jest.fn(() => ({
             observe: jest.fn(),
             disconnect: jest.fn()
-        }));
+        })) as unknown as typeof MutationObserver;
 
-        delete window.visualViewport;
+        delete (window as any).visualViewport;
 
         jest.spyOn(window, "addEventListener");
         jest.spyOn(window, "removeEventListener");
     });
 
     afterEach(() => {
-        global.ResizeObserver = originalResizeObserver;
-        global.MutationObserver = originalMutationObserver;
-        window.visualViewport = originalVisualViewport;
+        global.ResizeObserver = originalResizeObserver as typeof ResizeObserver;
+        global.MutationObserver = originalMutationObserver as typeof MutationObserver;
+        window.visualViewport = originalVisualViewport as VisualViewport;
 
         jest.restoreAllMocks();
     });
@@ -52,15 +52,15 @@ describe("ResizeObserverService", () => {
             top: 0,
             left: 0,
             padding: { top: 0, right: 0, bottom: 0, left: 0 },
-            border:  { top: 0, right: 0, bottom: 0, left: 0 },
-            margin:  { top: 0, right: 0, bottom: 0, left: 0 }
+            border: { top: 0, right: 0, bottom: 0, left: 0 },
+            margin: { top: 0, right: 0, bottom: 0, left: 0 }
         });
     });
 
     test("trigger emits default metrics when element has no getBoundingClientRect", () => {
         const spy = jest.spyOn(service, "onChanged");
 
-        service.element = {};
+        service.element = {} as HTMLElement;
         service.trigger();
 
         expect(spy).toHaveBeenCalled();
@@ -74,8 +74,13 @@ describe("ResizeObserverService", () => {
             width: 100,
             height: 50,
             top: 10,
-            left: 20
-        });
+            left: 20,
+            bottom: 0,
+            right: 0,
+            x: 0,
+            y: 0,
+            toJSON: () => ({})
+        } as DOMRect);
 
         jest.spyOn(window, "getComputedStyle").mockReturnValue({
             paddingTop: "1px",
@@ -90,7 +95,7 @@ describe("ResizeObserverService", () => {
             marginRight: "10px",
             marginBottom: "11px",
             marginLeft: "12px"
-        });
+        } as CSSStyleDeclaration);
 
         const spy = jest.spyOn(service, "onChanged");
 
@@ -103,14 +108,14 @@ describe("ResizeObserverService", () => {
             top: 10,
             left: 20,
             padding: { top: 1, right: 2, bottom: 3, left: 4 },
-            border:  { top: 5, right: 6, bottom: 7, left: 8 },
-            margin:  { top: 9, right: 10, bottom: 11, left: 12 }
+            border: { top: 5, right: 6, bottom: 7, left: 8 },
+            margin: { top: 9, right: 10, bottom: 11, left: 12 }
         });
     });
 
     test("connect throws error when element is invalid", () => {
-        expect(() => service.connect(null)).toThrow("Invalid element");
-        expect(() => service.connect({})).toThrow("Invalid element");
+        expect(() => service.connect(null as unknown as HTMLElement)).toThrow("Invalid element");
+        expect(() => service.connect({} as HTMLElement)).toThrow("Invalid element");
     });
 
     test("connect initializes observers and listeners", () => {
@@ -134,8 +139,18 @@ describe("ResizeObserverService", () => {
 
     test("connect binds visualViewport listeners when available", () => {
         window.visualViewport = {
+            dispatchEvent: jest.fn(),
             addEventListener: jest.fn(),
-            removeEventListener: jest.fn()
+            removeEventListener: jest.fn(),
+            height: 0,
+            width: 0,
+            offsetLeft: 0,
+            offsetTop: 0,
+            scale: 1,
+            pageLeft: 0,
+            pageTop: 0,
+            onresize: null,
+            onscroll: null
         };
 
         const div = document.createElement("div");
@@ -154,9 +169,6 @@ describe("ResizeObserverService", () => {
     test("disconnect stops observers and removes listeners", () => {
         const div = document.createElement("div");
         service.connect(div);
-
-        const resizeObserverInstance = service["#resizeObserver"];
-        const mutationObserverInstance = service["#mutationObserver"];
 
         service.disconnect();
 

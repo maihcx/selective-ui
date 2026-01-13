@@ -1,60 +1,48 @@
 module.exports = {
-    // Test environment
     testEnvironment: 'jsdom',
-    
-    // Setup files
-    setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
-    
-    // Test match patterns
+
+    preset: 'ts-jest',
+
+    setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+
     testMatch: [
-        '<rootDir>/tests/**/*.test.js',
-        '<rootDir>/tests/**/*.spec.js'
+        '<rootDir>/tests/**/*.test.ts',
+        '<rootDir>/tests/**/*.spec.ts'
     ],
-    
-    // Coverage configuration
+
+    transform: {
+        '^.+\\.ts$': 'ts-jest'
+    },
+
     collectCoverageFrom: [
-        'src/**/*.ts',
-        '!src/**/*.type.ts',
-        '!src/ts/index.ts'
+        'src/ts/**/*.ts',
+        '!src/ts/**/*.d.ts',
+        '!src/ts/**/*.type.ts'
     ],
-    
+
     coverageDirectory: 'coverage',
-    
-    coverageReporters: [
-        'text',
-        'lcov',
-        'html'
-    ],
-    
+
+    coverageReporters: ['text', 'lcov', 'html'],
+
     coverageThreshold: {
         global: {
-            branches: 70,
-            functions: 70,
-            lines: 70,
-            statements: 70
+        branches: 70,
+        functions: 70,
+        lines: 70,
+        statements: 70
         }
     },
-    
-    // Module paths
+
     moduleNameMapper: {
-        '^@/(.*)$': '<rootDir>/src/$1',
-        '\\.(css|less|scss|sass)$': '<rootDir>/tests/__mocks__/styleMock.js'
+        '^@/(.*)$': '<rootDir>/src/ts/$1',
+        '\\.(css|less|scss|sass)$': '<rootDir>/tests/__mocks__/styleMock.ts'
     },
-    
-    // Transform files
-    transform: {
-        '^.+\\.js$': 'babel-jest'
-    },
-    
-    // Ignore patterns
+
     testPathIgnorePatterns: [
         '/node_modules/',
         '/dist/'
     ],
-    
-    // Verbose output
+
     verbose: true,
-    
-    // Timeout
     testTimeout: 10000
 };

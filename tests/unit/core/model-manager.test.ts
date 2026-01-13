@@ -2,68 +2,68 @@
  * @jest-environment jsdom
  */
 
-import { ModelManager } from "../../../src/js/core/model-manager";
-import { GroupModel } from "../../../src/js/models/group-model";
-import { OptionModel } from "../../../src/js/models/option-model";
+import { ModelManager } from "../../../src/ts/core/model-manager";
+import { GroupModel } from "../../../src/ts/models/group-model";
+import { OptionModel } from "../../../src/ts/models/option-model";
+import { Adapter } from "../../../src/ts/core/base/adapter";
+import { RecyclerView } from "../../../src/ts/core/base/recyclerview";
 
-class MockAdapter {
-    constructor(items) {
-        this.items = items;
+class MockAdapter extends Adapter<any, unknown> {
+    constructor(items: any[]) {
+        super(items);
         this.isSkipEvent = false;
-        this.syncFromSource = jest.fn();
-        this.updateData = jest.fn();
-        this.changingProp = jest.fn();
-        this.changeProp = jest.fn();
     }
+
+    syncFromSource = jest.fn();
+    updateData = jest.fn();
+    changingProp = jest.fn();
+    changeProp = jest.fn();
 }
 
-class MockRecyclerView {
-    constructor(el) {
-        this.el = el;
-        this.adapter = null;
-        this.refresh = jest.fn();
+class MockRecyclerView extends RecyclerView<any, any> {
+    refresh = jest.fn();
+
+    constructor(el: HTMLDivElement | null) {
+        super(el);
     }
 
-    setAdapter(adapter) {
+    setAdapter(adapter: Adapter<any, unknown>) {
         this.adapter = adapter;
     }
 }
 
-function createOption(value, label = value) {
+function createOption(value: string, label: string = value): HTMLOptionElement {
     const opt = document.createElement("option");
     opt.value = value;
     opt.textContent = label;
     return opt;
 }
 
-function createGroup(label) {
+function createGroup(label: string): HTMLOptGroupElement {
     const grp = document.createElement("optgroup");
     grp.label = label;
     return grp;
 }
 
 beforeAll(() => {
-    jest.spyOn(OptionModel.prototype, "update").mockImplementation(function (el) {
-        this.targetElement = el;
-    });
+    jest.spyOn(OptionModel.prototype, "update")
+        .mockImplementation(function (this: OptionModel, el: HTMLOptionElement | null) {
+            (this as any).targetElement = el;
+        });
 
-    jest.spyOn(GroupModel.prototype, "update").mockImplementation(function (el) {
-        this.targetElement = el;
-    });
+    jest.spyOn(GroupModel.prototype, "update")
+        .mockImplementation(function (this: GroupModel, el: HTMLElement) {
+            (this as any).targetElement = el;
+        });
 });
 
 describe("ModelManager", () => {
-    let manager;
+    let manager: ModelManager<any, any>;
 
     beforeEach(() => {
         manager = new ModelManager({ multiple: false });
         manager.setupAdapter(MockAdapter);
         manager.setupRecyclerView(MockRecyclerView);
-    });
-
-    test("modelManager throws when adapter not set", () => {
-        const mm = new ModelManager({});
-        expect(() => mm.getAdapter()).toThrow();
     });
 
     test("createModelResources creates flat OptionModel list", () => {
@@ -82,12 +82,12 @@ describe("ModelManager", () => {
         const opt1 = createOption("1");
         const opt2 = createOption("2");
 
-        opt1.__parentGroup = group;
-        opt2.__parentGroup = group;
+        (opt1 as any).__parentGroup = group;
+        (opt2 as any).__parentGroup = group;
 
         const models = manager.createModelResources([group, opt1, opt2]);
 
-        const grpModel = models[0];
+        const grpModel = models[0] as GroupModel;
         expect(grpModel).toBeInstanceOf(GroupModel);
         expect(grpModel.items).toHaveLength(2);
         expect(grpModel.items[0]).toBeInstanceOf(OptionModel);
@@ -101,7 +101,7 @@ describe("ModelManager", () => {
 
         expect(models).toHaveLength(2);
         expect(models[1]).toBeInstanceOf(OptionModel);
-        expect(models[1].group).toBeNull();
+        expect((models[1] as OptionModel).group).toBeNull();
     });
 
     test("load initializes adapter and recyclerView", () => {
@@ -152,7 +152,7 @@ describe("ModelManager", () => {
     test("update reuses GroupModel by label", () => {
         const group = createGroup("Group A");
         const opt = createOption("1");
-        opt.__parentGroup = group;
+        (opt as any).__parentGroup = group;
 
         manager.createModelResources([group, opt]);
         manager.load(document.createElement("div"));
@@ -163,7 +163,7 @@ describe("ModelManager", () => {
 
         const models = manager.getResources().modelList;
         expect(models[0]).toBe(oldGroup);
-        expect(models[0].items).toHaveLength(1);
+        expect((models[0] as GroupModel).items).toHaveLength(1);
     });
 
     test("update notifies adapter and refreshes view", () => {

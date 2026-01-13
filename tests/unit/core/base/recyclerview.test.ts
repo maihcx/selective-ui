@@ -1,13 +1,21 @@
-import { RecyclerView } from "../../../../src/js/core/base/recyclerview";
+import { RecyclerView } from "../../../../src/ts/core/base/recyclerview";
+import { Adapter } from "../../../../src/ts/core/base/adapter";
+
+class MockAdapter extends Adapter<any, unknown> {
+    constructor() {
+        super([]);
+    }
+
+    onInit = jest.fn();
+    onPropChanging = jest.fn();
+    onPropChanged = jest.fn();
+    updateRecyclerView = jest.fn();
+}
 
 describe("RecyclerView", () => {
 
-    function createAdapterMock() {
-        return {
-            onPropChanging: jest.fn(),
-            onPropChanged: jest.fn(),
-            updateRecyclerView: jest.fn()
-        };
+    function createAdapterMock(): Adapter<any, unknown> {
+        return new MockAdapter();
     }
 
     test("constructor assigns viewElement", () => {
@@ -49,7 +57,6 @@ describe("RecyclerView", () => {
 
         rv.render();
 
-        // không throw, không gọi gì
         expect(true).toBe(true);
     });
 
@@ -59,12 +66,12 @@ describe("RecyclerView", () => {
 
         rv.render();
 
-        expect(rv.adapter.updateRecyclerView).not.toHaveBeenCalled();
+        expect((rv.adapter as MockAdapter).updateRecyclerView).not.toHaveBeenCalled();
     });
 
     test("render calls adapter.updateRecyclerView when ready", () => {
         const div = document.createElement("div");
-        const adapter = createAdapterMock();
+        const adapter = createAdapterMock() as MockAdapter;
 
         const rv = new RecyclerView(div);
         rv.adapter = adapter;
@@ -76,7 +83,7 @@ describe("RecyclerView", () => {
 
     test("setAdapter wires lifecycle callbacks and renders immediately", () => {
         const div = document.createElement("div");
-        const adapter = createAdapterMock();
+        const adapter = createAdapterMock() as MockAdapter;
 
         const rv = new RecyclerView(div);
         rv.setAdapter(adapter);
@@ -100,11 +107,11 @@ describe("RecyclerView", () => {
         const div = document.createElement("div");
         div.appendChild(document.createElement("span"));
 
-        const adapter = createAdapterMock();
+        const adapter = createAdapterMock() as MockAdapter;
         const rv = new RecyclerView(div);
         rv.setAdapter(adapter);
 
-        const clearCallback = adapter.onPropChanging.mock.calls[0][1];
+        const clearCallback = (adapter.onPropChanging as jest.Mock).mock.calls[0][1];
         clearCallback();
 
         expect(div.childNodes.length).toBe(0);
@@ -112,14 +119,14 @@ describe("RecyclerView", () => {
 
     test("onPropChanged callback re-renders", () => {
         const div = document.createElement("div");
-        const adapter = createAdapterMock();
+        const adapter = createAdapterMock() as MockAdapter;
 
         const rv = new RecyclerView(div);
         rv.setAdapter(adapter);
 
         adapter.updateRecyclerView.mockClear();
 
-        const renderCallback = adapter.onPropChanged.mock.calls[0][1];
+        const renderCallback = (adapter.onPropChanged as jest.Mock).mock.calls[0][1];
         renderCallback();
 
         expect(adapter.updateRecyclerView).toHaveBeenCalledWith(div);
@@ -127,7 +134,7 @@ describe("RecyclerView", () => {
 
     test("refresh delegates to render", () => {
         const div = document.createElement("div");
-        const adapter = createAdapterMock();
+        const adapter = createAdapterMock() as MockAdapter;
 
         const rv = new RecyclerView(div);
         rv.setAdapter(adapter);

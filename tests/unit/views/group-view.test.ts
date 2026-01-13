@@ -3,8 +3,9 @@
  * Unit Tests for GroupView (additional tests)
  */
 
+import { GroupView } from "../../../src/ts/views/group-view";
+
 describe('GroupView (additional)', () => {
-    const { GroupView } = require("../../../src/js/views/group-view");
     let parent;
 
     beforeEach(() => {

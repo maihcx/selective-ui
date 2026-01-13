@@ -206,8 +206,6 @@ export class ModelManager<
         let currentGroup: GroupModel | null = null;
         let position = 0;
 
-        const changesToApply: Array<() => void> = [];
-
         modelData.forEach((data) => {
             if (data.tagName === "OPTGROUP") {
                 const dataVset = data as HTMLOptGroupElement;
@@ -217,7 +215,7 @@ export class ModelManager<
                     // Label is used as key; keep original behavior.
                     const hasLabelChange = existingGroup.label !== dataVset.label;
                     if (hasLabelChange) {
-                        changesToApply.push(() => existingGroup.update(dataVset));
+                        existingGroup.update(dataVset)
                     }
 
                     existingGroup.position = position;
@@ -239,18 +237,8 @@ export class ModelManager<
                 const existingOption = oldOptionMap.get(key);
 
                 if (existingOption) {
-                    existingOption.targetElement = dataVset;
-                    const hasSelectedChange = existingOption.selected !== dataVset.selected;
-                    const hasPositionChange = existingOption.position !== position;
-
-                    if (hasSelectedChange || hasPositionChange) {
-                        changesToApply.push(() => {
-                            existingOption.update(dataVset);
-                            existingOption.position = position;
-                        });
-                    } else {
-                        existingOption.position = position;
-                    }
+                    existingOption.update(dataVset);
+                    existingOption.position = position;
 
                     const parentGroup = (dataVset as any)["__parentGroup"] as HTMLOptGroupElement | undefined;
 
@@ -280,12 +268,6 @@ export class ModelManager<
                 position++;
             }
         });
-
-        if (changesToApply.length > 0) {
-            requestAnimationFrame(() => {
-                changesToApply.forEach((change) => change());
-            });
-        }
 
         oldGroupMap.forEach((removedGroup) => {
             removedGroup.view?.getView?.()?.remove?.();
@@ -339,10 +321,6 @@ export class ModelManager<
         adapter: TAdapter;
         recyclerView: RecyclerViewContract<TAdapter>;
     } {
-        if (!this._privAdapterHandle || !this._privRecyclerViewHandle) {
-            throw new Error("ModelManager resources not loaded. Call load() first.");
-        }
-
         return {
             modelList: this._privModelList,
             adapter: this._privAdapterHandle,

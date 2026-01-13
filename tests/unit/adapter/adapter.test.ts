@@ -2,14 +2,16 @@
  * Unit Tests for MixedAdapter
  */
 
-describe('MixedAdapter', () => {
-    const { MixedAdapter } = require("../../../src/js/adapter/mixed-adapter");
-    const { OptionModel } = require("../../../src/js/models/option-model");
-    const { GroupModel } = require("../../../src/js/models/group-model");
-    const { OptionView } = require("../../../src/js/views/option-view");
-    const { GroupView } = require("../../../src/js/views/group-view");
+import { MixedAdapter } from "../../../src/ts/adapter/mixed-adapter";
+import { OptionModel } from "../../../src/ts/models/option-model";
+import { GroupModel } from "../../../src/ts/models/group-model";
+import { OptionView } from "../../../src/ts/views/option-view";
+import { GroupView } from "../../../src/ts/views/group-view";
 
-    let adapter, options, container;
+describe('MixedAdapter', () => {
+    let adapter: MixedAdapter;
+    let options: OptionModel[];
+    let container: HTMLDivElement;
 
     beforeEach(() => {
         jest.useFakeTimers();
@@ -178,21 +180,15 @@ describe('MixedAdapter', () => {
         test('should notify visibility changes through model listener', () => {
             const callback = jest.fn();
             
-            // Register qua adapter
             adapter.onVisibilityChanged(callback);
             
-            // Trigger qua model's onVisibilityChanged (đúng flow)
             const listeners = options[1].view ? [] : [];
             options[1].onVisibilityChanged((token, model, visible) => {
-                // Đây là callback internal của model
-                // Adapter đã register callback riêng
+
             });
             
-            // Set visibility sẽ trigger internal callbacks
             options[1].visible = false;
             
-            // Adapter callback được gọi từ bên trong OptionModel
-            // Do flow phức tạp, test stats trực tiếp
             const stats = adapter.getVisibilityStats();
             expect(stats.visibleCount).toBe(1);
         });
@@ -431,13 +427,12 @@ describe('MixedAdapter', () => {
             groupModel.view = groupView;
             groupModel.isInit = true;
             
-            // Test collapse state changes correctly
             expect(groupModel.collapsed).toBe(false);
             
             groupModel.toggleCollapse();
             
             expect(groupModel.collapsed).toBe(true);
-            expect(groupView.view.view.classList.contains('collapsed')).toBe(true);
+            expect(groupView.view?.view.classList.contains('collapsed')).toBe(true);
         });
     });
 });

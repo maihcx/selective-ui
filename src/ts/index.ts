@@ -61,7 +61,7 @@ export function find(query: string): SelectiveActionApi {
  * Destroys Selective instances associated with the given query.
  * Proxies to a global loaded instance if available; otherwise uses local Selective.destroy.
  */
-export function destroy(query: string): void {
+export function destroy(query: string | null = null): void {
     const global = getGlobal();
     if (alreadyLoaded && global) 
         return global.destroy(query);

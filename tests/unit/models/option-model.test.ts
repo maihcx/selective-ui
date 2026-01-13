@@ -1,9 +1,9 @@
 /**
  * Unit Tests for OptionModel
  */
+import { OptionModel } from "../../../src/ts/models/option-model";
 
 describe('OptionModel', () => {
-    const { OptionModel } = require("../../../src/js/models/option-model");
     let select, option;
 
     beforeEach(() => {
@@ -96,7 +96,7 @@ describe('OptionModel', () => {
             const model = new OptionModel({}, option);
             const mockView = {
                 getView: jest.fn(() => document.createElement('div'))
-            };
+            } as any;
             model.view = mockView;
             
             model.visible = false;
@@ -107,7 +107,7 @@ describe('OptionModel', () => {
             const model = new OptionModel({}, option);
             const mockView = {
                 getView: jest.fn(() => document.createElement('div'))
-            };
+            } as any;
             model.view = mockView;
             
             model.onVisibilityChanged((token, el, visible) => {
@@ -125,7 +125,7 @@ describe('OptionModel', () => {
             const div = document.createElement('div');
             const mockView = {
                 getView: jest.fn(() => div)
-            };
+            } as any;
             model.view = mockView;
             
             model.highlighted = true;
@@ -139,7 +139,7 @@ describe('OptionModel', () => {
             div.classList.add('highlight');
             const mockView = {
                 getView: jest.fn(() => div)
-            };
+            } as any;
             model.view = mockView;
             
             model.highlighted = false;

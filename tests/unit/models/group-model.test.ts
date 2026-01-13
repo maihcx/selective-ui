@@ -1,9 +1,10 @@
 /**
  * Unit Tests for GroupModel
  */
+import { OptionModel } from "src/ts/models/option-model";
+import { GroupModel } from "../../../src/ts/models/group-model";
 
 describe('GroupModel', () => {
-    const { GroupModel } = require("../../../src/js/models/group-model");
     let select, optgroup;
 
     beforeEach(() => {
@@ -45,7 +46,7 @@ describe('GroupModel', () => {
     describe('Item Management', () => {
         test('should add option item', () => {
             const model = new GroupModel({}, optgroup);
-            const optionModel = { value: '1' };
+            const optionModel = { value: '1' } as OptionModel;
             
             model.addItem(optionModel);
             
@@ -55,7 +56,7 @@ describe('GroupModel', () => {
 
         test('should remove option item', () => {
             const model = new GroupModel({}, optgroup);
-            const optionModel = { value: '1' };
+            const optionModel = { value: '1' } as OptionModel;
             
             model.addItem(optionModel);
             model.removeItem(optionModel);
@@ -66,8 +67,8 @@ describe('GroupModel', () => {
 
         test('should get selected items', () => {
             const model = new GroupModel({}, optgroup);
-            const opt1 = { selected: true, value: '1' };
-            const opt2 = { selected: false, value: '2' };
+            const opt1 = { selected: true, value: '1' } as OptionModel;
+            const opt2 = { selected: false, value: '2' } as OptionModel;
             
             model.addItem(opt1);
             model.addItem(opt2);
@@ -77,8 +78,8 @@ describe('GroupModel', () => {
 
         test('should get visible items', () => {
             const model = new GroupModel({}, optgroup);
-            const opt1 = { visible: true, value: '1' };
-            const opt2 = { visible: false, value: '2' };
+            const opt1 = { visible: true, value: '1' } as OptionModel;
+            const opt2 = { visible: false, value: '2' } as OptionModel;
             
             model.addItem(opt1);
             model.addItem(opt2);
@@ -113,15 +114,15 @@ describe('GroupModel', () => {
     describe('Value Getters', () => {
         test('should return array of values from items', () => {
             const model = new GroupModel({}, optgroup);
-            model.addItem({ value: '1' });
-            model.addItem({ value: '2' });
+            model.addItem({ value: '1' } as OptionModel);
+            model.addItem({ value: '2' } as OptionModel);
             
             expect(model.value).toEqual(['1', '2']);
         });
 
         test('should check hasVisibleItems', () => {
             const model = new GroupModel({}, optgroup);
-            model.addItem({ visible: true });
+            model.addItem({ visible: true } as OptionModel);
             
             expect(model.hasVisibleItems).toBe(true);
         });
@@ -164,7 +165,7 @@ describe('GroupModel', () => {
             model.view = {
                 updateLabel,
                 setCollapsed
-            };
+            } as any;
 
             model.onTargetChanged();
 
@@ -186,7 +187,7 @@ describe('GroupModel', () => {
             const model = new GroupModel({}, optgroup);
             const setCollapsed = jest.fn();
 
-            model.view = { setCollapsed };
+            model.view = { setCollapsed } as any;
 
             model.toggleCollapse();
 
@@ -208,7 +209,7 @@ describe('GroupModel', () => {
     describe('removeItem edge cases', () => {
         test('removeItem does nothing when item is not in group', () => {
             const model = new GroupModel({}, optgroup);
-            const option = { value: 'x', group: null };
+            const option = { value: 'x', group: null } as OptionModel;
 
             expect(() => {
                 model.removeItem(option);
@@ -224,7 +225,7 @@ describe('GroupModel', () => {
             const model = new GroupModel({}, optgroup);
             const updateVisibility = jest.fn();
 
-            model.view = { updateVisibility };
+            model.view = { updateVisibility } as any;
 
             model.updateVisibility();
 

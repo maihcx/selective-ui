@@ -2,8 +2,9 @@
  * Unit Tests for OptionView
  */
 
+import { OptionView } from "../../../src/ts/views/option-view";
+
 describe('OptionView', () => {
-    const { OptionView } = require("../../../src/js/views/option-view");
     let parent;
 
     beforeEach(() => {
