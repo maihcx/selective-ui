@@ -38,7 +38,7 @@ import type {
 import type { EffectorInterface } from "./types/services/effector.type";
 import { Libs } from "./utils/libs";
 
-const iVersion = "1.1.3" as const;
+const iVersion = "1.1.4" as const;
 const iName = "SelectiveUI" as const;
 
 declare global {

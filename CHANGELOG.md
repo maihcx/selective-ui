@@ -1,3 +1,9 @@
+# 1.1.4 (2026-01-14)
+
+### Fixes
+
+- **builder** The loadMore function is not working
+
 # 1.1.3 (2026-01-14)
 
 ### Fixes
