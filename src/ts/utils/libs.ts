@@ -3,7 +3,6 @@ import { MountViewResult, NodeSpec } from "../types/utils/libs.type";
 import { iStorage } from "./istorage";
 import { CallbackScheduler } from "./callback-scheduler";
 
-
 /**
  * @class
  */
@@ -25,18 +24,6 @@ export class Libs {
      * Provides setExecute(), clearExecute(), and run() to manage deferred callbacks.
      */
     static readonly callbackScheduler = new CallbackScheduler();
-
-    /**
-     * Checks whether a value is null/undefined/empty-string/"0"/0.
-     * Booleans are always considered non-empty.
-     *
-     * @param {unknown} value - The value to test.
-     * @returns {boolean} - True if considered empty; otherwise false.
-     */
-    static isNullOrEmpty(value: unknown): boolean {
-        if (typeof value === "boolean") return false;
-        return value == null || value === "" || value === 0 || value === "0";
-    }
 
     /**
      * Deep-copies plain objects/arrays recursively. Returns primitives as-is.
@@ -266,29 +253,6 @@ export class Libs {
         }
 
         return recursiveTemp;
-    }
-
-    /**
-     * Applies inline CSS styles to all matched elements. Accepts either a style
-     * object or a single property + value pair.
-     *
-     * @param {string|NodeListOf<HTMLElement>|HTMLElement} queryCommon - Selector or element(s).
-     * @param {Record<string, string>|string} styles - Style object or a single property name.
-     * @param {string|null} [value=null] - Value for the single property form.
-     */
-    static setStyle(
-        queryCommon: string | NodeListOf<HTMLElement> | HTMLElement,
-        styles: Record<string, string> | string,
-        value: string | null = null
-    ): void {
-        const apply_styles: Record<string, string | null> =
-            typeof styles === "string" ? { [styles]: value } : { ...styles };
-
-        const queryItems = this.getElements(queryCommon as any) as HTMLElement[];
-        for (let i = 0; i < queryItems.length; i++) {
-            const item = queryItems[i];
-            if (item) Object.assign(item.style, apply_styles as any);
-        }
     }
 
     /**

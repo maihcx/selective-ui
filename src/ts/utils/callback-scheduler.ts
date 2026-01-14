@@ -1,19 +1,4 @@
-import { TimerKey, TimerOptions } from "../types/utils/callback-scheduler.type";
-
-/**
- * Internal representation of a scheduled callback.
- *
- * - `timeout`: delay in milliseconds before executing the callback.
- * - `once`: when true, the callback is removed after its first execution.
- * - `callback`: receives a single payload argument:
- *    - `any[]` when `run()` is called with parameters
- *    - `null` when `run()` is called without parameters
- */
-type StoredEntry = {
-    callback: (payload: any[] | null) => void;
-    timeout: number;
-    once: boolean;
-};
+import { StoredEntry, TimerKey, TimerOptions } from "../types/utils/callback-scheduler.type";
 
 export class CallbackScheduler {
     /**

@@ -11,7 +11,6 @@ export class Adapter<
     TItem extends ModelContract<any, any> & { view: TViewer | null; isInit: boolean },
     TViewer = unknown
 > implements AdapterContract<TItem> {
-    /** @type {TItem[]} */
     items: TItem[] = [];
 
     adapterKey = Libs.randomString(12);

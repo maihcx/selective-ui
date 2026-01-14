@@ -7,30 +7,20 @@ import { SelectiveOptions } from "../types/utils/selective.type";
 import { iEvents } from "../utils/ievents";
 import { Libs } from "../utils/libs";
 
-
 /**
  * @class
  */
 export class AccessoryBox {
-    /**
-     * @type {MountViewResult<any> | null}
-     */
     nodeMounted: MountViewResult<any> | null = null;
 
-    /**
-     * @type {HTMLDivElement | null}
-     */
     node: HTMLDivElement | null = null;
 
     options: SelectiveOptions | null = null;
 
-    /** @type {HTMLDivElement | null} */
     selectUIMask: HTMLDivElement | null = null;
 
-    /** @type {HTMLDivElement | null} */
     parentMask: HTMLDivElement | null = null;
 
-    /** @type {ModelManager<MixedItem> | null} */
     modelManager: ModelManager<MixedItem, MixedAdapter> | null = null;
 
     /**

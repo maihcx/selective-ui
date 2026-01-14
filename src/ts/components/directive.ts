@@ -5,9 +5,6 @@ import { Libs } from "../utils/libs";
  * @class
  */
 export class Directive {
-    /**
-     * @type {HTMLElement}
-     */
     node: HTMLElement;
 
     constructor() {

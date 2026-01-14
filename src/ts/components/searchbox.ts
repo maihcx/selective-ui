@@ -15,30 +15,20 @@ export class SearchBox {
         if (options) this.init(options);
     }
 
-    /**
-     * @type {MountViewResult<any> | null}
-     */
     nodeMounted: MountViewResult<SearchBoxTags> | null = null;
 
-    /**
-     * @type {HTMLDivElement | null}
-     */
     node: HTMLDivElement | null = null;
 
-    /**
-     * @type {HTMLInputElement | null}
-     */
     SearchInput: HTMLInputElement | null = null;
 
-    /**
-     * @type {Function|null}
-     */
     onSearch: SearchHandler | null = null;
 
     options: SelectiveOptions | null = null;
 
     onNavigate: NavigateHandler | null = null;
+
     onEnter: (() => void) | null = null;
+    
     onEsc: (() => void) | null = null;
 
     /**

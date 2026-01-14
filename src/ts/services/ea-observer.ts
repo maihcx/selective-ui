@@ -4,10 +4,8 @@
 export class ElementAdditionObserver<T extends Element = Element> {
     private _isActive = false;
 
-    /** @type {MutationObserver|null} */
     private _observer: MutationObserver | null = null;
 
-    /** @type {Array<(el: T) => void>} */
     private _actions: Array<(el: T) => void> = [];
 
     /**

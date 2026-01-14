@@ -6,7 +6,6 @@ import { OptionView } from "../views/option-view";
 import { MixedItem, VisibilityStats } from "../types/core/base/mixed-adapter.type";
 import { IEventCallback } from "../types/utils/ievents.type";
 
-
 /**
  * @extends {Adapter<GroupModel|OptionModel>}
  */

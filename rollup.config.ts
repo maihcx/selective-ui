@@ -10,7 +10,7 @@ import typescript from '@rollup/plugin-typescript';
 import autoprefixer from 'autoprefixer';
 import cssnano from 'cssnano';
 
-const banner = '/*! Selective UI v1.1.1 | MIT License */';
+const banner = '/*! Selective UI v1.1.2 | MIT License */';
 const treeshake: RollupOptions['treeshake'] = { preset: 'recommended' };
 
 
@@ -24,7 +24,7 @@ const EFFECTOR_METHODS = [
   'expand',
   'collapse',
   'showSwipeWidth',
-  'hideSwipeWidth'
+  'hideSwipeWidth',
 ];
 
 const FIND_PROPERTIES = [
@@ -106,11 +106,23 @@ const DATA_PROPERTIES = [
   'ajax',
 ];
 
+const OPTIONTAG_PROPERTIES = [
+  'imgsrc',
+  'id',
+  'text',
+  'mask',
+  'mask',
+  'collapsed',
+  'isMultiple',
+  'hasImage',
+];
+
 const PUBLIC_PROPERTIES = [
   'bind', 'find', 'destroy', 'rebind', 'effector', 'version',
   ...EFFECTOR_METHODS,
   ...FIND_PROPERTIES,
-  ...DATA_PROPERTIES
+  ...DATA_PROPERTIES,
+  ...OPTIONTAG_PROPERTIES,
 ];
 
 const brotliOptions = {
@@ -172,7 +184,8 @@ const terserUMD = terser({
     properties: {
       reserved: PUBLIC_PROPERTIES,
       regex: /.*/,
-      keep_quoted: true
+      keep_quoted: true,
+      builtins: false
     },
   },
 });
@@ -180,7 +193,7 @@ const terserUMD = terser({
 const terserESM = terser({
   module: true,
   ecma: 2020,
-  format: { comments: false },
+  format: { comments: /^!/ },
   compress: {
     passes: 3,
     drop_console: false,
@@ -209,9 +222,12 @@ const terserESM = terser({
   },
   mangle: {
     toplevel: true,
+    reserved: PUBLIC_IDENTIFIERS,
     properties: {
-      regex: /^_/,
+      reserved: PUBLIC_PROPERTIES,
+      regex: /.*/,
       keep_quoted: true,
+      builtins: false
     },
   },
 });

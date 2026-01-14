@@ -1,3 +1,15 @@
+# 1.1.2 (2026-01-14)
+
+### Optimizations
+
+- **ALL** Remove unused code
+
+- **ALL** Optimize the library overall, reducing its size
+
+- **index,guard** Overall startup performance optimization
+
+- **builder** Update dependent libraries to optimize the build process
+
 # 1.1.1 (2026-01-13)
 
 ### Fixes

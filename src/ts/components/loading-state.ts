@@ -1,8 +1,10 @@
 import { LoadingStateOptions } from "../types/components/state.box.type";
 import { Libs } from "../utils/libs";
 
+/**
+ * @class
+ */
 export class LoadingState {
-    /** @type {HTMLDivElement | null} */
     node: HTMLDivElement | null = null;
 
     options: LoadingStateOptions | null = null;

@@ -28,8 +28,7 @@ describe('Global library guard (checkDuplicate / markLoaded)', () => {
 
         test('returns true and warns if library already loaded', () => {
             (window as any)[LIB_NAME] = {
-                __loaded: true,
-                __version: '1.0.0'
+                version: '1.0.0'
             };
 
             const result = checkDuplicate(LIB_NAME);
@@ -37,23 +36,6 @@ describe('Global library guard (checkDuplicate / markLoaded)', () => {
             expect(result).toBe(true);
             expect(console.warn).toHaveBeenCalledTimes(1);
             expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('Already loaded');
-        });
-
-        test('initializes loading placeholder if library not exists', () => {
-            const result = checkDuplicate(LIB_NAME);
-
-            expect(result).toBe(false);
-            expect((window as any)[LIB_NAME]).toBeDefined();
-            expect((window as any)[LIB_NAME].__loading).toBe(true);
-        });
-
-        test('sets __loading if library exists but not loaded', () => {
-            (window as any)[LIB_NAME] = {};
-
-            const result = checkDuplicate(LIB_NAME);
-
-            expect(result).toBe(false);
-            expect((window as any)[LIB_NAME].__loading).toBe(true);
         });
     });
 
@@ -70,7 +52,7 @@ describe('Global library guard (checkDuplicate / markLoaded)', () => {
         });
 
         test('marks library as loaded and merges API', () => {
-            (window as any)[LIB_NAME] = { __loading: true };
+            (window as any)[LIB_NAME] = {};
 
             const api: Record<string, unknown> = {
                 foo: jest.fn(),
@@ -79,9 +61,7 @@ describe('Global library guard (checkDuplicate / markLoaded)', () => {
 
             markLoaded(LIB_NAME, '1.2.3', api as any);
 
-            expect((window as any)[LIB_NAME].__loaded).toBe(true);
-            expect((window as any)[LIB_NAME].__loading).toBe(false);
-            expect((window as any)[LIB_NAME].__version).toBe('1.2.3');
+            expect((window as any)[LIB_NAME].version).toBe('1.2.3');
             expect((window as any)[LIB_NAME].foo).toBe(api.foo);
             expect((window as any)[LIB_NAME].bar).toBe(123);
         });

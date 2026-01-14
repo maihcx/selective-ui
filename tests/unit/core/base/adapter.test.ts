@@ -85,7 +85,7 @@ describe("Adapter", () => {
         expect(Libs.callbackScheduler.on).toHaveBeenCalledWith(
             expect.stringContaining("itemsing_"),
             cb,
-            { once: true }
+            { debounce: 1 }
         );
     });
 

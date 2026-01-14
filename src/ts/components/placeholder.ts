@@ -5,9 +5,6 @@ import { Libs } from "../utils/libs";
  * @class
  */
 export class PlaceHolder {
-    /**
-     * @type {HTMLElement | null}
-     */
     node: HTMLElement | null = null;
 
     private _options: DefaultConfig | null = null;

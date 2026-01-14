@@ -7,7 +7,6 @@ import { BinderMap, PropertiesType } from "../types/utils/istorage.type";
 import { Popup } from "../components/popup";
 
 export class Selective {
-    /** @type {ElementAdditionObserver|null} */
     static EAObserver: ElementAdditionObserver;
 
     static bindedQueries: Map<string, SelectiveOptions> = new Map();

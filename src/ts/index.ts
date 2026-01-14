@@ -18,7 +18,7 @@ import { Effector } from "./services/effector";
 import { SelectiveActionApi, SelectiveOptions, SelectiveUIGlobal } from "./types/utils/selective.type";
 import { EffectorInterface } from "./types/services/effector.type";
 
-export const version = "1.1.1" as const;
+export const version = "1.1.2" as const;
 export const name = "SelectiveUI" as const;
 
 declare global {
@@ -28,6 +28,7 @@ declare global {
 }
 
 const alreadyLoaded: boolean = checkDuplicate(name);
+const api: SelectiveUIGlobal = { bind, find, destroy, rebind, effector, version };
 
 function getGlobal(): SelectiveUIGlobal | undefined {
     if (typeof window === "undefined") 
@@ -91,11 +92,14 @@ export function effector(element: string | HTMLElement): EffectorInterface {
 }
 
 if (!alreadyLoaded) {
-    let initialized = false;
+    const api: SelectiveUIGlobal = { bind, find, destroy, rebind, effector, version };
+    markLoaded(name, version, api);
+
+    let domInitialized = false;
 
     function init(): void {
-        if (initialized) return;
-        initialized = true;
+        if (domInitialized) return;
+        domInitialized = true;
 
         document.addEventListener("mousedown", () => {
         const sels: string[] = Libs.getBindedCommand();
@@ -106,9 +110,6 @@ if (!alreadyLoaded) {
         });
 
         Selective.Observer();
-
-        const api: SelectiveUIGlobal = { bind, find, destroy, rebind, effector, version };
-        markLoaded(name, version, api);
     }
 
     if (document.readyState === "loading") {

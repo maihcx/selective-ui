@@ -52,3 +52,18 @@ export interface TimerEntry<T extends any[] = any[]> {
      */
     timer?: ReturnType<typeof setTimeout>;
 }
+
+/**
+ * Internal representation of a scheduled callback.
+ *
+ * - `timeout`: delay in milliseconds before executing the callback.
+ * - `once`: when true, the callback is removed after its first execution.
+ * - `callback`: receives a single payload argument:
+ *    - `any[]` when `run()` is called with parameters
+ *    - `null` when `run()` is called without parameters
+ */
+export type StoredEntry = {
+    callback: (payload: any[] | null) => void;
+    timeout: number;
+    once: boolean;
+};

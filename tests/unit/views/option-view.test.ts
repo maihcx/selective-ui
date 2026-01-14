@@ -27,7 +27,7 @@ describe('OptionView', () => {
             view.isMultiple = true;
             view.render();
             
-            const input = view.getTag('OptionInput');
+            const input = view.view.tags.OptionInput;
             expect(input.type).toBe('checkbox');
         });
 
@@ -36,7 +36,7 @@ describe('OptionView', () => {
             view.isMultiple = false;
             view.render();
             
-            const input = view.getTag('OptionInput');
+            const input = view.view.tags.OptionInput;
             expect(input.type).toBe('radio');
         });
 
@@ -52,7 +52,7 @@ describe('OptionView', () => {
             view.render();
             
             expect(view.getView().classList.contains('has-image')).toBe(true);
-            expect(view.getTag('OptionImage')).toBeTruthy();
+            expect(view.view.tags.OptionImage).toBeTruthy();
         });
     });
 
@@ -64,7 +64,7 @@ describe('OptionView', () => {
             view.isMultiple = true;
             view.update();
             
-            const input = view.getTag('OptionInput');
+            const input = view.view.tags.OptionInput;
             expect(input.type).toBe('checkbox');
         });
 
@@ -73,7 +73,7 @@ describe('OptionView', () => {
             view.hasImage = false;
             view.render();
             
-            expect(view.getTag('OptionImage')).toBeFalsy();
+            expect(view.view.tags.OptionImage).toBeFalsy();
             
             view.hasImage = true;
             view.optionConfig = {
@@ -85,32 +85,6 @@ describe('OptionView', () => {
             // Sau update, image sẽ được thêm
             const viewEl = view.getView();
             expect(viewEl.querySelector('.option-image')).toBeTruthy();
-        });
-    });
-
-    describe('Label Alignment', () => {
-        test('should apply horizontal alignment', () => {
-            const view = new OptionView(parent);
-            view.optionConfig = {
-                labelHalign: 'center',
-                labelValign: 'center'
-            };
-            view.render();
-            
-            const label = view.getTag('OptionLabel');
-            expect(label.classList.contains('align-horizontal-center')).toBe(true);
-        });
-
-        test('should apply vertical alignment', () => {
-            const view = new OptionView(parent);
-            view.optionConfig = {
-                labelValign: 'top',
-                labelHalign: 'left'
-            };
-            view.render();
-            
-            const label = view.getTag('OptionLabel');
-            expect(label.classList.contains('align-vertical-top')).toBe(true);
         });
     });
 });

@@ -10,7 +10,9 @@ export class OptionView extends View<OptionViewTags> {
     view: OptionViewResult | null = null;
 
     private _config: OptionConfig | null = null;
+
     private _configProxy: OptionConfig | null = null;
+    
     private _isRendered = false;
 
     /**

@@ -28,24 +28,6 @@ export interface ViewContract<TTags extends Record<string, HTMLElement>> {
     render(): void;
 
     /**
-     * Retrieve a specific tagged element from the mounted view.
-     *
-     * @typeParam K - A key of TTags.
-     * @param tag - The tag name to fetch (must exist in TTags).
-     * @returns The HTMLElement instance associated with the tag.
-     * @throws If the view is not initialized or the tag is missing.
-     */
-    getTag<K extends keyof TTags>(tag: K): TTags[K];
-
-    /**
-     * Get the entire tag map for the mounted view.
-     *
-     * @returns The map of tag names to DOM elements.
-     * @throws If the view is not initialized.
-     */
-    getTags(): TTags;
-
-    /**
      * Get the root HTMLElement for the mounted view.
      *
      * @returns The root element produced by mountView/mountNode.

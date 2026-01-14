@@ -5,9 +5,6 @@ import { Libs } from "../utils/libs";
  * @class
  */
 export class EmptyState {
-    /**
-     * @type {HTMLDivElement | null}
-     */
     node: HTMLDivElement | null = null;
 
     options: EmptyStateOptions | null = null;

@@ -5,9 +5,7 @@ import { SelectiveUIGlobal } from "../types/utils/selective.type";
  * Keeps metadata flags and allows merging any public API fields.
  */
 export type GlobalLibNamespace = Record<string, unknown> & {
-    __loaded?: boolean;
-    __loading?: boolean;
-    __version?: string;
+    version?: string;
 };
 
 declare global {
@@ -18,7 +16,6 @@ declare global {
 
 /**
  * Checks for a previously loaded global library instance by name.
- * If found (with `__loaded` flag), logs a warning and returns true; otherwise
  * initializes a loading placeholder on `window[name]` and returns false.
  *
  * @param {string} LIB_NAME - The global namespace key to check on `window`.
@@ -29,16 +26,15 @@ export function checkDuplicate(LIB_NAME: string): boolean {
 
     const existing = window[LIB_NAME] as GlobalLibNamespace | undefined;
 
-    if (existing && existing.__loaded) {
+    if (existing) {
         console.warn(
-            `[${LIB_NAME}] Already loaded (v${existing.__version}). ` +
+            `[${LIB_NAME}] Already loaded (v${existing.version}). ` +
             `Using existing instance. Please remove duplicate <script> tags.`
         );
         return true;
     }
 
     const base: GlobalLibNamespace = existing ?? {};
-    base.__loading = true;
     window[LIB_NAME] = base;
 
     return false;
@@ -63,9 +59,7 @@ export function markLoaded<TApi extends SelectiveUIGlobal>(
 
     const ns = (window[name] ?? {}) as GlobalLibNamespace;
 
-    ns.__loaded = true;
-    ns.__loading = false;
-    ns.__version = version;
+    ns.version = version;
 
     Object.assign(ns, api);
 

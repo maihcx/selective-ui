@@ -27,8 +27,8 @@ describe('GroupView (additional)', () => {
             const view = new GroupView(parent);
             view.render();
 
-            const header = view.getTag('GroupHeader');
-            const items = view.getTag('GroupItems');
+            const header = view.view.tags.GroupHeader;
+            const items = view.view.tags.GroupItems;
 
             expect(header.getAttribute('role')).toBe('presentation');
             expect(items.getAttribute('role')).toBe('group');
@@ -41,7 +41,7 @@ describe('GroupView (additional)', () => {
             view.render();
 
             const root = view.getView();
-            const header = view.getTag('GroupHeader');
+            const header = view.view.tags.GroupHeader;
 
             const ariaLabelledBy = root.getAttribute('aria-labelledby');
             expect(ariaLabelledBy).toBe(header.id);
@@ -52,7 +52,7 @@ describe('GroupView (additional)', () => {
             view.render();
 
             const root = view.getView();
-            const header = view.getTag('GroupHeader');
+            const header = view.view.tags.GroupHeader;
 
             expect(root.id).toMatch(/^seui-[A-Za-z0-9]+-group$/);
             expect(header.id).toMatch(/^seui-[A-Za-z0-9]+-header$/);
@@ -79,7 +79,7 @@ describe('GroupView (additional)', () => {
             const view = new GroupView(parent);
             view.render();
 
-            const header = view.getTag('GroupHeader');
+            const header = view.view.tags.GroupHeader;
             header.textContent = 'Initial Label';
 
             view.updateLabel(null);
@@ -100,7 +100,7 @@ describe('GroupView (additional)', () => {
             view.setCollapsed(false);
             expect(view.getView().classList.contains('collapsed')).toBe(false);
 
-            const header = view.getTag('GroupHeader');
+            const header = view.view.tags.GroupHeader;
             expect(header.getAttribute('aria-expanded')).toBe('true');
         });
     });
@@ -110,7 +110,7 @@ describe('GroupView (additional)', () => {
             const view = new GroupView(parent);
             view.render();
 
-            const items = view.getTag('GroupItems');
+            const items = view.view.tags.GroupItems;
 
             const hiddenChild = document.createElement('div');
             hiddenChild.classList.add('hide');
@@ -129,7 +129,7 @@ describe('GroupView (additional)', () => {
             const view = new GroupView(parent);
             view.render();
 
-            const items = view.getTag('GroupItems');
+            const items = view.view.tags.GroupItems;
 
             const hidden1 = document.createElement('div');
             hidden1.classList.add('hide');
@@ -151,7 +151,7 @@ describe('GroupView (additional)', () => {
             view.render();
 
             const containerEl = view.getItemsContainer();
-            const tagEl = view.getTag('GroupItems');
+            const tagEl = view.view.tags.GroupItems;
 
             expect(containerEl).toBe(tagEl);
         });

@@ -8,7 +8,6 @@ export class ResizeObserverService {
 
     element: Element | null = null;
 
-    /** @type {ResizeObserver|null} */
     private _resizeObserver: ResizeObserver | null = null;
 
     private _mutationObserver: MutationObserver | null = null;
