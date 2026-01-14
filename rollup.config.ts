@@ -104,6 +104,7 @@ const DATA_PROPERTIES = [
   'imageBorderRadius',
   'imagePosition',
   'ajax',
+  'block',
 ];
 
 const OPTIONTAG_PROPERTIES = [
