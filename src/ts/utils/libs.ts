@@ -1,7 +1,7 @@
 import { BinderMap } from "../types/utils/istorage.type";
-import { MountViewResult, NodeSpec, TimerProcess } from "../types/utils/libs.type.js";
+import { MountViewResult, NodeSpec } from "../types/utils/libs.type";
 import { iStorage } from "./istorage";
-
+import { CallbackScheduler } from "./callback-scheduler";
 
 /**
  * @class
@@ -23,55 +23,7 @@ export class Libs {
      * Schedules and batches function executions keyed by name, with debounced timers.
      * Provides setExecute(), clearExecute(), and run() to manage deferred callbacks.
      */
-    static timerProcess: TimerProcess = {
-        executeStored: {},
-        timerRunner: {},
-
-        setExecute(keyExecute, execute, timeout = 50, once = false) {
-            if (!this.executeStored[keyExecute]) this.executeStored[keyExecute] = [];
-            this.executeStored[keyExecute].push({ execute, timeout, once });
-        },
-
-        clearExecute(keyExecute) {
-            delete this.executeStored[keyExecute];
-        },
-
-        run(keyExecute, ...params) {
-            const executes = this.executeStored[keyExecute];
-            if (!executes) return;
-
-            if (!this.timerRunner[keyExecute]) this.timerRunner[keyExecute] = {};
-
-            for (const key in executes) {
-                const entry = executes[Number(key)];
-                if (!entry) continue;
-
-                if (!this.timerRunner[keyExecute][key]) {
-                    // placeholder, will be overwritten by setTimeout
-                    this.timerRunner[keyExecute][key] = setTimeout(() => { }, 0);
-                    clearTimeout(this.timerRunner[keyExecute][key]);
-                }
-
-                clearTimeout(this.timerRunner[keyExecute][key]);
-                this.timerRunner[keyExecute][key] = setTimeout(() => {
-                    entry.execute(params.length > 0 ? params : null);
-                    if (entry.once) delete this.executeStored[keyExecute][Number(key)];
-                }, entry.timeout);
-            }
-        },
-    };
-
-    /**
-     * Checks whether a value is null/undefined/empty-string/"0"/0.
-     * Booleans are always considered non-empty.
-     *
-     * @param {unknown} value - The value to test.
-     * @returns {boolean} - True if considered empty; otherwise false.
-     */
-    static isNullOrEmpty(value: unknown): boolean {
-        if (typeof value === "boolean") return false;
-        return value == null || value === "" || value === 0 || value === "0";
-    }
+    static readonly callbackScheduler = new CallbackScheduler();
 
     /**
      * Deep-copies plain objects/arrays recursively. Returns primitives as-is.
@@ -83,9 +35,9 @@ export class Libs {
         if (obj === null || typeof obj !== "object") return obj;
 
         const copy: any = Array.isArray(obj) ? [] : {};
-        for (const key in obj as any) {
+        for (const key in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                copy[key] = this.jsCopyObject((obj as any)[key]);
+                copy[key] = this.jsCopyObject(obj[key]);
             }
         }
         return copy as T;
@@ -301,29 +253,6 @@ export class Libs {
         }
 
         return recursiveTemp;
-    }
-
-    /**
-     * Applies inline CSS styles to all matched elements. Accepts either a style
-     * object or a single property + value pair.
-     *
-     * @param {string|NodeListOf<HTMLElement>|HTMLElement} queryCommon - Selector or element(s).
-     * @param {Record<string, string>|string} styles - Style object or a single property name.
-     * @param {string|null} [value=null] - Value for the single property form.
-     */
-    static setStyle(
-        queryCommon: string | NodeListOf<HTMLElement> | HTMLElement,
-        styles: Record<string, string> | string,
-        value: string | null = null
-    ): void {
-        const apply_styles: Record<string, string | null> =
-            typeof styles === "string" ? { [styles]: value } : { ...styles };
-
-        const queryItems = this.getElements(queryCommon as any) as HTMLElement[];
-        for (let i = 0; i < queryItems.length; i++) {
-            const item = queryItems[i];
-            if (item) Object.assign(item.style, apply_styles as any);
-        }
     }
 
     /**

@@ -35,6 +35,6 @@ export class Refresher {
         if (cfgWidth > 0) width = options.width;
         if (cfgHeight > 0) height = options.height;
 
-        Libs.setStyle(view, { width, height, minWidth, minHeight });
+        Object.assign(view.style, { width, height, minWidth, minHeight });
     }
 }

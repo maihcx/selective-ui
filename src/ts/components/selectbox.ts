@@ -43,12 +43,10 @@ export class SelectBox {
 
     oldValue: unknown = null;
 
-    /** @type {HTMLDivElement|null} */
     node: HTMLDivElement | null = null;
 
     options: SelectiveOptions | null = null;
 
-    /** @type {ModelManager<MixedItem, MixedAdapter> | null} */
     optionModelManager: ModelManager<MixedItem, MixedAdapter> | null = null;
 
     isOpen = false;

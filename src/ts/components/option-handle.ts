@@ -9,17 +9,12 @@ import { Libs } from "../utils/libs";
 export class OptionHandle {
     nodeMounted: MountViewResult<any> | null = null;
 
-    /**
-     * @type {HTMLDivElement | null}
-     */
     node: HTMLDivElement | null = null;
 
     options: DefaultConfig | null = null;
 
-    /** @type {Function[]} */
     private _ActionOnSelectAll: Array<(...args: unknown[]) => unknown> = [];
 
-    /** @type {Function[]} */
     private _ActionOnDeSelectAll: Array<(...args: unknown[]) => unknown> = [];
 
     /**

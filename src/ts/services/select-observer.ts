@@ -4,10 +4,8 @@ import { SelectSnapshot } from "../types/services/select-observer.type";
  * @class
  */
 export class SelectObserver {
-    /** @type {MutationObserver} */
     private _observer: MutationObserver;
 
-    /** @type {HTMLSelectElement} */
     private _select: HTMLSelectElement;
 
     private _debounceTimer: ReturnType<typeof setTimeout> | null = null;

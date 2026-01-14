@@ -24,45 +24,34 @@ type ParentBinderMapLike = {
  * @class
  */
 export class Popup {
-    /** @type {ModelManager<MixedItem, MixedAdapter> | null} */
     private _modelManager: ModelManager<MixedItem, MixedAdapter> | null;
 
     options: SelectiveOptions | null = null;
 
     isCreated = false;
 
-    /** @type {MixedAdapter | null} */
     optionAdapter: MixedAdapter | null = null;
 
-    /** @type {HTMLDivElement | null} */
     node: HTMLDivElement | null = null;
 
-    /** @type {EffectorInterface | null} */
     private _effSvc: EffectorInterface | null = null;
 
-    /** @type {ResizeObserverService | null} */
     private _resizeObser: ResizeObserverService | null = null;
 
     private _parent: ParentBinderMapLike | null = null;
 
-    /** @type {OptionHandle | null} */
     optionHandle: OptionHandle | null = null;
 
-    /** @type {EmptyState | null} */
     emptyState: EmptyState | null = null;
 
-    /** @type {LoadingState | null} */
     loadingState: LoadingState | null = null;
 
-    /** @type {RecyclerViewContract<MixedAdapter> | null} */
     recyclerView: RecyclerViewContract<MixedAdapter> | null = null;
 
-    /** @type {HTMLDivElement | null} */
     private _optionsContainer: HTMLDivElement | null = null;
 
     private _scrollListener: (() => Promise<void>) | null = null;
 
-    /** @type {ReturnType<typeof setTimeout> | null} */
     private _hideLoadHandle: ReturnType<typeof setTimeout> | null = null;
 
     /**

@@ -18,7 +18,6 @@ export class Model<
 
     options: TOptions;
 
-    /** @type {TView | null} */
     view: TView | null = null;
 
     position = -1;

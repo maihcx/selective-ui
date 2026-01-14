@@ -13,7 +13,6 @@ import { DefaultConfig } from "../types/utils/istorage.type";
 export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupView, DefaultConfig> {
     label = "";
 
-    /** @type {OptionModel[]} */
     items: OptionModel[] = [];
 
     collapsed = false;

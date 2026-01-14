@@ -111,7 +111,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      * @type {boolean}
      */
     set selectedNonTrigger(value: boolean) {
-        const input = this.view?.getTag?.("OptionInput");
+        const input = this.view?.view?.tags?.OptionInput;
         const viewEl = this.view?.getView?.();
 
         if (input) (input as HTMLInputElement).checked = value;
@@ -216,7 +216,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
     onTargetChanged(): void {
         if (!this.view) return;
 
-        const labelContent = this.view.getTag("LabelContent");
+        const labelContent = this.view.view.tags.LabelContent;
         if (labelContent) {
             if (this.options.allowHtml) {
                 labelContent.innerHTML = this.text;
@@ -225,7 +225,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
             }
         }
 
-        const imageTag = this.view.getTag("OptionImage");
+        const imageTag = this.view.view.tags.OptionImage;
         if (imageTag && this.hasImage) {
             (imageTag as HTMLImageElement).src = this.imageSrc;
             (imageTag as HTMLImageElement).alt = this.text;

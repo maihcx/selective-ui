@@ -11,14 +11,8 @@ export class RecyclerView<
     TItem extends ModelContract<any, any>,
     TAdapter extends AdapterContract<TItem>
 > implements RecyclerViewContract<TAdapter> {
-    /**
-     * @type {HTMLDivElement|null}
-     */
     viewElement: HTMLDivElement | null = null;
 
-    /**
-     * @type {TAdapter|null}
-     */
     adapter: TAdapter | null = null;
 
     /**

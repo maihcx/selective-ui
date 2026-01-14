@@ -6,7 +6,6 @@ import type { GroupViewTags, GroupViewResult } from "../types/views/view.group.t
  * @extends {View<GroupViewTags>}
  */
 export class GroupView extends View<GroupViewTags> {
-    /** @type {GroupViewResult} */
     view: GroupViewResult | null = null;
 
     /**

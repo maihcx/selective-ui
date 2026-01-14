@@ -8,9 +8,6 @@ export function Effector(query?: string | HTMLElement | null): EffectorInterface
 }
 
 class EffectorImpl implements EffectorInterface {
-    /**
-     * @type {HTMLElement}
-     */
     element!: HTMLElement;
 
     private _timeOut: ReturnType<typeof setTimeout> | null = null;

@@ -7,7 +7,6 @@ import { BinderMap, PropertiesType } from "../types/utils/istorage.type";
 import { Popup } from "../components/popup";
 
 export class Selective {
-    /** @type {ElementAdditionObserver|null} */
     static EAObserver: ElementAdditionObserver;
 
     static bindedQueries: Map<string, SelectiveOptions> = new Map();
@@ -30,20 +29,19 @@ export class Selective {
         this.bindedQueries.set(query, merged);
 
         const doneToken = Libs.randomString();
-        Libs.timerProcess.setExecute(doneToken, () => {
+        Libs.callbackScheduler.on(doneToken, () => {
             iEvents.callEvent([this.find(query)], ...(merged.on!.load as any[]));
-            Libs.timerProcess.clearExecute(doneToken);
+            Libs.callbackScheduler.clear(doneToken);
             merged.on!.load = [];
         });
 
         const selectElements = Libs.getElements(query) as HTMLSelectElement[];
-
         selectElements.forEach((item) => {
             (async () => {
                 if (item.tagName === "SELECT") {
                     Libs.removeUnbinderMap(item);
                     if (this.applySelectBox(item, merged)) {
-                        Libs.timerProcess.run(doneToken);
+                        Libs.callbackScheduler.run(doneToken);
                     }
                 }
             })();

@@ -5,34 +5,6 @@ import { iEvents } from "../../../src/ts/utils/ievents";
 import { Libs } from "../../../src/ts/utils/libs";
 
 describe('Libs Utility Functions', () => {
-
-    describe('isNullOrEmpty()', () => {
-        test('should return true for null', () => {
-            expect(Libs.isNullOrEmpty(null)).toBe(true);
-        });
-
-        test('should return true for undefined', () => {
-            expect(Libs.isNullOrEmpty(undefined)).toBe(true);
-        });
-
-        test('should return true for empty string', () => {
-            expect(Libs.isNullOrEmpty('')).toBe(true);
-        });
-
-        test('should return true for 0', () => {
-            expect(Libs.isNullOrEmpty(0)).toBe(true);
-        });
-
-        test('should return false for boolean', () => {
-            expect(Libs.isNullOrEmpty(false)).toBe(false);
-            expect(Libs.isNullOrEmpty(true)).toBe(false);
-        });
-
-        test('should return false for non-empty string', () => {
-            expect(Libs.isNullOrEmpty('test')).toBe(false);
-        });
-    });
-
     describe('jsCopyObject()', () => {
         test('should deep copy object', () => {
             const original = { a: 1, b: { c: 2 } };
