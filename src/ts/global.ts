@@ -33,6 +33,7 @@ import { Effector } from "./services/effector";
 import type {
     SelectiveActionApi,
     SelectiveOptions,
+    SelectiveUIGlobal,
 } from "./types/utils/selective.type";
 import type { EffectorInterface } from "./types/services/effector.type";
 import { Libs } from "./utils/libs";
@@ -40,21 +41,69 @@ import { Libs } from "./utils/libs";
 const iVersion = "1.1.4" as const;
 const iName = "SelectiveUI" as const;
 
-const SECLASS = new Selective();
+declare global {
+    var GLOBAL_SEUI: SelectiveUIGlobal;
+}
+
+if (typeof globalThis.GLOBAL_SEUI == "undefined") {
+    const SECLASS = new Selective();
+    globalThis.GLOBAL_SEUI = {
+        version: iVersion,
+        name: iName,
+        bind: SECLASS.bind.bind(SECLASS),
+        find: SECLASS.find.bind(SECLASS),
+        destroy: SECLASS.destroy.bind(SECLASS),
+        effector: Effector.bind(Effector),
+        rebind: SECLASS.rebind.bind(SECLASS)
+    } as SelectiveUIGlobal;
+
+    let domInitialized = false;
+    function init(): void {
+        if (domInitialized) return;
+        domInitialized = true;
+
+        document.addEventListener("mousedown", () => {
+            const sels = Libs.getBindedCommand();
+            if (sels.length > 0) {
+                const actionApi = SECLASS.find(
+                    sels.join(", ")
+                ) as SelectiveActionApi;
+                if (!actionApi.isEmpty) actionApi.close();
+            }
+        });
+
+        SECLASS.Observer();
+    }
+
+    if (typeof document !== "undefined") {
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            init();
+        }
+    }
+    console.log(`[${iName}] v${iVersion} loaded successfully`);
+}
+else {
+    console.warn(
+        `[${globalThis.GLOBAL_SEUI.name}] Already loaded (v${globalThis.GLOBAL_SEUI.version}). ` +
+        `Using existing instance. Please remove duplicate <script> tags.`
+    );
+}
 
 /**
  * Current library version.
  *
  * Declared as `const` literal type to enable strict typing and easy tree-shaking.
  */
-export const version = iVersion as string;
+export const version = globalThis.GLOBAL_SEUI.version as string;
 
 /**
  * Library name identifier.
  *
  * Can be used for debugging, logging, telemetry, or exposing global namespace metadata.
  */
-export const name = iName as string;
+export const name = globalThis.GLOBAL_SEUI.name as string;
 
 /**
  * Bind SelectiveUI behaviors to elements matched by a CSS selector.
@@ -68,7 +117,7 @@ export const name = iName as string;
  * bind(".my-select", { searchable: true });
  */
 export function bind(query: string, options: SelectiveOptions = {}): void {
-    SECLASS.bind(query, options);
+    globalThis.GLOBAL_SEUI.bind(query, options);
 }
 
 /**
@@ -81,7 +130,7 @@ export function bind(query: string, options: SelectiveOptions = {}): void {
  * The return type is casted to `SelectiveActionApi` for a stable public contract.
  */
 export function find(query: string): SelectiveActionApi {
-    return SECLASS.find(query) as SelectiveActionApi;
+    return globalThis.GLOBAL_SEUI.find(query) as SelectiveActionApi;
 }
 
 /**
@@ -98,7 +147,7 @@ export function find(query: string): SelectiveActionApi {
  * destroy();
  */
 export function destroy(query: string | null = null): void {
-    SECLASS.destroy(query);
+    globalThis.GLOBAL_SEUI.destroy(query);
 }
 
 /**
@@ -113,7 +162,7 @@ export function destroy(query: string | null = null): void {
  * @param options - Optional configuration applied during re-initialization.
  */
 export function rebind(query: string, options: SelectiveOptions = {}): void {
-    SECLASS.rebind(query, options);
+    globalThis.GLOBAL_SEUI.rebind(query, options);
 }
 
 /**
@@ -130,31 +179,5 @@ export function rebind(query: string, options: SelectiveOptions = {}): void {
  * fx.show();
  */
 export function effector(element: string | HTMLElement): EffectorInterface {
-    return Effector(element) as unknown as EffectorInterface;
-}
-
-let domInitialized = false;
-function init(): void {
-    if (domInitialized) return;
-    domInitialized = true;
-
-    document.addEventListener("mousedown", () => {
-        const sels = Libs.getBindedCommand();
-        if (sels.length > 0) {
-            const actionApi = SECLASS.find(
-                sels.join(", ")
-            ) as SelectiveActionApi;
-            if (!actionApi.isEmpty) actionApi.close();
-        }
-    });
-
-    SECLASS.Observer();
-}
-
-if (typeof document !== "undefined") {
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", init);
-    } else {
-        init();
-    }
+    return globalThis.GLOBAL_SEUI.effector(element) as unknown as EffectorInterface;
 }

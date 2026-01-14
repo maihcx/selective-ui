@@ -242,7 +242,7 @@ const terserESM = terser({
 export default defineConfig([
   // UMD (non-min)
   {
-    input: 'src/ts/index.ts',
+    input: 'src/ts/global.ts',
     output: {
       file: 'dist/selective-ui.umd.js',
       format: 'umd',
@@ -293,7 +293,7 @@ export default defineConfig([
 
   // UMD minified
   {
-    input: 'src/ts/index.ts',
+    input: 'src/ts/global.ts',
     output: {
       file: 'dist/selective-ui.min.js',
       format: 'umd',
