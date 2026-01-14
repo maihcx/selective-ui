@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "clean": "rimraf dist",
-    "build": "npm run clean && rollup -c",
+    "build": "npm run clean && rollup --config rollup.config.ts --configPlugin typescript",
     "build:ts": "rimraf compiled && tsc -p tsconfig.build.json",
     "watch": "rollup -c --watch",
     "dev": "rollup -c -w",
