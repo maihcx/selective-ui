@@ -1,3 +1,9 @@
+# 1.1.3 (2026-01-14)
+
+### Fixes
+
+- **index,guard** Files that are not minified will not work
+
 # 1.1.2 (2026-01-14)
 
 ### Optimizations

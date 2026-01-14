@@ -10,7 +10,7 @@ import typescript from '@rollup/plugin-typescript';
 import autoprefixer from 'autoprefixer';
 import cssnano from 'cssnano';
 
-const banner = '/*! Selective UI v1.1.2 | MIT License */';
+const banner = '/*! Selective UI v1.1.3 | MIT License */';
 const treeshake: RollupOptions['treeshake'] = { preset: 'recommended' };
 
 
@@ -118,6 +118,7 @@ const OPTIONTAG_PROPERTIES = [
 ];
 
 const PUBLIC_PROPERTIES = [
+  'SelectiveUI',
   'bind', 'find', 'destroy', 'rebind', 'effector', 'version',
   ...EFFECTOR_METHODS,
   ...FIND_PROPERTIES,

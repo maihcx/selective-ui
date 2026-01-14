@@ -1,4 +1,20 @@
+/**
+ * Entry module for SelectiveUI.
+ *
+ * This file exposes the public API surface of the library:
+ * - version/name metadata
+ * - DOM binding helpers (bind/find/rebind/destroy)
+ * - effector factory for imperative effects
+ *
+ * Notes:
+ * - CSS imports below are *side-effect imports* used by bundlers (Vite/Webpack/Rollup)
+ *   to include component styles in the final bundle.
+ */
+
+/** Base/global styles for SelectiveUI. */
 import "../css/index.css";
+
+/** Component-level styles (imported for side-effects during bundling). */
 import "../css/components/selectbox.css";
 import "../css/components/placeholder.css";
 import "../css/components/directive.css";
@@ -12,109 +28,156 @@ import "../css/components/option.css";
 import "../css/components/accessorybox.css";
 
 import { Selective } from "./utils/selective";
-import { checkDuplicate, markLoaded } from "./utils/guard";
-import { Libs } from "./utils/libs";
 import { Effector } from "./services/effector";
-import { SelectiveActionApi, SelectiveOptions, SelectiveUIGlobal } from "./types/utils/selective.type";
-import { EffectorInterface } from "./types/services/effector.type";
 
-export const version = "1.1.2" as const;
-export const name = "SelectiveUI" as const;
+import type {
+    SelectiveActionApi,
+    SelectiveOptions,
+    SelectiveUIGlobal,
+} from "./types/utils/selective.type";
+import type { EffectorInterface } from "./types/services/effector.type";
+import { Libs } from "./utils/libs";
+
+const iVersion = "1.1.3" as const;
+const iName = "SelectiveUI" as const;
 
 declare global {
-    interface Window {
-        SelectiveUI?: SelectiveUIGlobal;
-    }
+    var GLOBAL_SEUI: SelectiveUIGlobal;
 }
 
-const alreadyLoaded: boolean = checkDuplicate(name);
-const api: SelectiveUIGlobal = { bind, find, destroy, rebind, effector, version };
-
-function getGlobal(): SelectiveUIGlobal | undefined {
-    if (typeof window === "undefined") 
-        return undefined;
-    return window[name];
-}
-
-/**
- * Enhances all <select> elements matching the query with Selective UI.
- * If a prior global instance is already loaded, proxies the call to it; otherwise uses local Selective.bind.
- */
-export function bind(query: string, options: SelectiveOptions = {}): void {
-    const global = getGlobal();
-    if (alreadyLoaded && global) 
-        return global.bind(query, options);
-    Selective.bind(query, options);
-}
-
-/**
- * Retrieves the dynamic action API for bound instances matching the query.
- * Proxies to an already-loaded global instance if present; otherwise uses local Selective.find.
- */
-export function find(query: string): SelectiveActionApi {
-    const global = getGlobal();
-    if (alreadyLoaded && global) 
-        return global.find(query);
-    return Selective.find(query) as SelectiveActionApi;
-}
-
-/**
- * Destroys Selective instances associated with the given query.
- * Proxies to a global loaded instance if available; otherwise uses local Selective.destroy.
- */
-export function destroy(query: string | null = null): void {
-    const global = getGlobal();
-    if (alreadyLoaded && global) 
-        return global.destroy(query);
-    Selective.destroy(query);
-}
-
-/**
- * Rebinds Selective for the given query by destroying existing instances and binding anew.
- * Proxies to a global loaded instance if available; otherwise uses local Selective.rebind.
- */
-export function rebind(query: string, options: SelectiveOptions = {}): void {
-    const global = getGlobal();
-    if (alreadyLoaded && global) 
-        return global.rebind(query, options);
-    Selective.rebind(query, options);
-}
-
-/**
- * Returns an effector instance for a given element, enabling expand/collapse/resize animations.
- * Proxies to a global loaded instance if available; otherwise constructs a local Effector.
- */
-export function effector(element: string | HTMLElement): EffectorInterface {
-    const global = getGlobal();
-    if (alreadyLoaded && global) 
-        return global.effector(element);
-    return Effector(element) as unknown as EffectorInterface;
-}
-
-if (!alreadyLoaded) {
-    const api: SelectiveUIGlobal = { bind, find, destroy, rebind, effector, version };
-    markLoaded(name, version, api);
+if (typeof globalThis.GLOBAL_SEUI == "undefined") {
+    const SECLASS = new Selective();
+    globalThis.GLOBAL_SEUI = {
+        version: iVersion,
+        name: iName,
+        bind: SECLASS.bind.bind(SECLASS),
+        find: SECLASS.find.bind(SECLASS),
+        destroy: SECLASS.destroy.bind(SECLASS),
+        effector: Effector.bind(Effector),
+        rebind: SECLASS.rebind.bind(SECLASS)
+    } as SelectiveUIGlobal;
 
     let domInitialized = false;
-
     function init(): void {
         if (domInitialized) return;
         domInitialized = true;
 
         document.addEventListener("mousedown", () => {
-        const sels: string[] = Libs.getBindedCommand();
-        if (sels.length > 0) {
-            const actionApi = Selective.find(sels.join(", ")) as SelectiveActionApi;
-            if (!actionApi.isEmpty) actionApi.close();
-        }
+            const sels = Libs.getBindedCommand();
+            if (sels.length > 0) {
+                const actionApi = SECLASS.find(
+                    sels.join(", ")
+                ) as SelectiveActionApi;
+                if (!actionApi.isEmpty) actionApi.close();
+            }
         });
 
-        Selective.Observer();
+        SECLASS.Observer();
     }
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", init);
-    } else {
-        init();
+    if (typeof document !== "undefined") {
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            init();
+        }
     }
+    console.log(`[${iName}] v${iVersion} loaded successfully`);
+}
+else {
+    console.warn(
+        `[${globalThis.GLOBAL_SEUI.name}] Already loaded (v${globalThis.GLOBAL_SEUI.version}). ` +
+        `Using existing instance. Please remove duplicate <script> tags.`
+    );
+}
+
+/**
+ * Current library version.
+ *
+ * Declared as `const` literal type to enable strict typing and easy tree-shaking.
+ */
+export const version = globalThis.GLOBAL_SEUI.version as string;
+
+/**
+ * Library name identifier.
+ *
+ * Can be used for debugging, logging, telemetry, or exposing global namespace metadata.
+ */
+export const name = globalThis.GLOBAL_SEUI.name as string;
+
+/**
+ * Bind SelectiveUI behaviors to elements matched by a CSS selector.
+ *
+ * Typically used to initialize/select-enhance native `<select>` elements or custom containers.
+ *
+ * @param query - A CSS selector string used to find target elements in the DOM.
+ * @param options - Optional configuration used during initialization.
+ *
+ * @example
+ * bind(".my-select", { searchable: true });
+ */
+export function bind(query: string, options: SelectiveOptions = {}): void {
+    globalThis.GLOBAL_SEUI.bind(query, options);
+}
+
+/**
+ * Find an existing SelectiveUI instance/actions API by selector.
+ *
+ * @param query - A CSS selector string previously used with `bind()` (or matching the same element).
+ * @returns An action API that allows controlling the instance (open/close/setValue/etc).
+ *
+ * @remarks
+ * The return type is casted to `SelectiveActionApi` for a stable public contract.
+ */
+export function find(query: string): SelectiveActionApi {
+    return globalThis.GLOBAL_SEUI.find(query) as SelectiveActionApi;
+}
+
+/**
+ * Destroy SelectiveUI instance(s) and release related resources.
+ *
+ * @param query - A CSS selector string identifying which instance(s) to destroy.
+ *               If `null`, destroys all instances managed by SelectiveUI.
+ *
+ * @example
+ * destroy(".my-select");
+ *
+ * @example
+ * // Destroy all instances
+ * destroy();
+ */
+export function destroy(query: string | null = null): void {
+    globalThis.GLOBAL_SEUI.destroy(query);
+}
+
+/**
+ * Rebind (reinitialize) SelectiveUI on the given selector.
+ *
+ * Useful when:
+ * - The DOM has changed dynamically
+ * - Options need to be reapplied
+ * - You want a clean re-init without manual destroy + bind
+ *
+ * @param query - A CSS selector string used to locate target elements.
+ * @param options - Optional configuration applied during re-initialization.
+ */
+export function rebind(query: string, options: SelectiveOptions = {}): void {
+    globalThis.GLOBAL_SEUI.rebind(query, options);
+}
+
+/**
+ * Create an Effector instance for a given element.
+ *
+ * An effector provides imperative effect utilities bound to an element, such as animations,
+ * positioning, UI transitions, or event-driven effects (depending on implementation).
+ *
+ * @param element - A CSS selector string or a direct HTMLElement reference.
+ * @returns An `EffectorInterface` implementation bound to the given element.
+ *
+ * @example
+ * const fx = effector("#popup");
+ * fx.show();
+ */
+export function effector(element: string | HTMLElement): EffectorInterface {
+    return globalThis.GLOBAL_SEUI.effector(element) as unknown as EffectorInterface;
 }

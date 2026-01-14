@@ -7,9 +7,9 @@ import { BinderMap, PropertiesType } from "../types/utils/istorage.type";
 import { Popup } from "../components/popup";
 
 export class Selective {
-    static EAObserver: ElementAdditionObserver;
+    EAObserver: ElementAdditionObserver;
 
-    static bindedQueries: Map<string, SelectiveOptions> = new Map();
+    bindedQueries: Map<string, SelectiveOptions> = new Map();
 
     /**
      * Binds Selective UI to all <select> elements matching the query.
@@ -19,7 +19,7 @@ export class Selective {
      * @param {string} query - CSS selector for target <select> elements.
      * @param {object} options - Configuration overrides merged with defaults.
      */
-    static bind(query: string, options: SelectiveOptions): void {
+    bind(query: string, options: SelectiveOptions): void {
         const merged = Libs.mergeConfig(Libs.getDefaultConfig(), options) as SelectiveOptions;
 
         // Ensure hooks exist
@@ -59,7 +59,7 @@ export class Selective {
      * @param {string} [query="*"] - CSS selector or "*" to search all bound instances.
      * @returns {SelectiveActionApi} - Aggregated actions; {isEmpty:true} if none found.
      */
-    static find(query: string = "*"): SelectiveActionApi {
+    find(query: string = "*"): SelectiveActionApi {
         const empty: SelectiveActionApi = { isEmpty: true };
 
         if (query === "*") {
@@ -100,7 +100,7 @@ export class Selective {
      * Starts observing the document for newly added <select> elements and applies
      * Selective bindings automatically when they match previously bound queries.
      */
-    static Observer(): void {
+    Observer(): void {
         this.EAObserver = new ElementAdditionObserver();
         this.EAObserver.onDetect((selectElement: HTMLSelectElement) => {
             this.bindedQueries.forEach((options, query) => {
@@ -124,7 +124,7 @@ export class Selective {
      *
      * @param {null|string|HTMLSelectElement} target - Target to destroy.
      */
-    static destroy(target: null | string | HTMLSelectElement = null): void {
+    destroy(target: null | string | HTMLSelectElement = null): void {
         if (target === null) {
             this.destroyAll();
         } else if (typeof target === "string") {
@@ -138,7 +138,7 @@ export class Selective {
      * Destroys all bound Selective instances and clears bindings/state.
      * Stops the ElementAdditionObserver.
      */
-    static destroyAll(): void {
+    destroyAll(): void {
         const bindedCommands = Libs.getBindedCommand();
         bindedCommands.forEach((query: string) => this.destroyByQuery(query));
 
@@ -153,7 +153,7 @@ export class Selective {
      *
      * @param {string} query - CSS selector whose Selective instances should be destroyed.
      */
-    static destroyByQuery(query: string): void {
+    destroyByQuery(query: string): void {
         const selectElements = Libs.getElements(query) as HTMLSelectElement[];
         selectElements.forEach((element) => {
             if (element.tagName === "SELECT") this.destroyElement(element);
@@ -172,7 +172,7 @@ export class Selective {
      *
      * @param {HTMLSelectElement} selectElement - The target <select> element to clean up.
      */
-    static destroyElement(selectElement: HTMLSelectElement): void {
+    destroyElement(selectElement: HTMLSelectElement): void {
         const bindMap = Libs.getBinderMap(selectElement) as BinderMap | null;
         if (!bindMap) return;
 
@@ -216,7 +216,7 @@ export class Selective {
      * @param {string} query - CSS selector to rebind.
      * @param {object} options - Configuration for the new binding.
      */
-    static rebind(query: string, options: SelectiveOptions): void {
+    rebind(query: string, options: SelectiveOptions): void {
         this.destroyByQuery(query);
         this.bind(query, options);
     }
@@ -230,7 +230,7 @@ export class Selective {
      * @param {object} options - Configuration used for this instance.
      * @returns {boolean} - False if already bound; true if successfully applied.
      */
-    static applySelectBox(selectElement: HTMLSelectElement, options: SelectiveOptions): boolean {
+    applySelectBox(selectElement: HTMLSelectElement, options: SelectiveOptions): boolean {
         if (Libs.getBinderMap(selectElement) || Libs.getUnbinderMap(selectElement)) {
             return false;
         }
@@ -268,7 +268,7 @@ export class Selective {
      * @param {*} action - The object containing the property.
      * @returns {PropertiesType} - The derived property type and name.
      */
-    private static getProperties(actionName: string, action: Record<string, any>): PropertiesType {
+    private getProperties(actionName: string, action: Record<string, any>): PropertiesType {
         const descriptor = Object.getOwnPropertyDescriptor(action, actionName);
         let type: PropertiesType["type"] = "variable";
 
@@ -289,7 +289,7 @@ export class Selective {
      * @param {string} name - The property name to expose.
      * @param {HTMLElement[]} els - The list of bound elements to proxy.
      */
-    private static buildGetSetAction(object: Record<string, any>, name: string, els: HTMLElement[]): void {
+    private buildGetSetAction(object: Record<string, any>, name: string, els: HTMLElement[]): void {
         Object.defineProperty(object, name, {
             get() {
                 const binded = Libs.getBinderMap(els[0]) as BinderMap;
@@ -315,7 +315,7 @@ export class Selective {
      * @param {string} name - The function name to expose.
      * @param {HTMLElement[]} els - The list of bound elements to invoke against.
      */
-    private static buildFuntionAction(object: Record<string, any>, name: string, els: HTMLElement[]): void {
+    private buildFuntionAction(object: Record<string, any>, name: string, els: HTMLElement[]): void {
         object[name] = (...params: any[]) => {
             for (let index = 0; index < els.length; index++) {
                 const el = els[index];

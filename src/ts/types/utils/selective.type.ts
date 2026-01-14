@@ -57,7 +57,12 @@ export interface SelectiveUIGlobal {
     effector(element: string | HTMLElement): EffectorInterface;
 
     /**
-     * Current version of the SelectiveUI library.
+     * Current version of the library.
      */
     version: string;
+
+    /**
+     * Current version of the library.
+     */
+    name: string;
 }
