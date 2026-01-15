@@ -23,6 +23,7 @@ import { MixedItem } from "../types/core/base/mixed-adapter.type";
 import { BinderMap } from "../types/utils/istorage.type";
 import { ContainerRuntime, SelectBoxAction } from "../types/components/searchbox.type";
 import { AjaxConfig } from "../types/core/search-controller.type";
+import { Selective } from "../utils/selective";
 
 /**
  * @class
@@ -54,7 +55,7 @@ export class SelectBox {
     isBeforeSearch = false;
 
     /** Selective context (global helper) */
-    Selective: any | null = null;
+    Selective: Selective | null = null;
 
     /**
      * Gets or sets the disabled state of the SelectBox.
@@ -113,7 +114,7 @@ export class SelectBox {
         const effector = Effector();
         const optionModelManager = new ModelManager<MixedItem, MixedAdapter>(options);
         const accessoryBox = new AccessoryBox(options);
-        const searchController = new SearchController(select, optionModelManager);
+        const searchController = new SearchController(select, optionModelManager, this);
 
         const selectObserver = new SelectObserver(select);
         const datasetObserver = new DatasetObserver(select);
@@ -326,16 +327,24 @@ export class SelectBox {
     getAction(): SelectBoxAction | null {
         const container = this.container;
         const superThis = this;
-
+        const getInstance = () => {
+            return this.Selective.find(container.targetElement);
+        }
+        
         const bindedMap = Libs.getBinderMap(container.targetElement) as BinderMap | null;
         if (!bindedMap) return null;
 
         const bindedOptions = bindedMap.options;
 
         const resp: Partial<SelectBoxAction> & Record<string, any> = {
+            get targetElement() {
+                return container.targetElement;
+            },
+
             get placeholder() {
                 return container.placeholder.get();
             },
+
             set placeholder(value: string) {
                 container.placeholder?.set(value);
                 container.searchbox?.setPlaceHolder(value);
@@ -371,24 +380,24 @@ export class SelectBox {
 
             get valueOptions() {
                 const item_list: OptionModel[] = [];
-                superThis.getModelOption().forEach((m) => {
-                    if (m.selected) item_list.push(m);
+                superThis.getModelOption(true).forEach((m) => {
+                    item_list.push(m);
                 });
                 return item_list;
             },
 
             get mask() {
                 const item_list: string[] = [];
-                superThis.getModelOption().forEach((m) => {
-                    if (m.selected) item_list.push(m.text);
+                superThis.getModelOption(true).forEach((m) => {
+                    item_list.push(m.text);
                 });
                 return item_list;
             },
 
             get valueText() {
                 const item_list: string[] = [];
-                superThis.getModelOption().forEach((m) => {
-                    if (m.selected) item_list.push(m.text);
+                superThis.getModelOption(true).forEach((m) => {
+                    item_list.push(m.text);
                 });
                 const valLength = item_list.length;
                 return valLength > 1 ? item_list : valLength === 0 ? "" : item_list[0];
@@ -396,6 +405,28 @@ export class SelectBox {
 
             get isOpen() {
                 return superThis.isOpen;
+            },
+
+            getParent(_evtToken?: IEventCallback) {
+                return container.view.parentElement;
+            },
+
+            valueDataset(_evtToken?: IEventCallback, strDataset: string = null, isArray: boolean = false) {
+                var item_list = [];
+                superThis.getModelOption(true).forEach(m => {
+                    item_list.push(strDataset ? m.dataset[strDataset] : m.dataset);
+                });
+                
+                if (!isArray) {
+                    if (item_list.length == 0) {
+                        return "";
+                    }
+                    else if (item_list.length == 1) {
+                        return item_list[0]
+                    }
+                }
+
+                return item_list;
             },
 
             selectAll(_evtToken?: IEventCallback, trigger: boolean = true) {
@@ -406,7 +437,7 @@ export class SelectBox {
                 if (this.disabled || this.readonly || !bindedOptions.multiple) return;
 
                 if (trigger) {
-                    const beforeChangeToken = iEvents.callEvent([this], ...bindedOptions.on.beforeChange);
+                    const beforeChangeToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeChange);
                     if (beforeChangeToken.isCancel) return;
                     superThis.oldValue = this.value;
                 }
@@ -422,7 +453,7 @@ export class SelectBox {
                 if (this.disabled || this.readonly || !bindedOptions.multiple) return;
 
                 if (trigger) {
-                    const beforeChangeToken = iEvents.callEvent([this], ...bindedOptions.on.beforeChange);
+                    const beforeChangeToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeChange);
                     if (beforeChangeToken.isCancel) return;
                     superThis.oldValue = this.value;
                 }
@@ -462,6 +493,7 @@ export class SelectBox {
                             if (bindedOptions.loadingfield) container.popup?.showLoading?.();
 
                             try {
+                                container.searchController.resetPagination();
                                 const result = await container.searchController.loadByValues(missing);
                                 if (result.success && result.items.length > 0) {
                                     result.items.forEach((it: any) => {
@@ -491,7 +523,7 @@ export class SelectBox {
                 }
 
                 if (trigger) {
-                    const beforeChangeToken = iEvents.callEvent([this], ...bindedOptions.on.beforeChange);
+                    const beforeChangeToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeChange);
                     if (beforeChangeToken.isCancel) return;
                     superThis.oldValue = this.value;
                 }
@@ -508,18 +540,18 @@ export class SelectBox {
             },
 
             open() {
-                if (superThis.isOpen) return false;
+                if (superThis.isOpen) return;
 
                 const findAnother = superThis.Selective?.find?.();
                 if (findAnother && !findAnother.isEmpty) {
                     const closeToken: IEventToken = findAnother.close();
-                    if (closeToken.isCancel) return false;
+                    if (closeToken.isCancel) return;
                 }
 
-                if (this.disabled) return false;
+                if (this.disabled) return;
 
-                const beforeShowToken = iEvents.callEvent([this], ...bindedOptions.on.beforeShow);
-                if (beforeShowToken.isCancel) return false;
+                const beforeShowToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeShow);
+                if (beforeShowToken.isCancel) return;
 
                 superThis.isOpen = true;
                 container.directive.setDropdown(true);
@@ -530,6 +562,7 @@ export class SelectBox {
                 else adapter.resetHighlight();
 
                 if ((!superThis.hasLoadedOnce || superThis.isBeforeSearch) && bindedOptions?.ajax) {
+                    container.searchController.resetPagination();
                     container.popup.showLoading();
                     superThis.hasLoadedOnce = true;
                     superThis.isBeforeSearch = false;
@@ -541,9 +574,12 @@ export class SelectBox {
                             .then(() => container.popup?.triggerResize?.())
                             .catch((err: unknown) => console.error("Initial ajax load error:", err));
                     }, bindedOptions.animationtime);
+                    container.popup.open(null, false);
+                }
+                else {
+                    container.popup.open(null, true);
                 }
 
-                container.popup.open();
                 container.searchbox.show();
 
                 const ViewPanel: HTMLElement = container.tags.ViewPanel;
@@ -554,15 +590,15 @@ export class SelectBox {
 
                 if (bindedOptions.multiple) ViewPanel.setAttribute("aria-multiselectable", "true");
 
-                iEvents.callEvent([this], ...bindedOptions.on.show);
-                return true;
+                iEvents.callEvent([getInstance()], ...bindedOptions.on.show);
+                return;
             },
 
             close() {
-                if (!superThis.isOpen) return false;
+                if (!superThis.isOpen) return;
 
-                const beforeCloseToken = iEvents.callEvent([this], ...bindedOptions.on.beforeClose);
-                if (beforeCloseToken.isCancel) return false;
+                const beforeCloseToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeClose);
+                if (beforeCloseToken.isCancel) return;
 
                 superThis.isOpen = false;
                 container.directive.setDropdown(false);
@@ -574,8 +610,8 @@ export class SelectBox {
                 container.searchbox.hide();
                 container.tags.ViewPanel.setAttribute("aria-expanded", "false");
 
-                iEvents.callEvent([this], ...bindedOptions.on.close);
-                return true;
+                iEvents.callEvent([getInstance()], ...bindedOptions.on.close);
+                return;
             },
 
             toggle() {
@@ -596,7 +632,7 @@ export class SelectBox {
                         return;
                     }
 
-                    const beforeChangeToken = iEvents.callEvent([this, this.value], ...bindedOptions.on.beforeChange);
+                    const beforeChangeToken = iEvents.callEvent([getInstance(), this.value], ...bindedOptions.on.beforeChange);
                     if (beforeChangeToken.isCancel) {
                         this.setValue(null, this.oldValue, false);
                         return;
@@ -608,7 +644,7 @@ export class SelectBox {
 
                 if (canTrigger) {
                     if (container.targetElement) iEvents.trigger(container.targetElement, "change");
-                    iEvents.callEvent([this, this.value], ...bindedOptions.on.change);
+                    iEvents.callEvent([getInstance(), this.value], ...bindedOptions.on.change);
 
                     if (superThis.options?.autoclose) this.close();
                 }
@@ -635,6 +671,32 @@ export class SelectBox {
             ajax(_evtToken: IEventCallback, obj: AjaxConfig) {
                 container.searchController.setAjax(obj);
             },
+
+            loadAjax(_evtToken: IEventCallback) {
+                return new Promise((resove, reject) => {
+                    container.popup.showLoading();
+                    container.searchController.resetPagination();
+                    superThis.hasLoadedOnce = true;
+                    superThis.isBeforeSearch = false;
+    
+                    if (!container.popup || !container.searchController) {
+                        resove(getInstance());
+                    }
+                    else {
+                        container.searchController
+                            .search("")
+                            .then(() => {
+                                container.popup?.triggerResize?.();
+                                resove(getInstance());
+                            })
+                            .catch((err: unknown) => {
+                                console.error("Initial ajax load error:", err);
+                                reject(err);
+                            })
+                        ;
+                    }
+                })
+            }
         };
 
         // mirror properties: disabled / readonly / visible

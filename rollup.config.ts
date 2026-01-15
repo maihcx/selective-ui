@@ -10,7 +10,7 @@ import typescript from '@rollup/plugin-typescript';
 import autoprefixer from 'autoprefixer';
 import cssnano from 'cssnano';
 
-const banner = '/*! Selective UI v1.1.4 | MIT License */';
+const banner = '/*! Selective UI v1.1.5 | MIT License */';
 const treeshake: RollupOptions['treeshake'] = { preset: 'recommended' };
 
 
@@ -28,12 +28,14 @@ const EFFECTOR_METHODS = [
 ];
 
 const FIND_PROPERTIES = [
+  'targetElement',
   'placeholder',
   'oldValue',
   'value',
   'valueArray',
   'valueString',
   'valueOptions',
+  'valueDataset',
   'mask',
   'valueText',
   'isOpen',
@@ -58,7 +60,8 @@ const FIND_PROPERTIES = [
   'stopPropagation',
   'cancel',
   'isCancel',
-  'isContinue'
+  'isContinue',
+  'loadAjax',
 ];
 
 const DATA_PROPERTIES = [
@@ -122,6 +125,8 @@ const OPTIONTAG_PROPERTIES = [
   'items',
   'pagination',
   'hasMore',
+  'keyword',
+  'selectedValue',
 ];
 
 const PUBLIC_PROPERTIES = [

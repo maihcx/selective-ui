@@ -1,5 +1,6 @@
 
 import { Popup } from "../components/popup";
+import { SelectBox } from "../components/selectbox";
 import { GroupModel } from "../models/group-model";
 import { OptionModel } from "../models/option-model";
 import { MixedItem } from "../types/core/base/mixed-adapter.type";
@@ -18,6 +19,8 @@ export class SearchController {
 
     private _popup: Popup | null = null;
 
+    private _selectBox: SelectBox = null;
+
     private _paginationState: PaginationState = {
         currentPage: 0,
         totalPages: 1,
@@ -33,10 +36,12 @@ export class SearchController {
      *
      * @param {HTMLSelectElement} selectElement - The native select element that provides context and data source.
      * @param {ModelManager<MixedItem, any>} modelManager - Manager responsible for models and rendering updates.
+     * @param {SelectBox} selectBox - SelectBox handle.
      */
-    constructor(selectElement: HTMLSelectElement, modelManager: ModelManager<MixedItem, any>) {
+    constructor(selectElement: HTMLSelectElement, modelManager: ModelManager<MixedItem, any>, selectBox: SelectBox) {
         this._select = selectElement;
         this._modelManager = modelManager;
+        this._selectBox = selectBox;
     }
 
     /**
@@ -71,7 +76,7 @@ export class SearchController {
                 payload = {
                     values: valuesArray.join(","),
                     load_by_values: "1",
-                    ...(typeof cfg.data === "function" ? cfg.data("", 0) : cfg.data ?? {}),
+                    ...(typeof cfg.data === "function" ? cfg.data.bind(this._selectBox.Selective.find(this._selectBox.container.targetElement))("", 0) : cfg.data ?? {}),
                 };
             }
 
@@ -267,7 +272,7 @@ export class SearchController {
 
         let payload: Record<string, any>;
         if (typeof cfg.data === "function") {
-            payload = cfg.data(keyword, page);
+            payload = cfg.data.bind(this._selectBox.Selective.find(this._selectBox.container.targetElement))(keyword, page);
             if (payload && typeof payload.selectedValue === "undefined") payload.selectedValue = selectedValues;
         } else {
             payload = { search: keyword, page, selectedValue: selectedValues, ...(cfg.data ?? {}) };

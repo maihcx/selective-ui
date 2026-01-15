@@ -1,3 +1,23 @@
+# 1.1.5 (2026-01-15)
+
+### Fixes
+
+- **Popup** The "No data available" message appears at the same time as "Processing..."
+
+- **builder** The output data is sometimes unstable
+
+- **SelectBox,Selective** The instance returns of the subfunctions are inconsistent with `.find()`
+
+- **option.css** The checkboxes do not hide when in `imageMode`.
+
+### Features
+
+- **Selective,SelectBox** Improve the sub-functions of the instance API
+
+- **SelectBox** Introducing new APIs: targetElement, getParent(), valueDataset(), loadAjax()
+
+- **SearchController** Upgrade Ajax configuration data
+
 # 1.1.4 (2026-01-14)
 
 ### Fixes

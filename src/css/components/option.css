@@ -127,4 +127,5 @@
 
 .selective-ui-option-view.multiple.has-image > label::before {
     order: -1;
+    display: none;
 }

@@ -19,7 +19,7 @@ describe("SearchController", () => {
         mm.setupAdapter(MixedAdapter);
         mm.setupRecyclerView(RecyclerView);
         mm.createModelResources(Libs.parseSelectToArray(select));
-        return new SearchController(select, mm);
+        return new SearchController(select, mm, null);
     }
 
     beforeEach(() => {

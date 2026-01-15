@@ -1446,6 +1446,21 @@ selectInstance.toggle();</code></pre>
                             <td>self</td>
                             <td>Assign configuration <a href="#events">events</a>. Return instance</td>
                         </tr>
+                        <tr>
+                            <td><code>getParent()</code></td>
+                            <td>Object</td>
+                            <td>Get the outer tag of the select box. Return HTMLElement</td>
+                        </tr>
+                        <tr>
+                            <td><code>valueDataset()</code></td>
+                            <td>Object</td>
+                            <td>Retrieve the dataset attributes of the selected option tags</td>
+                        </tr>
+                        <tr>
+                            <td><code>loadAjax()</code></td>
+                            <td>Promise</td>
+                            <td>Force Ajax load if this session is assigned Ajax configuration. Return Promise</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -1461,6 +1476,16 @@ selectInstance.toggle();</code></pre>
                         </tr>
                     </thead>
                     <tbody>
+                        <tr>
+                            <td><code>isOpen</code></td>
+                            <td>Boolean</td>
+                            <td>The open or closed state of the popup</td>
+                        </tr>
+                        <tr>
+                            <td><code>targetElement</code></td>
+                            <td>Object</td>
+                            <td>The tag is bound to the library. Return HTMLSelectElement</td>
+                        </tr>
                         <tr>
                             <td><code>value</code></td>
                             <td>String | Array</td>
@@ -1970,6 +1995,7 @@ instance.<span class="function">on</span>(<span class="string">'change'</span>, 
     <span class="string">ajax:</span> {
         <span class="string">url:</span> <span class="string">'/api/search'</span>,
         <span class="string">data:</span> <span class="keyword">function</span>(searchTerm, page) {
+            <span class="comment">// const instance = this;</span>
             <span class="keyword">return</span> {
                 <span class="string">search:</span> searchTerm,
                 <span class="string">page:</span> page,
@@ -2481,6 +2507,52 @@ SelectiveUI.rebind(<span class="string">'#mySelect'</span>, {
                         <tr>
                             <td><strong>Vietcombank</strong></td>
                             <td>1047526877</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>V1.1.5 | 2026-01-15</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fixes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>The "No data available" message appears at the same time as "Processing..."</td>
+                        </tr>
+                        <tr>
+                            <td>The output data is sometimes unstable</td>
+                        </tr>
+                        <tr>
+                            <td>The instance returns of the subfunctions are inconsistent with `.find()`</td>
+                        </tr>
+                        <tr>
+                            <td>The checkboxes do not hide when in `imageMode`.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Features</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Improve the sub-functions of the instance API</td>
+                        </tr>
+                        <tr>
+                            <td>Introducing new APIs: targetElement, getParent(), valueDataset(), loadAjax()</td>
+                        </tr>
+                        <tr>
+                            <td>Upgrade <a href="#ajax">Ajax</a> configuration data</td>
                         </tr>
                     </tbody>
                 </table>

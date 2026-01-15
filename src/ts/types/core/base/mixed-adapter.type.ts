@@ -11,8 +11,8 @@ export type MixedItem = GroupModel | OptionModel;
  * Statistics about the visibility state of items in a list or container.
  */
 export type VisibilityStats = {
-    visibleCount: number;  // Number of items currently visible
-    totalCount: number;    // Total number of items in the collection
-    hasVisible: boolean;   // Indicates if there is at least one visible item
-    isEmpty: boolean;      // Indicates if the collection is empty
+    visibleCount?: number;  // Number of items currently visible
+    totalCount?: number;    // Total number of items in the collection
+    hasVisible?: boolean;   // Indicates if there is at least one visible item
+    isEmpty?: boolean;      // Indicates if the collection is empty
 };

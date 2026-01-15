@@ -59,6 +59,8 @@ export type ContainerRuntime = MountViewResult<SelectBoxTags> & {
  * Interface defining actions and properties for the SelectBox component.
  */
 export interface SelectBoxAction {
+    targetElement: HTMLSelectElement;     // Target Select element
+
     placeholder: string;           // Placeholder text
     oldValue: unknown;             // Previous value before change
 
@@ -75,6 +77,20 @@ export interface SelectBoxAction {
     disabled: boolean;             // Indicates if the component is disabled
     readonly: boolean;             // Indicates if the component is read-only
     visible: boolean;              // Indicates if the component is visible
+
+    /**
+     * Get parent of self
+     * @param evtToken - Optional event token for tracking.
+     */
+    getParent(evtToken?: unknown): HTMLElement
+
+    /**
+     * Get dataset from selected options
+     * @param evtToken - Optional event token for tracking.
+     * @param strDataset - Property to find
+     * @param isArray - Keep array or return once
+     */
+    valueDataset(evtToken?: unknown, strDataset?: string, isArray?: boolean): any[] | string
 
     /**
      * Select all available options.
@@ -103,13 +119,13 @@ export interface SelectBoxAction {
      * Open the dropdown.
      * @returns True if opened successfully.
      */
-    open(): boolean;
+    open(): void;
 
     /**
      * Close the dropdown.
      * @returns True if closed successfully.
      */
-    close(): boolean;
+    close(): void;
 
     /**
      * Toggle the dropdown state (open/close).
@@ -142,4 +158,10 @@ export interface SelectBoxAction {
      * @param obj - Data or configuration for the request.
      */
     ajax(evtToken: unknown, obj: unknown): void;
+
+    /**
+     * Trigger a AJAX request if it available.
+     * @param evtToken - Event token for tracking.
+     */
+    loadAjax(evtToken: unknown, obj: unknown): void;
 }

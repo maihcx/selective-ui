@@ -187,13 +187,13 @@ describe("Popup", () => {
     });
 
     test("open mounts popup and runs expand", () => {
-        popup.open();
+        popup.open(null, true);
         expect(document.body.contains(popup.node)).toBe(true);
         expect(effector.expand).toHaveBeenCalled();
     });
 
     test("close collapses popup safely", () => {
-        popup.open();
+        popup.open(null, true);
         popup.close();
         expect(effector.collapse).toHaveBeenCalled();
     });
@@ -204,7 +204,7 @@ describe("Popup", () => {
             hasVisible: false
         });
 
-        popup.open();
+        popup.open(null, true);
         expect(popup.emptyState?.show).toHaveBeenCalledWith("nodata");
     });
 
@@ -214,7 +214,7 @@ describe("Popup", () => {
             hasVisible: false
         });
 
-        popup.open();
+        popup.open(null, true);
         expect(popup.emptyState?.show).toHaveBeenCalledWith("notfound");
     });
 
@@ -230,7 +230,7 @@ describe("Popup", () => {
             loadMore
         };
 
-        popup.open();
+        popup.open(null, true);
         popup.setupInfiniteScroll(searchController as any);
 
         Object.defineProperty(popup.node, "scrollHeight", {

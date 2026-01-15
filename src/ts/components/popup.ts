@@ -154,6 +154,7 @@ export class Popup {
 
         if (Libs.string2Boolean(this.options.loadingfield) === false) return;
 
+        this._updateEmptyState({isEmpty: false, hasVisible: true});
         this.loadingState.show(this.optionAdapter.getVisibilityStats().hasVisible);
         this.optionHandle.hide();
         this.triggerResize();
@@ -248,7 +249,7 @@ export class Popup {
      * Opens the popup: creates and attaches DOM if needed, initializes observers and effector,
      * computes position and dimensions, and runs expand animation. Invokes callback on completion.
      */
-    open(callback: (() => void) | null = null): void {
+    open(callback: (() => void) | null = null, isShowEmptyState: boolean): void {
         if (!this.node || !this.options || !this.optionHandle || !this._parent || !this._effSvc) return;
 
         if (!this.isCreated) {
@@ -265,7 +266,9 @@ export class Popup {
         }
 
         this.optionHandle.refresh();
-        this._updateEmptyState();
+        if (isShowEmptyState) {
+            this._updateEmptyState();
+        }
 
         const location = this._getParentLocation();
         const { position, top, maxHeight, realHeight } = this._calculatePosition(location);

@@ -59,7 +59,7 @@ export class Selective {
      * @param {string} [query="*"] - CSS selector or "*" to search all bound instances.
      * @returns {SelectiveActionApi} - Aggregated actions; {isEmpty:true} if none found.
      */
-    find(query: string = "*"): SelectiveActionApi {
+    find(query: string | HTMLElement = "*"): SelectiveActionApi {
         const empty: SelectiveActionApi = { isEmpty: true };
 
         if (query === "*") {
@@ -317,17 +317,18 @@ export class Selective {
      */
     private buildFuntionAction(object: Record<string, any>, name: string, els: HTMLElement[]): void {
         object[name] = (...params: any[]) => {
+            let resp = null;
             for (let index = 0; index < els.length; index++) {
                 const el = els[index];
                 const binded = Libs.getBinderMap(el) as BinderMap | null;
                 if (!binded?.action) continue;
 
                 const evtToken = iEvents.buildEventToken();
-                binded.action[name](evtToken.callback, ...params);
+                resp ??= binded.action[name](evtToken.callback, ...params);
 
                 if (!evtToken.token.isContinue) break;
             }
-            return object;
+            return resp ?? object;
         };
     }
 }
