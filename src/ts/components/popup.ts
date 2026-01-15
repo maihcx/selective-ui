@@ -156,7 +156,7 @@ export class Popup {
 
         this._updateEmptyState({isEmpty: false, hasVisible: true});
         this.loadingState.show(this.optionAdapter.getVisibilityStats().hasVisible);
-        this.optionHandle.hide();
+        // this.optionHandle.hide();
         this.triggerResize();
     }
 
