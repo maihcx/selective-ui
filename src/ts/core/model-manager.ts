@@ -166,18 +166,20 @@ export class ModelManager<
      * Initializes adapter and recycler view instances, attaches them to a container element,
      * and applies optional configuration overrides for adapter and recyclerView.
      */
-    load(
+    
+    load<TExtra extends object = {}>(
         viewElement: HTMLElement,
         adapterOpt: Partial<TAdapter> = {},
-        recyclerViewOpt: Partial<RecyclerViewContract<TAdapter>> = {}
+        recyclerViewOpt: Partial<RecyclerViewContract<TAdapter>> & TExtra = {} as any
     ): void {
+
         this._privAdapterHandle = new this._privAdapter(this._privModelList as unknown as TModel[]);
         Object.assign(this._privAdapterHandle, adapterOpt);
 
         this._privRecyclerViewHandle = new this._privRecyclerView(viewElement);
-        this._privRecyclerViewHandle.setAdapter(this._privAdapterHandle);
-
         Object.assign(this._privRecyclerViewHandle, recyclerViewOpt);
+
+        this._privRecyclerViewHandle.setAdapter(this._privAdapterHandle);
     }
 
     /**

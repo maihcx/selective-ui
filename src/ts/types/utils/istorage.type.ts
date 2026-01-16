@@ -21,6 +21,7 @@ export type StorageEvents = {
  */
 export interface DefaultConfig {
     showPanel?: boolean;             // Whether to show the panel initially
+    virtualScroll?: boolean;         // Enable virtual scroll
     accessoryStyle?: string;         // CSS style for accessory elements
     multiple?: boolean;              // Enable multiple selection
     minWidth?: string;               // Minimum width of the component

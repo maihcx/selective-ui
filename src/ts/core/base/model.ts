@@ -13,7 +13,6 @@ export class Model<
     TView extends ViewContract<TTags>,
     TOptions = unknown
 > implements ModelContract<TTarget, TView> {
-    /** @type {TTarget | null} */
     targetElement: TTarget | null = null;
 
     options: TOptions;

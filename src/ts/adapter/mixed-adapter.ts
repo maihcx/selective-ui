@@ -387,14 +387,18 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
 
         for (let i = index; i < this.flatOptions.length; i++) {
             const item = this.flatOptions[i];
-            if (!item.visible) continue;
+            if (!item?.visible) continue;
 
             item.highlighted = true;
             this._currentHighlightIndex = i;
 
             if (isScrollToView) {
                 const el = item.view?.getView?.();
-                if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+                if (el) {
+                    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                } else {
+                    (this as any).recyclerView?.ensureRendered?.(i, { scrollIntoView: true });
+                }
             }
 
             this.onHighlightChange(i, item.view?.getView?.()?.id);

@@ -6,6 +6,7 @@ import { BinderMap, DefaultConfig } from "../types/utils/istorage.type";
 export class iStorage {
     defaultConfig: DefaultConfig = {
         showPanel: true,
+        virtualScroll: true,
         accessoryStyle: "top",
         multiple: false,
         minWidth: "50px",

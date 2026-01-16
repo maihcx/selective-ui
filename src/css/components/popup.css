@@ -28,7 +28,6 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    gap: 2px;
 
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
@@ -36,4 +35,11 @@
 
 .selective-ui-options-container.hide {
     display: none;
+}
+
+.selective-ui-options-container .selective-ui-virtual-items {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 2px;
 }

@@ -20,6 +20,13 @@ type ParentBinderMapLike = {
     [key: string]: unknown;
 };
 
+interface VirtualRecyclerOptions {
+  scrollEl?: HTMLElement;
+  estimateItemHeight?: number;
+  overscan?: number;
+  dynamicHeights?: boolean;
+}
+
 /**
  * @class
  */
@@ -53,6 +60,12 @@ export class Popup {
     private _scrollListener: (() => Promise<void>) | null = null;
 
     private _hideLoadHandle: ReturnType<typeof setTimeout> | null = null;
+
+    private virtualScrollConfig = {
+        estimateItemHeight: 36,
+        overscan: 8,
+        dynamicHeights: true
+    };
 
     /**
      * Represents a popup component that manages rendering and interaction for a dropdown panel.
@@ -120,8 +133,19 @@ export class Popup {
         this._parent = Libs.getBinderMap(select) as ParentBinderMapLike | null;
         this.options = options;
 
+        
+        const recyclerViewOpt = options.virtualScroll
+            ? { 
+                scrollEl: this.node, 
+                estimateItemHeight: this.virtualScrollConfig.estimateItemHeight, 
+                overscan: this.virtualScrollConfig.overscan, 
+                dynamicHeights: this.virtualScrollConfig.dynamicHeights }
+            : {}
+        ;
+
+
         // Load ModelManager resources into container
-        this._modelManager.load(this._optionsContainer, { isMultiple: options.multiple });
+        this._modelManager.load<VirtualRecyclerOptions>(this._optionsContainer, { isMultiple: options.multiple }, recyclerViewOpt);
 
         const MMResources = this._modelManager.getResources() as {
             adapter: MixedAdapter;
@@ -294,6 +318,9 @@ export class Popup {
 
                 this._resizeObser.connect(this._parent.container.tags.ViewPanel);
                 callback?.();
+                
+                const rv: any = this.recyclerView;
+                rv?.resume?.();
             },
         });
     }
@@ -304,6 +331,8 @@ export class Popup {
      */
     close(callback: (() => void) | null = null): void {
         if (!this.isCreated || !this.options || !this._resizeObser || !this._effSvc) return;
+        const rv: any = this.recyclerView;
+        rv?.suspend?.();
 
         this._resizeObser.disconnect();
         this._effSvc.collapse({
