@@ -18,7 +18,7 @@
 
 - **SelectBox,Selective** The instance returns of the subfunctions are inconsistent with `.find()`
 
-- **option.css** The checkboxes do not hide when in `imageMode`.
+- **option.css** The checkboxes do not hide when in `imageMode`
 
 ### Features
 

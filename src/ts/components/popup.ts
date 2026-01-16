@@ -154,9 +154,10 @@ export class Popup {
 
         if (Libs.string2Boolean(this.options.loadingfield) === false) return;
 
-        this._updateEmptyState({isEmpty: false, hasVisible: true});
+        // this._updateEmptyState({isEmpty: false, hasVisible: true});
+        this.emptyState.hide();
         this.loadingState.show(this.optionAdapter.getVisibilityStats().hasVisible);
-        this.optionHandle.hide();
+        // this.optionHandle.hide();
         this.triggerResize();
     }
 
@@ -441,16 +442,11 @@ export class Popup {
         const rect = viewPanel.getBoundingClientRect();
         const style = window.getComputedStyle(viewPanel);
 
-        const vv = window.visualViewport;
-        const is_ios = Libs.IsIOS();
-        const viewportOffsetY = vv && is_ios ? vv.offsetTop : 0;
-        const viewportOffsetX = vv && is_ios ? vv.offsetLeft : 0;
-
         return {
             width: rect.width,
             height: rect.height,
-            top: rect.top - viewportOffsetY,
-            left: rect.left - viewportOffsetX,
+            top: rect.top,
+            left: rect.left,
             padding: {
                 top: parseFloat(style.paddingTop),
                 right: parseFloat(style.paddingRight),
@@ -481,7 +477,6 @@ export class Popup {
         const is_ios = Libs.IsIOS();
 
         const viewportHeight = vv?.height ?? window.innerHeight;
-        const viewportOffsetY = vv && is_ios ? vv.offsetTop : 0;
 
         const gap = 3;
         const safeMargin = 15;
@@ -519,6 +514,8 @@ export class Popup {
 
         realHeight = Math.min(contentHeight, maxHeight);
 
+        const viewportOffsetY = vv && is_ios ? vv.offsetTop : 0;
+        
         const top =
             position === "bottom"
                 ? location.top + location.height + gap + viewportOffsetY

@@ -37,8 +37,8 @@ import type {
 import type { EffectorInterface } from "./types/services/effector.type";
 import { Libs } from "./utils/libs";
 
-const iVersion = "1.1.5" as const;
-const iName = "SelectiveUI" as const;
+declare const __LIB_VERSION__: string;
+declare const __LIB_NAME__: string;
 
 const SECLASS = new Selective();
 
@@ -47,14 +47,14 @@ const SECLASS = new Selective();
  *
  * Declared as `const` literal type to enable strict typing and easy tree-shaking.
  */
-export const version = iVersion as string;
+export const version = __LIB_VERSION__ as string;
 
 /**
  * Library name identifier.
  *
  * Can be used for debugging, logging, telemetry, or exposing global namespace metadata.
  */
-export const name = iName as string;
+export const name = __LIB_NAME__ as string;
 
 /**
  * Bind SelectiveUI behaviors to elements matched by a CSS selector.
