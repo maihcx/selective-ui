@@ -259,7 +259,7 @@ export class SelectBox {
                         if (result?.hasResults) {
                             setTimeout(() => {
                                 optionAdapter.resetHighlight();
-                            }, options.animationtime ?? 0);
+                            }, options.animationtime ? options.animationtime + 10 : 0);
                         }
                     })
                     .catch((error: unknown) => {

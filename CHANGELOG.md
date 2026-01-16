@@ -1,3 +1,13 @@
+# 1.1.6 (2026-01-16)
+
+### Fixes
+
+- **Popup** The popup position is incorrect on iOS when the keyboard is turned on
+
+- **Popup** The "select all" control bar pops up and closes illogically
+
+- **Popup,SelectBox** The popup position is sometimes inconsistent
+
 # 1.1.5 (2026-01-15)
 
 ### Fixes
@@ -8,7 +18,7 @@
 
 - **SelectBox,Selective** The instance returns of the subfunctions are inconsistent with `.find()`
 
-- **option.css** The checkboxes do not hide when in `imageMode`.
+- **option.css** The checkboxes do not hide when in `imageMode`
 
 ### Features
 

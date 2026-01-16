@@ -38,8 +38,8 @@ import type {
 import type { EffectorInterface } from "./types/services/effector.type";
 import { Libs } from "./utils/libs";
 
-const iVersion = "1.1.5" as const;
-const iName = "SelectiveUI" as const;
+declare const __LIB_VERSION__: string;
+declare const __LIB_NAME__: string;
 
 declare global {
     var GLOBAL_SEUI: SelectiveUIGlobal;
@@ -48,8 +48,8 @@ declare global {
 if (typeof globalThis.GLOBAL_SEUI == "undefined") {
     const SECLASS = new Selective();
     globalThis.GLOBAL_SEUI = {
-        version: iVersion,
-        name: iName,
+        version: __LIB_VERSION__,
+        name: __LIB_NAME__,
         bind: SECLASS.bind.bind(SECLASS),
         find: SECLASS.find.bind(SECLASS),
         destroy: SECLASS.destroy.bind(SECLASS),
@@ -82,7 +82,7 @@ if (typeof globalThis.GLOBAL_SEUI == "undefined") {
             init();
         }
     }
-    console.log(`[${iName}] v${iVersion} loaded successfully`);
+    console.log(`[${__LIB_NAME__}] v${__LIB_VERSION__} loaded successfully`);
 }
 else {
     console.warn(

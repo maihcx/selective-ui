@@ -10,7 +10,13 @@ import typescript from '@rollup/plugin-typescript';
 import autoprefixer from 'autoprefixer';
 import cssnano from 'cssnano';
 
-const banner = '/*! Selective UI v1.1.5 | MIT License */';
+import { readFileSync } from 'node:fs';
+
+const pkg = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf-8')
+);
+
+const banner = `/*! Selective UI v${pkg.version} | MIT License */`;
 const treeshake: RollupOptions['treeshake'] = { preset: 'recommended' };
 
 
@@ -259,6 +265,8 @@ export default defineConfig([
     plugins: [
       replace({
         preventAssignment: true,
+        __LIB_VERSION__: JSON.stringify(pkg.version),
+        __LIB_NAME__: JSON.stringify('SelectiveUI'),
         'process.env.NODE_ENV': JSON.stringify('production'),
       }),
       resolve(),
@@ -284,6 +292,8 @@ export default defineConfig([
     plugins: [
       replace({
         preventAssignment: true,
+        __LIB_VERSION__: JSON.stringify(pkg.version),
+        __LIB_NAME__: JSON.stringify('SelectiveUI'),
         'process.env.NODE_ENV': JSON.stringify('production'),
       }),
       resolve(),
@@ -310,6 +320,8 @@ export default defineConfig([
     plugins: [
       replace({
         preventAssignment: true,
+        __LIB_VERSION__: JSON.stringify(pkg.version),
+        __LIB_NAME__: JSON.stringify('SelectiveUI'),
         'process.env.NODE_ENV': JSON.stringify('production'),
       }),
       typescript({
@@ -337,6 +349,8 @@ export default defineConfig([
     plugins: [
       replace({
         preventAssignment: true,
+        __LIB_VERSION__: JSON.stringify(pkg.version),
+        __LIB_NAME__: JSON.stringify('SelectiveUI'),
         'process.env.NODE_ENV': JSON.stringify('production'),
       }),
       typescript({
