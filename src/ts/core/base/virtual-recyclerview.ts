@@ -237,8 +237,11 @@ export class VirtualRecyclerView<
             passive: true,
         });
 
-        this.refresh();
+        this.refresh(false);
         this.attachResizeObserverOnce();
+        (adapter as any)?.onVisibilityChanged(() => {
+            this.refreshItem();
+        });
     }
 
     /**
@@ -293,9 +296,15 @@ export class VirtualRecyclerView<
     /**
      * Refreshes internal caches and schedules an update based on adapter content.
      * Rebuilds height structures and probes an initial estimate on first run.
+     * 
+     * @param isUpdate - Indicates if this refresh is due to an update operation.
      */
-    override refresh() {
+    override refresh(isUpdate: boolean): void {
         if (!this.adapter || !this.viewElement) return;
+
+        if (!isUpdate) {
+            this.refreshItem();
+        }
 
         const count = this.adapter.itemCount();
         this._lastRenderCount = count;
@@ -354,6 +363,45 @@ export class VirtualRecyclerView<
         const { scrollIntoView = false } = opt || {};
         this.mountRange(index, index);
         if (scrollIntoView) this.scrollToIndex(index);
+    }
+
+    /**
+     * Returns whether an item at index is visible.
+     * If item.visible is undefined, treat as visible.
+     */
+    private isIndexVisible(index: number): boolean {
+        const item = this.adapter?.items?.[index] as any;
+        if (!item) return true;
+        const v = item.visible;
+        return v === undefined ? true : !!v;
+    }
+
+    /**
+     * Returns the next visible index from `index` (inclusive).
+     * If none found, returns -1.
+     */
+    private nextVisibleFrom(index: number, count: number): number {
+        for (let i = Math.max(0, index); i < count; i++) {
+            if (this.isIndexVisible(i)) return i;
+        }
+        return -1;
+    }
+
+    /**
+     * Recomputes measuredSum/measuredCount from current heightCache,
+     * considering only visible items.
+     */
+    private recomputeMeasuredStats(count: number) {
+        this.measuredSum = 0;
+        this.measuredCount = 0;
+        for (let i = 0; i < count; i++) {
+            if (!this.isIndexVisible(i)) continue;
+            const h = this.heightCache[i];
+            if (h != null) {
+                this.measuredSum += h;
+                this.measuredCount += 1;
+            }
+        }
     }
 
     /**
@@ -478,9 +526,16 @@ export class VirtualRecyclerView<
     private rebuildFenwick(count: number) {
         const est = this.getEstimate();
         const arr = new Array(count);
-        for (let i = 0; i < count; i++) arr[i] = this.heightCache[i] ?? est;
+        for (let i = 0; i < count; i++) {
+            if (!this.isIndexVisible(i)) {
+                arr[i] = 0;
+            } else {
+                arr[i] = this.heightCache[i] ?? est;
+            }
+        }
         this.fenwick.buildFrom(arr);
     }
+
 
     /**
      * Updates cached height at a given index and applies the delta to Fenwick tree.
@@ -490,6 +545,7 @@ export class VirtualRecyclerView<
      * @returns {boolean} True if the height changed meaningfully.
      */
     private updateHeightAt(index: number, newH: number) {
+        if (!this.isIndexVisible(index)) return false;
         const est = this.getEstimate();
         const oldH = this.heightCache[index] ?? est;
 
@@ -517,8 +573,9 @@ export class VirtualRecyclerView<
      */
     private findFirstVisibleIndex(stRel: number, count: number): number {
         const k = this.fenwick.lowerBoundPrefix(Math.max(0, stRel));
-        const idx = Math.min(count - 1, k);
-        return Math.max(0, idx);
+        const raw = Math.min(count - 1, k);
+        const v = this.nextVisibleFrom(raw, count);
+        return v === -1 ? Math.max(0, raw) : v;
     }
 
     /**
@@ -624,6 +681,8 @@ export class VirtualRecyclerView<
         let changed = false;
 
         for (let i = this.start; i <= this.end; i++) {
+            if (!this.isIndexVisible(i)) continue;
+
             const item = this.adapter.items[i] as any;
             const el = item?.view?.getView?.() as HTMLElement | undefined;
             if (!el) continue;
@@ -676,17 +735,26 @@ export class VirtualRecyclerView<
             const anchorTop = this.offsetTopOf(anchorIndex);
             const anchorDelta =
                 containerTop + anchorTop - this.scrollEl.scrollTop;
-
-            let startIndex =
-                this.findFirstVisibleIndex(stRel, count) - this.opts.overscan;
-            if (startIndex < 0) startIndex = 0;
+            
+            const firstVis = this.findFirstVisibleIndex(stRel, count);
+            if (firstVis === -1) {
+                this.created.forEach((el) => el.remove());
+                this.created.clear();
+                this.PadTop.style.height = "0px";
+                this.PadBottom.style.height = "0px";
+                return;
+            }
 
             const est = this.getEstimate();
-            const approxVisible = Math.ceil(vhEff / est);
-            const endIndex = Math.min(
-                count - 1,
-                startIndex + approxVisible + 2 * this.opts.overscan
-            );
+            const overscanPx = this.opts.overscan * est;
+
+            const startByPx = this.fenwick.lowerBoundPrefix(Math.max(0, stRel - overscanPx));
+            let startIndex = Math.max(0, Math.min(count - 1, startByPx));
+            startIndex = this.nextVisibleFrom(startIndex, count);
+            if (startIndex === -1) startIndex = firstVis;
+
+            const endByPx = this.fenwick.lowerBoundPrefix(stRel + vhEff + overscanPx);
+            let endIndex = Math.max(0, Math.min(count - 1, endByPx));
 
             if (startIndex === this.start && endIndex === this.end) return;
 
@@ -745,16 +813,25 @@ export class VirtualRecyclerView<
      * @param {number} index - Item index.
      */
     private mountIndexOnce(index: number) {
+        if (!this.isIndexVisible(index)) {
+            const existing = this.created.get(index);
+            if (existing && existing.parentElement === this.ItemsHost) existing.remove();
+            this.created.delete(index);
+            return;
+        }
+
         const item = this.adapter!.items[index] as any;
 
         if (this.created.has(index)) {
             const existing = this.created.get(index);
-            if (existing) this.ensureDomOrder(index, existing);
-
-            if (item?.view) {
-                this.adapter!.onViewHolder(item, item.view, index);
+            if (!item?.view) {
+                existing?.remove();
+                this.created.delete(index);
+            } else {
+                this.ensureDomOrder(index, existing);
+                this.adapter.onViewHolder(item, item.view, index);
+                return;
             }
-            return;
         }
 
         if (!item.isInit) {
@@ -772,14 +849,14 @@ export class VirtualRecyclerView<
         this.ensureDomOrder(index, el);
         this.created.set(index, el);
 
-        if (this.opts.dynamicHeights) {
-            const h = this.measureOuterHeight(el);
-            const changed = this.updateHeightAt(index, h);
-            if (changed && this.opts.adaptiveEstimate) {
-                const count = this.adapter!.itemCount();
-                this.rebuildFenwick(count);
-            }
-        }
+        // if (this.opts.dynamicHeights) {
+            // const h = this.measureOuterHeight(el);
+            // const changed = this.updateHeightAt(index, h);
+            // if (changed && this.opts.adaptiveEstimate) {
+            //     const count = this.adapter!.itemCount();
+            //     this.rebuildFenwick(count);
+            // }
+        // }
     }
 
     /**
@@ -826,5 +903,43 @@ export class VirtualRecyclerView<
      */
     private totalHeight(count: number): number {
         return this.fenwick.sum(count);
+    }
+
+    /**
+     * Rebuilds virtualization state after `item.visible` changes.
+     *
+     * This method performs a **hard reset** of the virtual list and rebuilds all
+     * height structures to ensure paddings (especially PadBottom) are recalculated
+     * correctly after large visibility changes (e.g., clearing a search/filter).
+     */
+    public refreshItem() {
+        if (!this.adapter) return;
+        const count = this.adapter.itemCount();
+        if (count <= 0) return;
+
+        this.suspend();
+
+        this.created.forEach((el) => el.remove());
+        this.created.clear();
+        this.heightCache = [];
+        this.fenwick.reset(0);
+        this.firstMeasured = false;
+        this.measuredSum = 0;
+        this.measuredCount = 0;
+
+        this.created.forEach((el, idx) => {
+            if (!this.isIndexVisible(idx)) {
+                if (el.parentElement === this.ItemsHost) el.remove();
+                this.created.delete(idx);
+            }
+        });
+
+        this.recomputeMeasuredStats(count);
+        this.rebuildFenwick(count);
+
+        this.start = 0;
+        this.end = -1;
+
+        this.resume();
     }
 }

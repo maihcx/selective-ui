@@ -264,6 +264,7 @@ export class SelectBox {
                         container.popup?.triggerResize?.();
                         if (result?.hasResults) {
                             setTimeout(() => {
+                                container.popup?.triggerResize?.();
                                 optionAdapter.resetHighlight();
                             }, options.animationtime ? options.animationtime + 10 : 0);
                         }

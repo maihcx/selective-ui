@@ -141,7 +141,7 @@ describe("RecyclerView", () => {
 
         adapter.updateRecyclerView.mockClear();
 
-        rv.refresh();
+        rv.refresh(true);
 
         expect(adapter.updateRecyclerView).toHaveBeenCalledWith(div);
     });

@@ -150,7 +150,7 @@ export class ModelManager<
             this._privAdapterHandle.syncFromSource(this._privModelList as unknown as TModel[]);
         }
 
-        this.refresh();
+        this.refresh(false);
     }
 
     /**
@@ -159,7 +159,7 @@ export class ModelManager<
      */
     notify(): void {
         if (!this._privAdapterHandle) return;
-        this.refresh();
+        this.refresh(false);
     }
 
     /**
@@ -271,12 +271,15 @@ export class ModelManager<
             }
         });
 
+        let isUpdate = true;
         oldGroupMap.forEach((removedGroup) => {
-            removedGroup.view?.getView?.()?.remove?.();
+            isUpdate = false;
+            removedGroup.remove();
         });
 
         oldOptionMap.forEach((removedOption) => {
-            removedOption.view?.getView?.()?.remove?.();
+            isUpdate = false;
+            removedOption.remove();
         });
 
         this._privModelList = newModels;
@@ -286,7 +289,7 @@ export class ModelManager<
         }
 
         this.onUpdated();
-        this.refresh();
+        this.refresh(isUpdate);
     }
 
     /**
@@ -307,10 +310,12 @@ export class ModelManager<
     /**
      * Re-renders the recycler view if present and invokes the post-refresh hook.
      * No-op if the recycler view is not initialized.
+     * 
+     * @param isUpdate - Indicates if this refresh is due to an update operation.
      */
-    refresh(): void {
+    refresh(isUpdate: boolean): void {
         if (!this._privRecyclerViewHandle) return;
-        this._privRecyclerViewHandle.refresh();
+        this._privRecyclerViewHandle.refresh(isUpdate);
         this.onUpdated();
     }
 
