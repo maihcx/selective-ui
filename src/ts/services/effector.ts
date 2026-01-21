@@ -353,11 +353,11 @@ class EffectorImpl implements EffectorInterface {
             if (animate && (isPositionChanged || heightDiff > 1)) {
                 this._resizeTimeout = setTimeout(() => {
                     this.element.style.transition = "none";
-                    if (isPositionChanged) delete (this.element.style as any).transition;
+                    if (isPositionChanged) delete this.element.style.transition;
                     onComplete?.();
                 }, duration);
             } else {
-                if (isPositionChanged) delete (this.element.style as any).transition;
+                if (isPositionChanged) delete this.element.style.transition;
                 onComplete?.();
             }
         });

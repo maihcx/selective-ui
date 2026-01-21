@@ -1,4 +1,4 @@
-import { LoadingStateOptions } from "../types/components/state.box.type";
+import { SelectiveOptions } from "../types/utils/selective.type";
 import { Libs } from "../utils/libs";
 
 /**
@@ -7,13 +7,13 @@ import { Libs } from "../utils/libs";
 export class LoadingState {
     node: HTMLDivElement | null = null;
 
-    options: LoadingStateOptions | null = null;
+    options: SelectiveOptions | null = null;
 
     /**
      * Represents a loading state component that displays a loading message during data fetch or processing.
      * Provides methods to show/hide the state and check its visibility.
      */
-    constructor(options: LoadingStateOptions | null = null) {
+    constructor(options: SelectiveOptions | null = null) {
         if (options) this.init(options);
     }
 
@@ -22,7 +22,7 @@ export class LoadingState {
      *
      * @param {object} options - Configuration object containing text for the loading message.
      */
-    init(options: LoadingStateOptions): void {
+    init(options: SelectiveOptions): void {
         this.options = options;
 
         this.node = Libs.nodeCreator({

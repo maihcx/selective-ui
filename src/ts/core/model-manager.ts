@@ -3,6 +3,7 @@ import { GroupModel } from "../models/group-model";
 import { OptionModel } from "../models/option-model";
 import { ModelContract } from "../types/core/base/model.type";
 import { RecyclerViewContract } from "../types/core/base/recyclerview.type";
+import { ViewContract } from "../types/core/base/view.type";
 import { SelectiveOptions } from "../types/utils/selective.type";
 import { Adapter } from "./base/adapter";
 
@@ -12,7 +13,7 @@ import { Adapter } from "./base/adapter";
  */
 export class ModelManager<
     TModel extends ModelContract<any, any>,
-    TAdapter extends Adapter<TModel>
+    TAdapter extends Adapter<TModel, ViewContract<any>>
 > {
     private _privModelList: Array<GroupModel | OptionModel> = [];
 
@@ -120,7 +121,7 @@ export class ModelManager<
                 const optionEl = data as HTMLOptionElement;
                 const optionModel = new OptionModel(this.options, optionEl);
 
-                const parentGroup = (optionEl as any)["__parentGroup"] as HTMLOptGroupElement | undefined;
+                const parentGroup = optionEl["__parentGroup"] as HTMLOptGroupElement | undefined;
 
                 if (parentGroup && currentGroup && parentGroup === currentGroup.targetElement) {
                     currentGroup.addItem(optionModel);
@@ -150,7 +151,7 @@ export class ModelManager<
             this._privAdapterHandle.syncFromSource(this._privModelList as unknown as TModel[]);
         }
 
-        this.refresh();
+        this.refresh(false);
     }
 
     /**
@@ -159,25 +160,27 @@ export class ModelManager<
      */
     notify(): void {
         if (!this._privAdapterHandle) return;
-        this.refresh();
+        this.refresh(false);
     }
 
     /**
      * Initializes adapter and recycler view instances, attaches them to a container element,
      * and applies optional configuration overrides for adapter and recyclerView.
      */
-    load(
+    
+    load<TExtra extends object = {}>(
         viewElement: HTMLElement,
         adapterOpt: Partial<TAdapter> = {},
-        recyclerViewOpt: Partial<RecyclerViewContract<TAdapter>> = {}
+        recyclerViewOpt: Partial<RecyclerViewContract<TAdapter>> & TExtra = {} as any
     ): void {
+
         this._privAdapterHandle = new this._privAdapter(this._privModelList as unknown as TModel[]);
         Object.assign(this._privAdapterHandle, adapterOpt);
 
         this._privRecyclerViewHandle = new this._privRecyclerView(viewElement);
-        this._privRecyclerViewHandle.setAdapter(this._privAdapterHandle);
-
         Object.assign(this._privRecyclerViewHandle, recyclerViewOpt);
+
+        this._privRecyclerViewHandle.setAdapter(this._privAdapterHandle);
     }
 
     /**
@@ -240,7 +243,7 @@ export class ModelManager<
                     existingOption.update(dataVset);
                     existingOption.position = position;
 
-                    const parentGroup = (dataVset as any)["__parentGroup"] as HTMLOptGroupElement | undefined;
+                    const parentGroup = dataVset["__parentGroup"] as HTMLOptGroupElement | undefined;
 
                     if (parentGroup && currentGroup) {
                         currentGroup.addItem(existingOption);
@@ -255,7 +258,7 @@ export class ModelManager<
                     const newOption = new OptionModel(this.options, dataVset);
                     newOption.position = position;
 
-                    const parentGroup = (dataVset as any)["__parentGroup"] as HTMLOptGroupElement | undefined;
+                    const parentGroup = dataVset["__parentGroup"] as HTMLOptGroupElement | undefined;
 
                     if (parentGroup && currentGroup) {
                         currentGroup.addItem(newOption);
@@ -269,12 +272,15 @@ export class ModelManager<
             }
         });
 
+        let isUpdate = true;
         oldGroupMap.forEach((removedGroup) => {
-            removedGroup.view?.getView?.()?.remove?.();
+            isUpdate = false;
+            removedGroup.remove();
         });
 
         oldOptionMap.forEach((removedOption) => {
-            removedOption.view?.getView?.()?.remove?.();
+            isUpdate = false;
+            removedOption.remove();
         });
 
         this._privModelList = newModels;
@@ -284,7 +290,7 @@ export class ModelManager<
         }
 
         this.onUpdated();
-        this.refresh();
+        this.refresh(isUpdate);
     }
 
     /**
@@ -299,16 +305,18 @@ export class ModelManager<
      * @param {boolean} value - True to skip events; false to restore normal behavior.
      */
     skipEvent(value: boolean): void {
-        if (this._privAdapterHandle) (this._privAdapterHandle as any).isSkipEvent = value;
+        if (this._privAdapterHandle) this._privAdapterHandle.isSkipEvent = value;
     }
 
     /**
      * Re-renders the recycler view if present and invokes the post-refresh hook.
      * No-op if the recycler view is not initialized.
+     * 
+     * @param isUpdate - Indicates if this refresh is due to an update operation.
      */
-    refresh(): void {
+    refresh(isUpdate: boolean): void {
         if (!this._privRecyclerViewHandle) return;
-        this._privRecyclerViewHandle.refresh();
+        this._privRecyclerViewHandle.refresh(isUpdate);
         this.onUpdated();
     }
 

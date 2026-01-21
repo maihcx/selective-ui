@@ -30,7 +30,7 @@ export class Selective {
 
         const doneToken = Libs.randomString();
         Libs.callbackScheduler.on(doneToken, () => {
-            iEvents.callEvent([this.find(query)], ...(merged.on!.load as any[]));
+            iEvents.callEvent([this.find(query)], ...(merged.on!.load));
             Libs.callbackScheduler.clear(doneToken);
             merged.on!.load = [];
         });
@@ -194,7 +194,7 @@ export class Selective {
         selectElement.style.display = "";
         selectElement.style.visibility = "";
         selectElement.disabled = false;
-        delete (selectElement as any).dataset.selectiveId;
+        delete selectElement.dataset.selectiveId;
 
         if (wrapper && wrapper.parentNode) {
             wrapper.parentNode.replaceChild(selectElement, wrapper);
@@ -245,12 +245,12 @@ export class Selective {
         const bindMap: BinderMap = { options: options_cfg };
         Libs.setBinderMap(selectElement, bindMap);
 
-        const selectBox = new SelectBox(selectElement, this as any);
-        bindMap.container = (selectBox as any).container;
-        bindMap.action = (selectBox as any).getAction();
-        bindMap.self = selectBox as any;
+        const selectBox = new SelectBox(selectElement, this);
+        bindMap.container = selectBox.container;
+        bindMap.action = selectBox.getAction();
+        bindMap.self = selectBox;
 
-        (selectBox as any).container.view.addEventListener("mouseup", () => {
+        selectBox.container.view.addEventListener("mouseup", () => {
             bindMap.action?.toggle?.();
         });
 

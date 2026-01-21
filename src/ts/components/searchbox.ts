@@ -96,6 +96,8 @@ export class SearchBox {
                 isControlKey = true;
                 this.onEsc?.();
             }
+            
+            e.stopPropagation();
         });
 
         inputEl.addEventListener("input", () => {

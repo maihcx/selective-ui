@@ -19,6 +19,20 @@ export interface AdapterContract<TItem extends ModelContract<any, any>> {
     adapterKey: string;
 
     /**
+     * Reference to the associated RecyclerView instance.
+     *
+     * Acts as the rendering host and lifecycle coordinator for this adapter.
+     * The adapter uses this reference to:
+     * - Access recycler-level configuration and state
+     * - Request layout, rebind, or invalidation operations
+     * - Coordinate virtual scrolling, recycling, or view reuse strategies
+     *
+     * The concrete type is intentionally left open to avoid tight coupling
+     * between the adapter contract and a specific RecyclerView implementation.
+     */
+    recyclerView: any;
+
+    /**
      * Replace the current list of items with a new list.
      * Implementations should also trigger a re-render when appropriate.
      *

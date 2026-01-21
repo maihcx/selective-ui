@@ -1,7 +1,7 @@
 import { RecyclerView } from "../../../../src/ts/core/base/recyclerview";
 import { Adapter } from "../../../../src/ts/core/base/adapter";
 
-class MockAdapter extends Adapter<any, unknown> {
+class MockAdapter extends Adapter<any, any> {
     constructor() {
         super([]);
     }
@@ -14,7 +14,7 @@ class MockAdapter extends Adapter<any, unknown> {
 
 describe("RecyclerView", () => {
 
-    function createAdapterMock(): Adapter<any, unknown> {
+    function createAdapterMock(): Adapter<any, any> {
         return new MockAdapter();
     }
 
@@ -141,7 +141,7 @@ describe("RecyclerView", () => {
 
         adapter.updateRecyclerView.mockClear();
 
-        rv.refresh();
+        rv.refresh(true);
 
         expect(adapter.updateRecyclerView).toHaveBeenCalledWith(div);
     });

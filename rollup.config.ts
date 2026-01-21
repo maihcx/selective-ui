@@ -114,6 +114,7 @@ const DATA_PROPERTIES = [
   'imagePosition',
   'ajax',
   'block',
+  'virtualScroll'
 ];
 
 const OPTIONTAG_PROPERTIES = [

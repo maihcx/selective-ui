@@ -8,7 +8,7 @@ import { OptionModel } from "../../../src/ts/models/option-model";
 import { Adapter } from "../../../src/ts/core/base/adapter";
 import { RecyclerView } from "../../../src/ts/core/base/recyclerview";
 
-class MockAdapter extends Adapter<any, unknown> {
+class MockAdapter extends Adapter<any, any> {
     constructor(items: any[]) {
         super(items);
         this.isSkipEvent = false;
@@ -27,7 +27,7 @@ class MockRecyclerView extends RecyclerView<any, any> {
         super(el);
     }
 
-    setAdapter(adapter: Adapter<any, unknown>) {
+    setAdapter(adapter: Adapter<any, any>) {
         this.adapter = adapter;
     }
 }
@@ -82,8 +82,8 @@ describe("ModelManager", () => {
         const opt1 = createOption("1");
         const opt2 = createOption("2");
 
-        (opt1 as any).__parentGroup = group;
-        (opt2 as any).__parentGroup = group;
+        opt1["__parentGroup"] = group;
+        opt2["__parentGroup"] = group;
 
         const models = manager.createModelResources([group, opt1, opt2]);
 
@@ -152,7 +152,7 @@ describe("ModelManager", () => {
     test("update reuses GroupModel by label", () => {
         const group = createGroup("Group A");
         const opt = createOption("1");
-        (opt as any).__parentGroup = group;
+        opt["__parentGroup"] = group;
 
         manager.createModelResources([group, opt]);
         manager.load(document.createElement("div"));

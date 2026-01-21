@@ -1,6 +1,7 @@
 import { Libs } from "../../utils/libs";
 import type { ModelContract } from "../../types/core/base/model.type";
 import type { AdapterContract } from "../../types/core/base/adapter.type";
+import { ViewContract } from "src/ts/types/core/base/view.type";
 
 /**
  * @template TItem
@@ -9,13 +10,15 @@ import type { AdapterContract } from "../../types/core/base/adapter.type";
  */
 export class Adapter<
     TItem extends ModelContract<any, any> & { view: TViewer | null; isInit: boolean },
-    TViewer = unknown
+    TViewer extends ViewContract<any>
 > implements AdapterContract<TItem> {
     items: TItem[] = [];
 
     adapterKey = Libs.randomString(12);
 
     isSkipEvent = false;
+    
+    recyclerView: any;
 
     /**
      * Initializes the adapter with an optional array of items and invokes onInit()
@@ -45,11 +48,11 @@ export class Adapter<
     onViewHolder(item: TItem, viewer: TViewer | null, position: number): void {
         void position;
 
-        const v = viewer as any;
-        if (!item.isInit) {
-            v?.render?.();
-        } else {
+        const v = viewer;
+        if (item.isInit) {
             v?.update?.();
+        } else {
+            v?.render?.();
         }
     }
 
