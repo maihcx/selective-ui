@@ -223,10 +223,7 @@ export class SearchController {
         let hasVisibleItems = false;
 
         flatOptions.forEach((opt) => {
-            const text = String(opt.textContent ?? opt.text ?? "").toLowerCase();
-            const textNA = Libs.string2normalize(text);
-
-            const isVisible = lower === "" || text.includes(lower) || textNA.includes(lowerNA);
+            const isVisible = lower === "" || opt.textToFind.includes(lowerNA);
 
             opt.visible = isVisible;
             if (isVisible) hasVisibleItems = true;
