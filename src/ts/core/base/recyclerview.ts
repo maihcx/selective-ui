@@ -76,8 +76,10 @@ export class RecyclerView<
     /**
      * Forces a re-render of the current adapter state into the container.
      * Useful when visual updates are required without changing the data.
+     * 
+     * @param isUpdate - Indicates if this refresh is due to an update operation.
      */
-    refresh(): void {
+    refresh(isUpdate: boolean): void {
         this.render();
     }
 }

@@ -1,5 +1,5 @@
-import { DefaultConfig } from "../types/utils/istorage.type";
 import { MountViewResult } from "../types/utils/libs.type";
+import { SelectiveOptions } from "../types/utils/selective.type";
 import { iEvents } from "../utils/ievents";
 import { Libs } from "../utils/libs";
 
@@ -11,7 +11,7 @@ export class OptionHandle {
 
     node: HTMLDivElement | null = null;
 
-    options: DefaultConfig | null = null;
+    options: SelectiveOptions | null = null;
 
     private _ActionOnSelectAll: Array<(...args: unknown[]) => unknown> = [];
 
@@ -22,7 +22,7 @@ export class OptionHandle {
      * for multiple-selection lists. Includes methods to show/hide the handle, refresh its visibility,
      * and register callbacks for select/deselect events.
      */
-    constructor(options: DefaultConfig | null = null) {
+    constructor(options: SelectiveOptions | null = null) {
         if (options) this.init(options);
     }
 
@@ -32,7 +32,7 @@ export class OptionHandle {
      *
      * @param {object} options - Configuration object containing text labels and feature flags.
      */
-    init(options: DefaultConfig): void {
+    init(options: SelectiveOptions): void {
         this.nodeMounted = Libs.mountNode({
             OptionHandle: {
                 tag: { node: "div", classList: ["selective-ui-option-handle", "hide"] },

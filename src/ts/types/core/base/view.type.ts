@@ -28,6 +28,12 @@ export interface ViewContract<TTags extends Record<string, HTMLElement>> {
     render(): void;
 
     /**
+     * Update the view.
+     * Implementations typically refresh displayed data without a full re-render.
+     */
+    update(): void;
+
+    /**
      * Get the root HTMLElement for the mounted view.
      *
      * @returns The root element produced by mountView/mountNode.

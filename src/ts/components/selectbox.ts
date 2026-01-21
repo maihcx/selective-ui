@@ -24,6 +24,7 @@ import { BinderMap } from "../types/utils/istorage.type";
 import { ContainerRuntime, SelectBoxAction } from "../types/components/searchbox.type";
 import { AjaxConfig } from "../types/core/search-controller.type";
 import { Selective } from "../utils/selective";
+import { VirtualRecyclerView } from "../core/base/virtual-recyclerview";
 
 /**
  * @class
@@ -174,7 +175,12 @@ export class SelectBox {
 
         // ModelManager setup
         optionModelManager.setupAdapter(MixedAdapter);
-        optionModelManager.setupRecyclerView(RecyclerView);
+        if (options.virtualScroll) {
+            optionModelManager.setupRecyclerView(VirtualRecyclerView);
+        }
+        else {
+            optionModelManager.setupRecyclerView(RecyclerView);
+        }
         optionModelManager.createModelResources(Libs.parseSelectToArray(select));
 
         optionModelManager.onUpdated = () => {
@@ -258,6 +264,7 @@ export class SelectBox {
                         container.popup?.triggerResize?.();
                         if (result?.hasResults) {
                             setTimeout(() => {
+                                container.popup?.triggerResize?.();
                                 optionAdapter.resetHighlight();
                             }, options.animationtime ? options.animationtime + 10 : 0);
                         }

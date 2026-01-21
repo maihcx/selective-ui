@@ -5,6 +5,7 @@ import { GroupView } from "../views/group-view";
 import { OptionView } from "../views/option-view";
 import { MixedItem, VisibilityStats } from "../types/core/base/mixed-adapter.type";
 import { IEventCallback } from "../types/utils/ievents.type";
+import { ImagePosition, LabelHalign, LabelValign } from "../types/views/view.option.type";
 
 /**
  * @extends {Adapter<GroupModel|OptionModel>}
@@ -84,7 +85,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {number} position - The position (index) of the group within a list.
      */
     private _handleGroupView(groupModel: GroupModel, groupView: GroupView, position: number): void {
-        super.onViewHolder(groupModel as any, groupView as any, position);
+        super.onViewHolder(groupModel, groupView, position);
         groupModel.view = groupView;
 
         const header = groupView.view.tags.GroupHeader;
@@ -141,13 +142,13 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
             imageWidth: optionModel.options.imageWidth as string,
             imageHeight: optionModel.options.imageHeight as string,
             imageBorderRadius: optionModel.options.imageBorderRadius as string,
-            imagePosition: optionModel.options.imagePosition as any,
-            labelValign: optionModel.options.labelValign as any,
-            labelHalign: optionModel.options.labelHalign as any,
+            imagePosition: optionModel.options.imagePosition as ImagePosition,
+            labelValign: optionModel.options.labelValign as LabelValign,
+            labelHalign: optionModel.options.labelHalign as LabelHalign,
         };
 
         if (!optionModel.isInit) {
-            super.onViewHolder(optionModel as any, optionViewer as any, position);
+            super.onViewHolder(optionModel, optionViewer, position);
         }
 
         optionModel.view = optionViewer;
@@ -387,14 +388,18 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
 
         for (let i = index; i < this.flatOptions.length; i++) {
             const item = this.flatOptions[i];
-            if (!item.visible) continue;
+            if (!item?.visible) continue;
 
             item.highlighted = true;
             this._currentHighlightIndex = i;
 
             if (isScrollToView) {
                 const el = item.view?.getView?.();
-                if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+                if (el) {
+                    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                } else {
+                    this.recyclerView?.ensureRendered?.(i, { scrollIntoView: true });
+                }
             }
 
             this.onHighlightChange(i, item.view?.getView?.()?.id);

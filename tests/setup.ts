@@ -41,14 +41,14 @@ class MockIntersectionObserver implements IntersectionObserver {
     }
 }
 
-(global as any).MutationObserver = MockMutationObserver;
-(global as any).ResizeObserver = MockResizeObserver;
-(global as any).IntersectionObserver = MockIntersectionObserver;
+global.MutationObserver = MockMutationObserver;
+global.ResizeObserver = MockResizeObserver;
+global.IntersectionObserver = MockIntersectionObserver;
 
-(global as any).requestAnimationFrame = (callback: FrameRequestCallback): number =>
+global.requestAnimationFrame = (callback: FrameRequestCallback): number =>
     window.setTimeout(callback, 0);
 
-(global as any).cancelAnimationFrame = (id: number): void =>
+global.cancelAnimationFrame = (id: number): void =>
     window.clearTimeout(id);
 
 if (!window.HTMLElement.prototype.scrollIntoView) {
@@ -79,7 +79,7 @@ interface CreateSelectOptions {
     groups?: SelectGroup[];
 }
 
-(global as any).createSelect = (
+global.createSelect = (
     options: CreateSelectOptions = {}
 ): HTMLSelectElement => {
     const select = document.createElement('select');
@@ -133,10 +133,10 @@ interface CreateSelectOptions {
     return select;
 };
 
-(global as any).waitFor = (ms = 0): Promise<void> =>
+global.waitFor = (ms = 0): Promise<void> =>
     new Promise(resolve => setTimeout(resolve, ms));
 
-(global as any).waitForCondition = async (
+global.waitForCondition = async (
     condition: () => boolean,
     timeout = 1000
 ): Promise<void> => {
@@ -146,7 +146,7 @@ interface CreateSelectOptions {
         if (Date.now() - startTime > timeout) {
             throw new Error('Timeout waiting for condition');
         }
-        await (global as any).waitFor(10);
+        await (global).waitFor(10);
     }
 };
 
@@ -155,7 +155,7 @@ afterEach(() => {
     jest.clearAllTimers();
 });
 
-(global as any).console = {
+(global).console = {
     ...console,
     log: jest.fn(),
     warn: jest.fn(),

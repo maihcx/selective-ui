@@ -1,3 +1,21 @@
+# 1.2.0 (2026-01-21)
+
+### Fixes
+
+- **SelectBox** Unable to press the spacebar in the search box
+
+### Features
+
+- **VirtualRecyclerView** Implement the VirtualScroll feature
+
+### Optimizations
+
+- **VirtualRecyclerView** VirtualScroll significantly improves search and data display performance
+
+- **VirtualRecyclerView,SelectBox** Supports displaying 10,000+ lines of data with consistent performance
+
+- **ALL** Improve JSDoc
+
 # 1.1.6 (2026-01-16)
 
 ### Fixes

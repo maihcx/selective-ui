@@ -48,6 +48,8 @@ export interface RecyclerViewContract<TAdapter extends AdapterContract<any>> {
     /**
      * Refresh the rendered views to reflect current adapter data/state.
      * May perform diffing, partial updates, or full re-binding.
+     * 
+     * @param isUpdate - Indicates if this refresh is due to an update operation.
      */
-    refresh(): void;
+    refresh(isUpdate: boolean): void;
 }

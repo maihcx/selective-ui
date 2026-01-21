@@ -1,4 +1,5 @@
-import { EmptyStateOptions, EmptyStateType } from "../types/components/state.box.type";
+import { EmptyStateType } from "../types/components/state.box.type";
+import { SelectiveOptions } from "../types/utils/selective.type";
 import { Libs } from "../utils/libs";
 
 /**
@@ -7,13 +8,13 @@ import { Libs } from "../utils/libs";
 export class EmptyState {
     node: HTMLDivElement | null = null;
 
-    options: EmptyStateOptions | null = null;
+    options: SelectiveOptions | null = null;
 
     /**
      * Represents an empty state component that displays a message when no data or search results are available.
      * Provides methods to show/hide the state and check its visibility.
      */
-    constructor(options: EmptyStateOptions | null = null) {
+    constructor(options: SelectiveOptions | null = null) {
         if (options) this.init(options);
     }
 
@@ -22,7 +23,7 @@ export class EmptyState {
      *
      * @param {object} options - Configuration object containing text for "no data" and "not found" states.
      */
-    init(options: EmptyStateOptions): void {
+    init(options: SelectiveOptions): void {
         this.options = options;
 
         this.node = Libs.nodeCreator({

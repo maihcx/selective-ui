@@ -13,7 +13,6 @@ export class Model<
     TView extends ViewContract<TTags>,
     TOptions = unknown
 > implements ModelContract<TTarget, TView> {
-    /** @type {TTarget | null} */
     targetElement: TTarget | null = null;
 
     options: TOptions;
@@ -23,6 +22,8 @@ export class Model<
     position = -1;
 
     isInit = false;
+
+    isRemoved = false;
 
     /**
      * Returns the current value from the underlying target element's "value" attribute.
@@ -57,8 +58,25 @@ export class Model<
     }
 
     /**
+     * Cleans up references and invokes the removal hook when the model is no longer needed.
+     */
+    remove() {
+        this.targetElement = null;
+        this.view?.getView()?.remove?.();
+        this.view = null;
+        this.isRemoved = true;
+        this.onRemove();
+    }
+
+    /**
      * Hook invoked whenever the target element changes.
      * Override in subclasses to react to attribute/content updates (e.g., text, disabled state).
      */
     onTargetChanged(): void { }
+
+    /**
+     * Hook invoked whenever the target element is removed.
+     * Override in subclasses to react to removal of the element.
+     */
+    onRemove(): void {}
 }

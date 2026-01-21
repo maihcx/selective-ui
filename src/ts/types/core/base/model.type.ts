@@ -32,4 +32,9 @@ export interface ModelContract<TTarget, TView> {
      * Indicates whether the model has been initialized.
      */
     isInit: boolean;
+
+    /**
+     * Indicates whether the model has been vissibly.
+     */
+    visible?: boolean;
 }
