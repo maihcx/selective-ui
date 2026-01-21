@@ -169,7 +169,7 @@ describe('Libs Utility Functions', () => {
             const result = Libs.parseSelectToArray(select);
             expect(result[0].tagName).toBe('OPTGROUP');
             expect(result[1].tagName).toBe('OPTION');
-            expect((result[1] as any).__parentGroup).toBe(result[0]);
+            expect(result[1]["__parentGroup"]).toBe(result[0]);
         });
     });
 

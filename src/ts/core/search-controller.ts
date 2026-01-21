@@ -91,7 +91,7 @@ export class SearchController {
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 });
             } else {
-                const params = new URLSearchParams(payload as any).toString();
+                const params = new URLSearchParams(payload).toString();
                 response = await fetch(`${cfg.url}?${params}`);
             }
 
@@ -168,7 +168,7 @@ export class SearchController {
     clear(): void {
         this._paginationState.currentKeyword = "";
 
-        const { modelList } = this._modelManager.getResources() as any;
+        const { modelList } = this._modelManager.getResources();
         const flatOptions: OptionModel[] = [];
 
         for (const m of modelList as MixedItem[]) {
@@ -212,7 +212,7 @@ export class SearchController {
         const lower = String(keyword ?? "").toLowerCase();
         const lowerNA = Libs.string2normalize(lower);
 
-        const { modelList } = this._modelManager.getResources() as any;
+        const { modelList } = this._modelManager.getResources();
 
         const flatOptions: OptionModel[] = [];
         for (const m of modelList as MixedItem[]) {
@@ -291,7 +291,7 @@ export class SearchController {
                     signal: this._abortController.signal,
                 });
             } else {
-                const params = new URLSearchParams(payload as any).toString();
+                const params = new URLSearchParams(payload).toString();
                 response = await fetch(`${cfg.url}?${params}`, { signal: this._abortController.signal });
             }
 

@@ -176,7 +176,7 @@ export class SelectBox {
         // ModelManager setup
         optionModelManager.setupAdapter(MixedAdapter);
         if (options.virtualScroll) {
-            optionModelManager.setupRecyclerView(VirtualRecyclerView as any);
+            optionModelManager.setupRecyclerView(VirtualRecyclerView);
         }
         else {
             optionModelManager.setupRecyclerView(RecyclerView);

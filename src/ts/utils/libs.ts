@@ -2,6 +2,7 @@ import { BinderMap } from "../types/utils/istorage.type";
 import { MountViewResult, NodeSpec } from "../types/utils/libs.type";
 import { iStorage } from "./istorage";
 import { CallbackScheduler } from "./callback-scheduler";
+import { SelectiveOptions } from "../types/utils/selective.type";
 
 /**
  * @class
@@ -88,8 +89,8 @@ export class Libs {
         }
 
         // NodeList or array-like
-        if ((queryCommon as any) instanceof NodeList || Array.isArray(queryCommon)) {
-            return Array.from(queryCommon as any);
+        if (queryCommon instanceof NodeList || Array.isArray(queryCommon)) {
+            return Array.from(queryCommon);
         }
 
         return [];
@@ -131,7 +132,7 @@ export class Libs {
         (["style", "dataset"] as const).forEach((property) => {
             const value = nodeOption[property];
             if (value && typeof value === "object") {
-                Object.assign((element_creation as any)[property], value);
+                Object.assign(element_creation[property], value);
             }
             delete nodeOption[property];
         });
@@ -176,7 +177,7 @@ export class Libs {
             if (value === null) {
                 element_creation.removeAttribute(key);
             } else {
-                (element_creation as any)[key] = value;
+                element_creation[key] = value;
             }
         });
 
@@ -260,18 +261,18 @@ export class Libs {
      * matching element properties or data-* attributes when present.
      *
      * @param {HTMLElement} element - Source element providing overrides.
-     * @param {object} options - Default configuration to be merged.
-     * @returns {object} - Final configuration after element overrides.
+     * @param {SelectiveOptions} options - Default configuration to be merged.
+     * @returns {SelectiveOptions} - Final configuration after element overrides.
      */
-    static buildConfig<T extends Record<string, any>>(element: HTMLElement, options: T): T {
-        const myOptions = this.jsCopyObject(options);
+    static buildConfig(element: HTMLElement, options: SelectiveOptions): SelectiveOptions {
+        const myOptions = this.jsCopyObject<SelectiveOptions>(options);
 
         for (const optionKey in myOptions) {
-            const propValue = (element as any)[optionKey];
+            const propValue = element[optionKey];
             if (propValue) {
-                (myOptions as any)[optionKey] = propValue;
+                myOptions[optionKey] = propValue;
             } else if (typeof element?.dataset?.[optionKey] !== "undefined") {
-                (myOptions as any)[optionKey] = element.dataset[optionKey];
+                myOptions[optionKey] = element.dataset[optionKey];
             }
         }
 
@@ -298,10 +299,10 @@ export class Libs {
                     const cfgVar = cfg[optionKey];
                     for (const actKey in cfgVar) {
                         // Keep original behavior (push), do not change semantics.
-                        (level0 as any)[optionKey][actKey].push((cfgVar as any)[actKey]);
+                        level0[optionKey][actKey].push(cfgVar[actKey]);
                     }
                 } else {
-                    (level0 as any)[optionKey] = (cfg as any)[optionKey];
+                    level0[optionKey] = cfg[optionKey];
                 }
             }
         }
@@ -343,7 +344,7 @@ export class Libs {
      * @returns {boolean} - True if an entry existed and was removed.
      */
     static removeBinderMap(element: HTMLElement): boolean {
-        return this.iStorage.bindedMap.delete(element as any);
+        return this.iStorage.bindedMap.delete(element);
     }
 
     /**
@@ -353,17 +354,17 @@ export class Libs {
      * @returns {BinderMap | null} - The stored binder map value or undefined if absent.
      */
     static getBinderMap(item: HTMLElement): BinderMap | null {
-        return this.iStorage.bindedMap.get(item as any);
+        return this.iStorage.bindedMap.get(item);
     }
 
     /**
      * Sets or updates the binder map entry for a given element.
      *
      * @param {HTMLElement} item - Element key to associate with the binder map.
-     * @param {unknown} bindMap - Value to store in the binder map.
+     * @param {BinderMap} bindMap - Value to store in the binder map.
      */
-    static setBinderMap(item: HTMLElement, bindMap: unknown): void {
-        this.iStorage.bindedMap.set(item as any, bindMap as any);
+    static setBinderMap(item: HTMLElement, bindMap: BinderMap): void {
+        this.iStorage.bindedMap.set(item, bindMap);
     }
 
     /**
@@ -373,7 +374,7 @@ export class Libs {
      * @returns {boolean} - True if an entry existed and was removed.
      */
     static removeUnbinderMap(element: HTMLElement): boolean {
-        return this.iStorage.unbindedMap.delete(element as any);
+        return this.iStorage.unbindedMap.delete(element);
     }
 
     /**
@@ -383,17 +384,17 @@ export class Libs {
      * @returns {unknown} - The stored unbinder map value or undefined if absent.
      */
     static getUnbinderMap(item: HTMLElement): unknown {
-        return this.iStorage.unbindedMap.get(item as any);
+        return this.iStorage.unbindedMap.get(item);
     }
 
     /**
      * Sets or updates the unbinder map entry for a given element.
      *
      * @param {HTMLElement} item - Element key to associate with the unbinder map.
-     * @param {unknown} bindMap - Value to store in the unbinder map.
+     * @param {BinderMap} bindMap - Value to store in the unbinder map.
      */
-    static setUnbinderMap(item: HTMLElement, bindMap: unknown): void {
-        this.iStorage.unbindedMap.set(item as any, bindMap as any);
+    static setUnbinderMap(item: HTMLElement, bindMap: BinderMap): void {
+        this.iStorage.unbindedMap.set(item, bindMap);
     }
 
     /**
@@ -430,7 +431,7 @@ export class Libs {
             .replace(/\`\>/g, ">")
             .trim();
 
-        const doc = (globalThis as any)?.document as Document | undefined;
+        const doc = globalThis?.document as Document | undefined;
 
         if (!doc || typeof doc.createElement !== "function") {
             s = s
@@ -510,7 +511,7 @@ export class Libs {
                 result.push(group);
 
                 Array.from(group.children).forEach((option) => {
-                    (option as any).__parentGroup = group;
+                    option["__parentGroup"] = group;
                     result.push(option as HTMLOptionElement);
                 });
             } else if (child.tagName === "OPTION") {

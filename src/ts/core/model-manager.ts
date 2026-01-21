@@ -3,6 +3,7 @@ import { GroupModel } from "../models/group-model";
 import { OptionModel } from "../models/option-model";
 import { ModelContract } from "../types/core/base/model.type";
 import { RecyclerViewContract } from "../types/core/base/recyclerview.type";
+import { ViewContract } from "../types/core/base/view.type";
 import { SelectiveOptions } from "../types/utils/selective.type";
 import { Adapter } from "./base/adapter";
 
@@ -12,7 +13,7 @@ import { Adapter } from "./base/adapter";
  */
 export class ModelManager<
     TModel extends ModelContract<any, any>,
-    TAdapter extends Adapter<TModel>
+    TAdapter extends Adapter<TModel, ViewContract<any>>
 > {
     private _privModelList: Array<GroupModel | OptionModel> = [];
 
@@ -120,7 +121,7 @@ export class ModelManager<
                 const optionEl = data as HTMLOptionElement;
                 const optionModel = new OptionModel(this.options, optionEl);
 
-                const parentGroup = (optionEl as any)["__parentGroup"] as HTMLOptGroupElement | undefined;
+                const parentGroup = optionEl["__parentGroup"] as HTMLOptGroupElement | undefined;
 
                 if (parentGroup && currentGroup && parentGroup === currentGroup.targetElement) {
                     currentGroup.addItem(optionModel);
@@ -242,7 +243,7 @@ export class ModelManager<
                     existingOption.update(dataVset);
                     existingOption.position = position;
 
-                    const parentGroup = (dataVset as any)["__parentGroup"] as HTMLOptGroupElement | undefined;
+                    const parentGroup = dataVset["__parentGroup"] as HTMLOptGroupElement | undefined;
 
                     if (parentGroup && currentGroup) {
                         currentGroup.addItem(existingOption);
@@ -257,7 +258,7 @@ export class ModelManager<
                     const newOption = new OptionModel(this.options, dataVset);
                     newOption.position = position;
 
-                    const parentGroup = (dataVset as any)["__parentGroup"] as HTMLOptGroupElement | undefined;
+                    const parentGroup = dataVset["__parentGroup"] as HTMLOptGroupElement | undefined;
 
                     if (parentGroup && currentGroup) {
                         currentGroup.addItem(newOption);
@@ -304,7 +305,7 @@ export class ModelManager<
      * @param {boolean} value - True to skip events; false to restore normal behavior.
      */
     skipEvent(value: boolean): void {
-        if (this._privAdapterHandle) (this._privAdapterHandle as any).isSkipEvent = value;
+        if (this._privAdapterHandle) this._privAdapterHandle.isSkipEvent = value;
     }
 
     /**

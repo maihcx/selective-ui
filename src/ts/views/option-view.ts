@@ -53,8 +53,8 @@ export class OptionView extends View<OptionViewTags> {
                 const key = prop as keyof OptionConfig;
                 const oldValue = target[key];
 
-                if (oldValue !== (value as any)) {
-                    (target as any)[key] = value;
+                if (oldValue !== value) {
+                    target[key] = value as never;
                     if (self._isRendered) {
                         self._applyPartialChange(key, value, oldValue);
                     }
@@ -240,10 +240,10 @@ export class OptionView extends View<OptionViewTags> {
                 } else {
                     root.className = root.className.replace(/image-(top|right|bottom|left)/g, "").trim();
 
-                    const img = (v.tags as any)?.OptionImage as HTMLImageElement | null | undefined;
+                    const img = v.tags?.OptionImage as HTMLImageElement | null | undefined;
                     if (img) {
                         img.remove();
-                        (v.tags as any).OptionImage = null;
+                        v.tags.OptionImage = null;
                     }
                 }
                 break;
@@ -260,7 +260,7 @@ export class OptionView extends View<OptionViewTags> {
             case "imageWidth":
             case "imageHeight":
             case "imageBorderRadius": {
-                const img = (v.tags as any)?.OptionImage as HTMLImageElement | null | undefined;
+                const img = v.tags?.OptionImage as HTMLImageElement | null | undefined;
                 if (img) {
                     const styleProp =
                         prop === "imageWidth" ? "width" :
@@ -268,7 +268,7 @@ export class OptionView extends View<OptionViewTags> {
                                 "borderRadius";
 
                     const val = String(newValue);
-                    if ((img.style as any)[styleProp] !== val) (img.style as any)[styleProp] = val;
+                    if (img.style[styleProp] !== val) img.style[styleProp] = val;
                 }
                 break;
             }
@@ -298,7 +298,7 @@ export class OptionView extends View<OptionViewTags> {
         const v = this.view;
         if (!v || !v.view) return;
 
-        const existing = (v.tags as any)?.OptionImage as HTMLImageElement | null | undefined;
+        const existing = v.tags?.OptionImage as HTMLImageElement | null | undefined;
         if (existing) return;
 
         const root = v.view as HTMLElement;
@@ -313,6 +313,6 @@ export class OptionView extends View<OptionViewTags> {
         if (label && label.parentElement) root.insertBefore(image, label);
         else root.appendChild(image);
 
-        (v.tags as any).OptionImage = image;
+        v.tags.OptionImage = image;
     }
 }

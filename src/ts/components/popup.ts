@@ -97,9 +97,9 @@ export class Popup {
     init(select: HTMLSelectElement, options: SelectiveOptions): void {
         if (!this._modelManager) throw new Error("Popup requires a ModelManager instance.");
 
-        this.optionHandle = new OptionHandle(options as any);
-        this.emptyState = new EmptyState(options as any);
-        this.loadingState = new LoadingState(options as any);
+        this.optionHandle = new OptionHandle(options);
+        this.emptyState = new EmptyState(options);
+        this.loadingState = new LoadingState(options);
 
         const nodeMounted = Libs.mountNode(
             {
@@ -125,7 +125,7 @@ export class Popup {
                 },
             },
             null
-        ) as any;
+        );
 
         this.node = nodeMounted.view as HTMLDivElement;
         this._optionsContainer = nodeMounted.tags.OptionsContainer as HTMLDivElement;
@@ -417,7 +417,7 @@ export class Popup {
         this._resizeObser = null;
 
         try {
-            this._effSvc?.setElement?.(null as any);
+            this._effSvc?.setElement?.(null);
         } catch (_) {}
         this._effSvc = null;
 
