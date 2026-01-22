@@ -1,3 +1,11 @@
+# 1.2.1 (2026-01-22)
+
+### Optimizations
+
+- **SelectBox** Improved search speed, now with near-instantaneous response times
+
+- **Effector** Improve the stability of the effects
+
 # 1.2.0 (2026-01-21)
 
 ### Fixes
