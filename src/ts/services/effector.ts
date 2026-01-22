@@ -301,7 +301,7 @@ class EffectorImpl implements EffectorInterface {
     resize(config: ResizeConfig): this {
         if (!this.element) return this;
 
-        if (this._resizeTimeout) clearTimeout(this._resizeTimeout);
+        this.cancel();
 
         const {
             duration = 200,
@@ -326,7 +326,7 @@ class EffectorImpl implements EffectorInterface {
             this.element.style.transition = `top ${duration}ms ease-out, height ${duration}ms ease-out, max-height ${duration}ms ease-out;`;
         }
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const styles: Partial<CSSStyleDeclaration> & Record<string, string> = {
                 width: `${width}px`,
                 left: `${left}px`,
@@ -343,7 +343,7 @@ class EffectorImpl implements EffectorInterface {
             } else {
                 this._resizeTimeout = setTimeout(() => {
                     if (this.element?.style) {
-                        this.element.style.transition = "none";
+                        this.element.style.transition = null;
                     }
                 }, duration);
             }
@@ -352,7 +352,7 @@ class EffectorImpl implements EffectorInterface {
 
             if (animate && (isPositionChanged || heightDiff > 1)) {
                 this._resizeTimeout = setTimeout(() => {
-                    this.element.style.transition = "none";
+                    this.element.style.transition = null;
                     if (isPositionChanged) delete this.element.style.transition;
                     onComplete?.();
                 }, duration);
@@ -360,7 +360,7 @@ class EffectorImpl implements EffectorInterface {
                 if (isPositionChanged) delete this.element.style.transition;
                 onComplete?.();
             }
-        });
+        }, 20);
 
         return this;
     }

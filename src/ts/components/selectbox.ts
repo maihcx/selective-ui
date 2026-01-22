@@ -251,6 +251,7 @@ export class SelectBox {
         }
 
         const optionAdapter = container.popup!.optionAdapter as MixedAdapter;
+        let hightlightTimer : ReturnType<typeof setTimeout> | null = null;
 
         const searchHandle = (keyword: string, isTrigger: boolean) => {
             if (!isTrigger && keyword === "") {
@@ -261,11 +262,12 @@ export class SelectBox {
                 searchController
                     .search(keyword)
                     .then((result: any) => {
+                        clearTimeout(hightlightTimer!);
                         Libs.callbackScheduler.on(`sche_vis_proxy_${optionAdapter.adapterKey}`, () => {
                             container.popup?.triggerResize?.();
 
                             if (result?.hasResults) {
-                                setTimeout(() => {
+                                hightlightTimer = setTimeout(() => {
                                     optionAdapter.resetHighlight();
                                     container.popup?.triggerResize?.();
                                 }, options.animationtime ?? 0);
