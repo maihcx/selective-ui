@@ -167,7 +167,7 @@ RecyclerView / VirtualRecyclerView
 ```
 
 ---
-### Lifecycle Flow
+## Lifecycle Flow
 
 #### Initialization
 ```quotes
@@ -188,7 +188,7 @@ Selective.destroy()
 ```
 
 ---
-### What This Architecture Is NOT
+## What This Architecture Is NOT
 
 Selective UI is intentionally **not**:
  - MVC / MVVM / MVP
@@ -198,7 +198,7 @@ Selective UI is intentionally **not**:
 This is a **UI engine**, not an application framework.
 
 ---
-### Comparable Systems
+## Comparable Systems
 
 Architecturally similar to:
  - Android View System / RecyclerView
@@ -207,7 +207,7 @@ Architecturally similar to:
  - IDE UI frameworks (IntelliJ, VS Code)
 
 ---
-### When to Use This Architecture
+## When to Use This Architecture
 
 Recommended for:
  - Large datasets (10k+ items)
@@ -221,7 +221,7 @@ Not recommended for:
  - Highly declarative UI needs
 
 ---
-### Design Philosophy
+## Design Philosophy
 
 > “DOM is not slow. Uncontrolled rendering is.”
 
@@ -231,7 +231,7 @@ Selective UI assumes:
  - Performance should be predictable
 
 ---
-### Summary
+## Summary
 
 **CRV-UI Engine** provides:
  - Adapter-based rendering
