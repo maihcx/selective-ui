@@ -15,21 +15,21 @@ export class SearchBox {
         if (options) this.init(options);
     }
 
-    nodeMounted: MountViewResult<SearchBoxTags> | null = null;
+    private nodeMounted: MountViewResult<SearchBoxTags> | null = null;
 
-    node: HTMLDivElement | null = null;
+    public node: HTMLDivElement | null = null;
 
-    SearchInput: HTMLInputElement | null = null;
+    private SearchInput: HTMLInputElement | null = null;
 
-    onSearch: SearchHandler | null = null;
+    public onSearch: SearchHandler | null = null;
 
-    options: SelectiveOptions | null = null;
+    private options: SelectiveOptions | null = null;
 
-    onNavigate: NavigateHandler | null = null;
+    public onNavigate: NavigateHandler | null = null;
 
-    onEnter: (() => void) | null = null;
+    public onEnter: (() => void) | null = null;
     
-    onEsc: (() => void) | null = null;
+    public onEsc: (() => void) | null = null;
 
     /**
      * Initializes the search box DOM, sets ARIA attributes, and wires keyboard/mouse/input events.
@@ -37,7 +37,7 @@ export class SearchBox {
      *
      * @param {object} options - Configuration including placeholder and SEID_LIST for aria-controls.
      */
-    init(options: SelectiveOptions): void {
+    private init(options: SelectiveOptions): void {
         this.nodeMounted = Libs.mountNode({
             SearchBox: {
                 tag: { node: "div", classList: ["selective-ui-searchbox", "hide"] },
@@ -110,7 +110,7 @@ export class SearchBox {
      * Shows the search box, toggles read-only based on `options.searchable`,
      * and focuses the input when searchable.
      */
-    show(): void {
+    public show(): void {
         if (!this.node || !this.SearchInput || !this.options) return;
 
         this.node.classList.remove("hide");
@@ -126,7 +126,7 @@ export class SearchBox {
     /**
      * Hides the search box by adding the "hide" class.
      */
-    hide(): void {
+    public hide(): void {
         if (!this.node) return;
         this.node.classList.add("hide");
     }
@@ -136,7 +136,7 @@ export class SearchBox {
      *
      * @param {boolean} [isTrigger=true] - Whether to invoke onSearch with an empty string.
      */
-    clear(isTrigger: boolean = true): void {
+    public clear(isTrigger: boolean = true): void {
         if (!this.nodeMounted) return;
         this.nodeMounted.tags.SearchInput.value = "";
         this.onSearch?.("", isTrigger);
@@ -147,7 +147,7 @@ export class SearchBox {
      *
      * @param {string} value - The new placeholder text.
      */
-    setPlaceHolder(value: string): void {
+    public setPlaceHolder(value: string): void {
         if (!this.SearchInput) return;
         this.SearchInput.placeholder = Libs.stripHtml(value);
     }
@@ -157,7 +157,7 @@ export class SearchBox {
      *
      * @param {string} id - The DOM id of the active option element.
      */
-    setActiveDescendant(id: string): void {
+    public setActiveDescendant(id: string): void {
         if (!this.SearchInput) return;
         this.SearchInput.setAttribute("aria-activedescendant", id);
     }

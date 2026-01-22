@@ -4,8 +4,8 @@ import { BinderMap, DefaultConfig } from "../types/utils/istorage.type";
  * @class
  */
 export class iStorage {
-    defaultConfig: DefaultConfig = {
-        showPanel: true,
+    public defaultConfig: DefaultConfig = {
+        accessoryVisible: true,
         virtualScroll: true,
         accessoryStyle: "top",
         multiple: false,
@@ -60,11 +60,11 @@ export class iStorage {
     };
 
     /** Bound instance map (keyed by select element). */
-    bindedMap: Map<HTMLSelectElement|HTMLElement, BinderMap> = new Map();
+    public bindedMap: Map<HTMLSelectElement|HTMLElement, BinderMap> = new Map();
 
     /** Unbind cache map (keyed by select element). */
-    unbindedMap: Map<HTMLSelectElement|HTMLElement, BinderMap> = new Map();
+    public unbindedMap: Map<HTMLSelectElement|HTMLElement, BinderMap> = new Map();
 
     /** List of bound selectors/commands. */
-    bindedCommand: string[] = [];
+    public bindedCommand: string[] = [];
 }

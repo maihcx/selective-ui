@@ -12,17 +12,17 @@ import { SelectiveOptions } from "../types/utils/selective.type";
  * @extends {Model<HTMLOptionElement, OptionViewTags, OptionView, SelectiveOptions>}
  */
 export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, OptionView, SelectiveOptions> {
-    private _privOnSelected: Array<(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void> = [];
+    private privOnSelected: Array<(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void> = [];
 
-    private _privOnInternalSelected: Array<(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void> = [];
+    private privOnInternalSelected: Array<(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void> = [];
 
-    private _privOnVisibilityChanged: Array<(evtToken: IEventCallback, model: OptionModel, visible: boolean) => void> = [];
+    private privOnVisibilityChanged: Array<(evtToken: IEventCallback, model: OptionModel, visible: boolean) => void> = [];
 
     private _visible = true;
 
     private _highlighted = false;
 
-    group: GroupModel | null = null;
+    public group: GroupModel | null = null;
 
     /**
      * Constructs a Model instance with configuration options and optional bindings to a target element and view.
@@ -32,7 +32,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      * @param {HTMLOptionElement|null} [targetElement=null] - The underlying element (e.g., <option> or group node).
      * @param {OptionView|null} [view=null] - The associated view responsible for rendering the model.
      */
-    constructor(options: SelectiveOptions, targetElement: HTMLOptionElement | null = null, view: OptionView | null = null) {
+    public constructor(options: SelectiveOptions, targetElement: HTMLOptionElement | null = null, view: OptionView | null = null) {
         super(options, targetElement, view);
         
         (async () => {
@@ -45,7 +45,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {string}
      */
-    get imageSrc(): string {
+    public get imageSrc(): string {
         return this.dataset?.imgsrc || this.dataset?.image || "";
     }
 
@@ -54,7 +54,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {boolean}
      */
-    get hasImage(): boolean {
+    public get hasImage(): boolean {
         return !!this.imageSrc;
     }
 
@@ -63,7 +63,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {string}
      */
-    get value(): string {
+    public get value(): string {
         return this.targetElement?.value ?? "";
     }
 
@@ -72,7 +72,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {boolean}
      */
-    get selected(): boolean {
+    public get selected(): boolean {
         return !!this.targetElement?.selected;
     }
 
@@ -82,9 +82,9 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {boolean}
      */
-    set selected(value: boolean) {
+    public set selected(value: boolean) {
         this.selectedNonTrigger = value;
-        iEvents.callEvent<[OptionModel, boolean]>([this, value], ...this._privOnSelected);
+        iEvents.callEvent<[OptionModel, boolean]>([this, value], ...this.privOnSelected);
     }
 
     /**
@@ -92,7 +92,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {boolean}
      */
-    get visible(): boolean {
+    public get visible(): boolean {
         return this._visible;
     }
 
@@ -101,14 +101,14 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {boolean}
      */
-    set visible(value: boolean) {
+    public set visible(value: boolean) {
         if (this._visible === value) return;
         this._visible = value;
 
         const viewEl = this.view?.getView?.();
         if (viewEl) viewEl.classList.toggle("hide", !value);
 
-        iEvents.callEvent<[OptionModel, boolean]>([this, value], ...this._privOnVisibilityChanged);
+        iEvents.callEvent<[OptionModel, boolean]>([this, value], ...this.privOnVisibilityChanged);
     }
 
     /**
@@ -116,7 +116,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {boolean}
      */
-    get selectedNonTrigger(): boolean {
+    public get selectedNonTrigger(): boolean {
         return this.selected;
     }
 
@@ -126,7 +126,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {boolean}
      */
-    set selectedNonTrigger(value: boolean) {
+    public set selectedNonTrigger(value: boolean) {
         const input = this.view?.view?.tags?.OptionInput;
         const viewEl = this.view?.getView?.();
 
@@ -140,7 +140,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
 
         if (this.targetElement) this.targetElement.selected = value;
 
-        iEvents.callEvent<[OptionModel, boolean]>([this, value], ...this._privOnInternalSelected);
+        iEvents.callEvent<[OptionModel, boolean]>([this, value], ...this.privOnInternalSelected);
     }
 
     /**
@@ -149,7 +149,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {string}
      */
-    get text(): string {
+    public get text(): string {
         const raw = this.dataset?.mask ?? this.targetElement?.text ?? "";
         const translated = Libs.tagTranslate(raw);
         return this.options.allowHtml ? translated : Libs.stripHtml(translated);
@@ -161,18 +161,18 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {string}
      */
-    get textContent(): string {
+    public get textContent(): string {
         return this.options.allowHtml ? Libs.stripHtml(this.text).trim() : this.text.trim();
     }
 
-    textToFind: string;
+    public textToFind: string;
 
     /**
      * Returns the dataset object of the underlying <option> element, or an empty object.
      *
      * @type {DOMStringMap|Record<string, string>}
      */
-    get dataset(): DOMStringMap {
+    public get dataset(): DOMStringMap {
         return this.targetElement?.dataset ?? ({} as DOMStringMap);
     }
 
@@ -181,7 +181,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {boolean}
      */
-    get highlighted(): boolean {
+    public get highlighted(): boolean {
         return this._highlighted;
     }
 
@@ -191,7 +191,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @type {boolean}
      */
-    set highlighted(value: boolean) {
+    public set highlighted(value: boolean) {
         const val = !!value;
         const viewEl = this.view?.getView?.();
 
@@ -204,8 +204,8 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @param {(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void} callback - Selection listener.
      */
-    onSelected(callback: (evtToken: IEventCallback, el: OptionModel, selected: boolean) => void): void {
-        this._privOnSelected.push(callback);
+    public onSelected(callback: (evtToken: IEventCallback, el: OptionModel, selected: boolean) => void): void {
+        this.privOnSelected.push(callback);
     }
 
     /**
@@ -213,8 +213,8 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @param {(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void} callback - Internal selection listener.
      */
-    onInternalSelected(callback: (evtToken: IEventCallback, el: OptionModel, selected: boolean) => void): void {
-        this._privOnInternalSelected.push(callback);
+    public onInternalSelected(callback: (evtToken: IEventCallback, el: OptionModel, selected: boolean) => void): void {
+        this.privOnInternalSelected.push(callback);
     }
 
     /**
@@ -222,8 +222,8 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      *
      * @param {(evtToken: IEventCallback, model: OptionModel, visible: boolean) => void} callback - Visibility listener.
      */
-    onVisibilityChanged(callback: (evtToken: IEventCallback, model: OptionModel, visible: boolean) => void): void {
-        this._privOnVisibilityChanged.push(callback);
+    public onVisibilityChanged(callback: (evtToken: IEventCallback, model: OptionModel, visible: boolean) => void): void {
+        this.privOnVisibilityChanged.push(callback);
     }
 
     /**
@@ -231,7 +231,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      * Updates label content (HTML or text), image src/alt if present,
      * and synchronizes initial selected state to the view.
      */
-    onTargetChanged(): void {
+    public onTargetChanged(): void {
         this.textToFind = Libs.string2normalize(this.textContent.toLowerCase());
         if (!this.view) return;
 

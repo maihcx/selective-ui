@@ -6,16 +6,16 @@ import type { ViewContract } from "../../types/core/base/view.type";
  * @implements {ViewContract<TTags>}
  */
 export class View<TTags extends Record<string, HTMLElement>> implements ViewContract<TTags> {
-    parent: HTMLElement | null = null;
+    public parent: HTMLElement | null = null;
 
-    view: MountViewResult<TTags> | null = null;
+    public view: MountViewResult<TTags> | null = null;
 
     /**
      * Initializes the view with a parent container element that will host its rendered content.
      *
      * @param {HTMLElement} parent - The parent element into which this view will render.
      */
-    constructor(parent: HTMLElement) {
+    public constructor(parent: HTMLElement) {
         this.parent = parent;
     }
 
@@ -23,20 +23,20 @@ export class View<TTags extends Record<string, HTMLElement>> implements ViewCont
      * Renders the view into the parent container.
      * Override in subclasses to create DOM structure and mount tags.
      */
-    render(): void { }
+    public render(): void { }
 
     /**
      * Updates the view to reflect model or state changes.
      * Override in subclasses to patch DOM nodes without full re-render.
      */
-    update(): void { }
+    public update(): void { }
 
     /**
      * Returns the root HTMLElement of the mounted view.
      *
      * @returns {HTMLElement} - The root view element.
      */
-    getView(): HTMLElement {
+    public getView(): HTMLElement {
         if (!this.view?.view) throw new Error("View is not mounted. Did you forget to set this.view?");
         return this.view.view;
     }

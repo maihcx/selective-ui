@@ -35,7 +35,7 @@ export class Adapter<
      * Lifecycle hook called once after construction. Override in subclasses to
      * perform setup tasks (e.g., event wiring, cache building).
      */
-    onInit(): void { }
+    public onInit(): void { }
 
     /**
      * Binds an item model to its viewer at a given position. If the item has not
@@ -45,7 +45,7 @@ export class Adapter<
      * @param {TViewer|null} viewer - The view instance responsible for rendering the model.
      * @param {number} position - The index of the item within the adapter.
      */
-    onViewHolder(item: TItem, viewer: TViewer | null, position: number): void {
+    public onViewHolder(item: TItem, viewer: TViewer | null, position: number): void {
         void position;
 
         const v = viewer;
@@ -63,7 +63,7 @@ export class Adapter<
      * @param {string} propName - The property name to observe (e.g., "items").
      * @param {Function} callback - Function to execute before the property changes.
      */
-    onPropChanging(propName: string, callback: (...args: unknown[]) => void): void {
+    public onPropChanging(propName: string, callback: (...args: unknown[]) => void): void {
         Libs.callbackScheduler.on(`${propName}ing_${this.adapterKey}`, callback, { debounce: 1 });
     }
 
@@ -74,7 +74,7 @@ export class Adapter<
      * @param {string} propName - The property name to observe (e.g., "items").
      * @param {Function} callback - Function to execute after the property changes.
      */
-    onPropChanged(propName: string, callback: (...args: unknown[]) => void): void {
+    public onPropChanged(propName: string, callback: (...args: unknown[]) => void): void {
         Libs.callbackScheduler.on(`${propName}_${this.adapterKey}`, callback);
     }
 
@@ -85,7 +85,7 @@ export class Adapter<
      * @param {string} propName - The property name to emit (e.g., "items").
      * @param {...any} params - Parameters forwarded to the callbacks.
      */
-    changeProp(propName: string, ...params: unknown[]): void {
+    public changeProp(propName: string, ...params: unknown[]): void {
         Libs.callbackScheduler.run(`${propName}_${this.adapterKey}`, ...params);
     }
 
@@ -96,7 +96,7 @@ export class Adapter<
      * @param {string} propName - The property name to emit (e.g., "items").
      * @param {...any} params - Parameters forwarded to the callbacks.
      */
-    changingProp(propName: string, ...params: unknown[]): void {
+    public changingProp(propName: string, ...params: unknown[]): void {
         Libs.callbackScheduler.run(`${propName}ing_${this.adapterKey}`, ...params);
     }
 
@@ -108,7 +108,7 @@ export class Adapter<
      * @param {TItem} item - The model instance for which the viewer is created.
      * @returns {TViewer|null} - The created viewer instance; null by default.
      */
-    viewHolder(parent: HTMLElement, item: TItem): TViewer | null {
+    public viewHolder(parent: HTMLElement, item: TItem): TViewer | null {
         void parent;
         void item;
         return null;
@@ -119,7 +119,7 @@ export class Adapter<
      *
      * @returns {number} - The item count.
      */
-    itemCount(): number {
+    public itemCount(): number {
         return this.items.length;
     }
 
@@ -129,7 +129,7 @@ export class Adapter<
      *
      * @param {TItem[]} items - The new list of items to set.
      */
-    setItems(items: TItem[]): void {
+    public setItems(items: TItem[]): void {
         this.changingProp("items", items);
         this.items = items;
         this.changeProp("items", items);
@@ -141,7 +141,7 @@ export class Adapter<
      *
      * @param {TItem[]} items - The source list of items to synchronize.
      */
-    syncFromSource(items: TItem[]): void {
+    public syncFromSource(items: TItem[]): void {
         this.setItems(items);
     }
 
@@ -151,7 +151,7 @@ export class Adapter<
      *
      * @param {HTMLElement} parent - The container element in which item viewers are rendered.
      */
-    updateRecyclerView(parent: HTMLElement): void {
+    public updateRecyclerView(parent: HTMLElement): void {
         for (let index = 0; index < this.itemCount(); index++) {
             const item = this.items[index];
 
@@ -172,7 +172,7 @@ export class Adapter<
      *
      * @param {TItem[]} items - The incoming data to apply to the adapter.
      */
-    updateData(items: TItem[]): void {
+    public updateData(items: TItem[]): void {
         void items;
     }
 }

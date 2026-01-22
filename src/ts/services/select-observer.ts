@@ -4,13 +4,13 @@ import { SelectSnapshot } from "../types/services/select-observer.type";
  * @class
  */
 export class SelectObserver {
-    private _observer: MutationObserver;
+    private observer: MutationObserver;
 
-    private _select: HTMLSelectElement;
+    private select: HTMLSelectElement;
 
-    private _debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    private _lastSnapshot: SelectSnapshot | null = null;
+    private lastSnapshot: SelectSnapshot | null = null;
 
     private readonly _DEBOUNCE_DELAY = 50;
 
@@ -22,20 +22,20 @@ export class SelectObserver {
      * @param {HTMLSelectElement} select - The <select> element to observe.
      */
     constructor(select: HTMLSelectElement) {
-        this._select = select;
-        this._lastSnapshot = this._createSnapshot();
+        this.select = select;
+        this.lastSnapshot = this.createSnapshot();
 
-        this._observer = new MutationObserver(() => {
-            if (this._debounceTimer) clearTimeout(this._debounceTimer);
-            this._debounceTimer = setTimeout(() => {
-                this._handleChange();
+        this.observer = new MutationObserver(() => {
+            if (this.debounceTimer) clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+                this.handleChange();
             }, this._DEBOUNCE_DELAY);
         });
 
         select.addEventListener("options:changed", () => {
-            if (this._debounceTimer) clearTimeout(this._debounceTimer);
-            this._debounceTimer = setTimeout(() => {
-                this._handleChange();
+            if (this.debounceTimer) clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+                this.handleChange();
             }, this._DEBOUNCE_DELAY);
         });
     }
@@ -46,8 +46,8 @@ export class SelectObserver {
      *
      * @returns {SelectSnapshot} A snapshot of the options state.
      */
-    private _createSnapshot(): SelectSnapshot {
-        const options = Array.from(this._select.options);
+    private createSnapshot(): SelectSnapshot {
+        const options = Array.from(this.select.options);
         return {
             length: options.length,
             values: options.map((opt) => opt.value).join(","),
@@ -62,11 +62,11 @@ export class SelectObserver {
      *
      * @returns {boolean} True if a real change occurred, otherwise false.
      */
-    private _hasRealChange(): boolean {
-        const newSnapshot = this._createSnapshot();
-        const changed = JSON.stringify(newSnapshot) !== JSON.stringify(this._lastSnapshot);
+    private hasRealChange(): boolean {
+        const newSnapshot = this.createSnapshot();
+        const changed = JSON.stringify(newSnapshot) !== JSON.stringify(this.lastSnapshot);
 
-        if (changed) this._lastSnapshot = newSnapshot;
+        if (changed) this.lastSnapshot = newSnapshot;
 
         return changed;
     }
@@ -75,17 +75,17 @@ export class SelectObserver {
      * Handles detected changes after debouncing.
      * If a real change is found, invokes the onChanged() hook with the current <select> element.
      */
-    private _handleChange(): void {
-        if (!this._hasRealChange()) return;
-        this.onChanged(this._select);
+    private handleChange(): void {
+        if (!this.hasRealChange()) return;
+        this.onChanged(this.select);
     }
 
     /**
      * Starts observing the <select> element for child list mutations and attribute changes.
      * Uses MutationObserver with a debounce mechanism to batch rapid updates.
      */
-    connect(): void {
-        this._observer.observe(this._select, {
+    public connect(): void {
+        this.observer.observe(this.select, {
             childList: true,
             subtree: false,
             attributes: true,
@@ -100,7 +100,7 @@ export class SelectObserver {
      * @param {HTMLSelectElement} options - The current <select> element.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onChanged(options: HTMLSelectElement): void {
+    public onChanged(options: HTMLSelectElement): void {
         // override
     }
 
@@ -108,9 +108,9 @@ export class SelectObserver {
      * Stops observing the <select> element and clears any pending debounce timers.
      * Ensures no further change handling occurs after disconnecting.
      */
-    disconnect(): void {
-        if (this._debounceTimer) clearTimeout(this._debounceTimer);
-        this._debounceTimer = null;
-        this._observer.disconnect();
+    public disconnect(): void {
+        if (this.debounceTimer) clearTimeout(this.debounceTimer);
+        this.debounceTimer = null;
+        this.observer.disconnect();
     }
 }

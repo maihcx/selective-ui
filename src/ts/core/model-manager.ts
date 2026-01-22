@@ -15,26 +15,26 @@ export class ModelManager<
     TModel extends ModelContract<any, any>,
     TAdapter extends Adapter<TModel, ViewContract<any>>
 > {
-    private _privModelList: Array<GroupModel | OptionModel> = [];
+    private privModelList: Array<GroupModel | OptionModel> = [];
 
-    private _privAdapter!: new (...args: any[]) => TAdapter;
+    private privAdapter!: new (...args: any[]) => TAdapter;
 
-    private _privAdapterHandle: TAdapter | null = null;
+    private privAdapterHandle: TAdapter | null = null;
 
-    private _privRecyclerView!: new (...args: any[]) => RecyclerViewContract<TAdapter>;
+    private privRecyclerView!: new (...args: any[]) => RecyclerViewContract<TAdapter>;
 
-    private _privRecyclerViewHandle: RecyclerViewContract<TAdapter> | null = null;
+    private privRecyclerViewHandle: RecyclerViewContract<TAdapter> | null = null;
 
-    private _lastFingerprint: string | null = null;
+    private lastFingerprint: string | null = null;
 
-    options: SelectiveOptions = null;
+    private options: SelectiveOptions = null;
 
     /**
      * Constructs a ModelManager with configuration options used by created models and components.
      *
      * @param {object} options - Configuration object passed to GroupModel/OptionModel and view infrastructure.
      */
-    constructor(options: SelectiveOptions) {
+    public constructor(options: SelectiveOptions) {
         this.options = options;
     }
 
@@ -43,8 +43,8 @@ export class ModelManager<
      *
      * @param {new TAdapter} adapter - The adapter constructor (class) to instantiate.
      */
-    setupAdapter(adapter: new (...args: any[]) => TAdapter): void {
-        this._privAdapter = adapter;
+    public setupAdapter(adapter: new (...args: any[]) => TAdapter): void {
+        this.privAdapter = adapter;
     }
 
     /**
@@ -52,8 +52,8 @@ export class ModelManager<
      *
      * @param {new RecyclerViewContract<TAdapter>} recyclerView - The recycler view constructor.
      */
-    setupRecyclerView(recyclerView: new (...args: any[]) => RecyclerViewContract<TAdapter>): void {
-        this._privRecyclerView = recyclerView;
+    public setupRecyclerView(recyclerView: new (...args: any[]) => RecyclerViewContract<TAdapter>): void {
+        this.privRecyclerView = recyclerView;
     }
 
     /**
@@ -64,11 +64,11 @@ export class ModelManager<
      * @param {Array<HTMLOptionElement|HTMLOptGroupElement>} modelData - The current model data (options/optgroups).
      * @returns {boolean} True if there are real changes; false otherwise.
      */
-    hasRealChanges(modelData: Array<HTMLOptionElement | HTMLOptGroupElement>): boolean {
-        const newFingerprint = this._createFingerprint(modelData);
-        const hasChanges = newFingerprint !== this._lastFingerprint;
+    private hasRealChanges(modelData: Array<HTMLOptionElement | HTMLOptGroupElement>): boolean {
+        const newFingerprint = this.createFingerprint(modelData);
+        const hasChanges = newFingerprint !== this.lastFingerprint;
 
-        if (hasChanges) this._lastFingerprint = newFingerprint;
+        if (hasChanges) this.lastFingerprint = newFingerprint;
 
         return hasChanges;
     }
@@ -82,7 +82,7 @@ export class ModelManager<
      * @param {Array<HTMLOptionElement|HTMLOptGroupElement>} modelData - The current model data to fingerprint.
      * @returns {string} A deterministic fingerprint representing the structure and selection state.
      */
-    private _createFingerprint(modelData: Array<HTMLOptionElement | HTMLOptGroupElement>): string {
+    private createFingerprint(modelData: Array<HTMLOptionElement | HTMLOptGroupElement>): string {
         return modelData
             .map((item) => {
                 if (item.tagName === "OPTGROUP") {
@@ -109,14 +109,14 @@ export class ModelManager<
      * @param {Array<HTMLOptGroupElement|HTMLOptionElement>} modelData - Parsed DOM elements from the source <select>.
      * @returns {Array<GroupModel|OptionModel>} - The ordered list of group and option models.
      */
-    createModelResources(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): Array<GroupModel | OptionModel> {
-        this._privModelList = [];
+    public createModelResources(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): Array<GroupModel | OptionModel> {
+        this.privModelList = [];
         let currentGroup: GroupModel | null = null;
 
         modelData.forEach((data) => {
             if (data.tagName === "OPTGROUP") {
                 currentGroup = new GroupModel(this.options, data as HTMLOptGroupElement);
-                this._privModelList.push(currentGroup);
+                this.privModelList.push(currentGroup);
             } else if (data.tagName === "OPTION") {
                 const optionEl = data as HTMLOptionElement;
                 const optionModel = new OptionModel(this.options, optionEl);
@@ -127,13 +127,13 @@ export class ModelManager<
                     currentGroup.addItem(optionModel);
                     optionModel.group = currentGroup;
                 } else {
-                    this._privModelList.push(optionModel);
+                    this.privModelList.push(optionModel);
                     currentGroup = null;
                 }
             }
         });
 
-        return this._privModelList;
+        return this.privModelList;
     }
 
     /**
@@ -142,13 +142,13 @@ export class ModelManager<
      *
      * @param {Array<HTMLOptGroupElement|HTMLOptionElement>} modelData - New source elements to rebuild models from.
      */
-    replace(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): void {
-        this._lastFingerprint = null;
+    public replace(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): void {
+        this.lastFingerprint = null;
         this.createModelResources(modelData);
 
-        if (this._privAdapterHandle) {
+        if (this.privAdapterHandle) {
             // Adapter expects TModel[], but this manager's list is GroupModel|OptionModel.
-            this._privAdapterHandle.syncFromSource(this._privModelList as unknown as TModel[]);
+            this.privAdapterHandle.syncFromSource(this.privModelList as unknown as TModel[]);
         }
 
         this.refresh(false);
@@ -158,8 +158,8 @@ export class ModelManager<
      * Requests a view refresh if an adapter has been initialized,
      * typically used after external updates to model data.
      */
-    notify(): void {
-        if (!this._privAdapterHandle) return;
+    public notify(): void {
+        if (!this.privAdapterHandle) return;
         this.refresh(false);
     }
 
@@ -168,19 +168,19 @@ export class ModelManager<
      * and applies optional configuration overrides for adapter and recyclerView.
      */
     
-    load<TExtra extends object = {}>(
+    public load<TExtra extends object = {}>(
         viewElement: HTMLElement,
         adapterOpt: Partial<TAdapter> = {},
         recyclerViewOpt: Partial<RecyclerViewContract<TAdapter>> & TExtra = {} as any
     ): void {
 
-        this._privAdapterHandle = new this._privAdapter(this._privModelList as unknown as TModel[]);
-        Object.assign(this._privAdapterHandle, adapterOpt);
+        this.privAdapterHandle = new this.privAdapter(this.privModelList as unknown as TModel[]);
+        Object.assign(this.privAdapterHandle, adapterOpt);
 
-        this._privRecyclerViewHandle = new this._privRecyclerView(viewElement);
-        Object.assign(this._privRecyclerViewHandle, recyclerViewOpt);
+        this.privRecyclerViewHandle = new this.privRecyclerView(viewElement);
+        Object.assign(this.privRecyclerViewHandle, recyclerViewOpt);
 
-        this._privRecyclerViewHandle.setAdapter(this._privAdapterHandle);
+        this.privRecyclerViewHandle.setAdapter(this.privAdapterHandle);
     }
 
     /**
@@ -188,10 +188,10 @@ export class ModelManager<
      * reuses existing models when possible, updates positions and group membership,
      * removes stale views, and notifies adapter and listeners about updates.
      */
-    update(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): void {
+    public update(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): void {
         if (!this.hasRealChanges(modelData)) return;
 
-        const oldModels = this._privModelList;
+        const oldModels = this.privModelList;
         const newModels: Array<GroupModel | OptionModel> = [];
 
         const oldGroupMap = new Map<string, GroupModel>();
@@ -283,10 +283,10 @@ export class ModelManager<
             removedOption.remove();
         });
 
-        this._privModelList = newModels;
+        this.privModelList = newModels;
 
-        if (this._privAdapterHandle) {
-            this._privAdapterHandle.updateData(this._privModelList as unknown as TModel[]);
+        if (this.privAdapterHandle) {
+            this.privAdapterHandle.updateData(this.privModelList as unknown as TModel[]);
         }
 
         this.onUpdated();
@@ -297,15 +297,15 @@ export class ModelManager<
      * Hook invoked after the manager completes an update or refresh cycle.
      * Override to run side effects (e.g., layout adjustments or analytics).
      */
-    onUpdated(): void { }
+    public onUpdated(): void { }
 
     /**
      * Instructs the adapter to temporarily skip event handling (e.g., during batch updates).
      *
      * @param {boolean} value - True to skip events; false to restore normal behavior.
      */
-    skipEvent(value: boolean): void {
-        if (this._privAdapterHandle) this._privAdapterHandle.isSkipEvent = value;
+    public skipEvent(value: boolean): void {
+        if (this.privAdapterHandle) this.privAdapterHandle.isSkipEvent = value;
     }
 
     /**
@@ -314,9 +314,9 @@ export class ModelManager<
      * 
      * @param isUpdate - Indicates if this refresh is due to an update operation.
      */
-    refresh(isUpdate: boolean): void {
-        if (!this._privRecyclerViewHandle) return;
-        this._privRecyclerViewHandle.refresh(isUpdate);
+    public refresh(isUpdate: boolean): void {
+        if (!this.privRecyclerViewHandle) return;
+        this.privRecyclerViewHandle.refresh(isUpdate);
         this.onUpdated();
     }
 
@@ -324,15 +324,15 @@ export class ModelManager<
      * Returns handles to the current resources, including the model list,
      * adapter instance, and recycler view instance.
      */
-    getResources(): {
+    public getResources(): {
         modelList: Array<GroupModel | OptionModel>;
         adapter: TAdapter;
         recyclerView: RecyclerViewContract<TAdapter>;
     } {
         return {
-            modelList: this._privModelList,
-            adapter: this._privAdapterHandle,
-            recyclerView: this._privRecyclerViewHandle,
+            modelList: this.privModelList,
+            adapter: this.privAdapterHandle,
+            recyclerView: this.privRecyclerViewHandle,
         };
     }
 
@@ -340,15 +340,15 @@ export class ModelManager<
      * Triggers the adapter's pre-change pipeline for a named event,
      * enabling observers to react before a change is applied.
      */
-    triggerChanging(event_name: string): void {
-        this._privAdapterHandle?.changingProp(event_name);
+    public triggerChanging(event_name: string): void {
+        this.privAdapterHandle?.changingProp(event_name);
     }
 
     /**
      * Triggers the adapter's post-change pipeline for a named event,
      * notifying observers after a change has been applied.
      */
-    triggerChanged(event_name: string): void {
-        this._privAdapterHandle?.changeProp(event_name);
+    public triggerChanged(event_name: string): void {
+        this.privAdapterHandle?.changeProp(event_name);
     }
 }

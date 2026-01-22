@@ -5,9 +5,9 @@ import { Libs } from "../utils/libs";
  * @class
  */
 export class PlaceHolder {
-    node: HTMLElement | null = null;
+    public node: HTMLElement | null = null;
 
-    private _options: DefaultConfig | null = null;
+    private options: DefaultConfig | null = null;
 
     /**
      * Represents a placeholder component for the Select UI, allowing dynamic updates to placeholder text.
@@ -22,14 +22,14 @@ export class PlaceHolder {
      *
      * @param {object} options - Configuration object containing placeholder text and HTML allowance.
      */
-    init(options: DefaultConfig): void {
+    private init(options: DefaultConfig): void {
         this.node = Libs.nodeCreator({
             node: "div",
             classList: "selective-ui-placeholder",
             innerHTML: options.placeholder,
         }) as HTMLElement;
 
-        this._options = options;
+        this.options = options;
     }
 
     /**
@@ -37,8 +37,8 @@ export class PlaceHolder {
      *
      * @returns {string} - The current placeholder text.
      */
-    get(): string {
-        return this._options?.placeholder ?? "";
+    public get(): string {
+        return this.options?.placeholder ?? "";
     }
 
     /**
@@ -48,12 +48,12 @@ export class PlaceHolder {
      * @param {string} value - The new placeholder text.
      * @param {boolean} [isSave=true] - Whether to persist the new value in the configuration.
      */
-    set(value: string, isSave: boolean = true): void {
-        if (!this.node || !this._options) return;
+    public set(value: string, isSave: boolean = true): void {
+        if (!this.node || !this.options) return;
 
-        if (isSave) this._options.placeholder = value;
+        if (isSave) this.options.placeholder = value;
 
         const translated = Libs.tagTranslate(value);
-        this.node.innerHTML = this._options.allowHtml ? translated : Libs.stripHtml(translated);
+        this.node.innerHTML = this.options.allowHtml ? translated : Libs.stripHtml(translated);
     }
 }

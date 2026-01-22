@@ -13,23 +13,22 @@ export class Model<
     TView extends ViewContract<TTags>,
     TOptions = unknown
 > implements ModelContract<TTarget, TView> {
-    targetElement: TTarget | null = null;
+    public targetElement: TTarget | null = null;
 
-    options: TOptions;
+    public options: TOptions;
 
-    view: TView | null = null;
+    public view: TView | null = null;
 
-    position = -1;
+    public position = -1;
 
-    isInit = false;
+    public isInit = false;
 
-    isRemoved = false;
-
+    public isRemoved = false;
     /**
      * Returns the current value from the underlying target element's "value" attribute.
      * For single-select, this is typically a string; for multi-select, may be an array depending on usage.
      */
-    get value(): string | null | string[] {
+    public get value(): string | null | string[] {
         return this.targetElement?.getAttribute("value") ?? null;
     }
 
@@ -41,7 +40,7 @@ export class Model<
      * @param {TTarget|null} [targetElement=null] - The underlying element (e.g., <option> or group node).
      * @param {TView|null} [view=null] - The associated view responsible for rendering the model.
      */
-    constructor(options: TOptions, targetElement: TTarget | null = null, view: TView | null = null) {
+    public constructor(options: TOptions, targetElement: TTarget | null = null, view: TView | null = null) {
         this.options = options;
         this.targetElement = targetElement;
         this.view = view;
@@ -52,7 +51,7 @@ export class Model<
      *
      * @param {TTarget|null} targetElement - The new target element to bind to the model.
      */
-    update(targetElement: TTarget | null): void {
+    public update(targetElement: TTarget | null): void {
         this.targetElement = targetElement;
         this.onTargetChanged();
     }
@@ -60,7 +59,7 @@ export class Model<
     /**
      * Cleans up references and invokes the removal hook when the model is no longer needed.
      */
-    remove() {
+    public remove() {
         this.targetElement = null;
         this.view?.getView()?.remove?.();
         this.view = null;
@@ -72,11 +71,11 @@ export class Model<
      * Hook invoked whenever the target element changes.
      * Override in subclasses to react to attribute/content updates (e.g., text, disabled state).
      */
-    onTargetChanged(): void { }
+    public onTargetChanged(): void { }
 
     /**
      * Hook invoked whenever the target element is removed.
      * Override in subclasses to react to removal of the element.
      */
-    onRemove(): void {}
+    public onRemove(): void {}
 }

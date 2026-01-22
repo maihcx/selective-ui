@@ -11,24 +11,26 @@ import { Libs } from "../utils/libs";
  * @class
  */
 export class AccessoryBox {
-    nodeMounted: MountViewResult<any> | null = null;
+    private nodeMounted: MountViewResult<any> | null = null;
 
-    node: HTMLDivElement | null = null;
+    private node: HTMLDivElement | null = null;
 
-    options: SelectiveOptions | null = null;
+    private options: SelectiveOptions | null = null;
 
-    selectUIMask: HTMLDivElement | null = null;
+    private selectUIMask: HTMLDivElement | null = null;
 
-    parentMask: HTMLDivElement | null = null;
+    private parentMask: HTMLDivElement | null = null;
 
-    modelManager: ModelManager<MixedItem, MixedAdapter> | null = null;
+    private modelManager: ModelManager<MixedItem, MixedAdapter> | null = null;
+
+    private modelDatas: OptionModel[] = [];
 
     /**
      * Initializes the accessory box with optional configuration and immediately calls init() if provided.
      *
      * @param {object|null} options - Configuration options for the accessory box (e.g., layout and behavior).
      */
-    constructor(options: SelectiveOptions | null = null) {
+    public constructor(options: SelectiveOptions | null = null) {
         if (options) this.init(options);
     }
 
@@ -38,7 +40,7 @@ export class AccessoryBox {
      *
      * @param {SelectiveOptions} options - Configuration object for the accessory box.
      */
-    init(options: SelectiveOptions): void {
+    private init(options: SelectiveOptions): void {
         this.nodeMounted = Libs.mountNode({
             AccessoryBox: {
                 tag: {
@@ -60,7 +62,7 @@ export class AccessoryBox {
      *
      * @param {HTMLDivElement} selectUIMask - The overlay/mask element of the main Select UI.
      */
-    setRoot(selectUIMask: HTMLDivElement): void {
+    public setRoot(selectUIMask: HTMLDivElement): void {
         this.selectUIMask = selectUIMask;
         this.parentMask = selectUIMask.parentElement as HTMLDivElement | null;
 
@@ -71,8 +73,14 @@ export class AccessoryBox {
      * Inserts the accessory box before or after the Select UI mask depending on the configured accessoryStyle.
      * Keeps the accessory box aligned relative to the parent mask.
      */
-    refreshLocation(): void {
-        if (!this.parentMask || !this.node || !this.selectUIMask || !this.options) return;
+    public refreshLocation(): void {
+        if (
+            !this.parentMask ||
+            !this.node ||
+            !this.selectUIMask ||
+            !this.options
+        )
+            return;
 
         const ref =
             this.options.accessoryStyle === "top"
@@ -87,7 +95,9 @@ export class AccessoryBox {
      *
      * @param {ModelManager} modelManager - The model manager controlling option state.
      */
-    setModelManager(modelManager: ModelManager<MixedItem, MixedAdapter> | null): void {
+    public setModelManager(
+        modelManager: ModelManager<MixedItem, MixedAdapter> | null,
+    ): void {
         this.modelManager = modelManager;
     }
 
@@ -97,14 +107,11 @@ export class AccessoryBox {
      *
      * @param {OptionModel[]} modelDatas - List of option models to render as accessory items.
      */
-    setModelData(modelDatas: OptionModel[]): void {
+    public setModelData(modelDatas: OptionModel[]): void {
         if (!this.node || !this.options) return;
-
         this.node.replaceChildren();
 
         if (modelDatas.length > 0 && this.options.multiple) {
-            this.node.classList.remove("hide");
-
             modelDatas.forEach((modelData) => {
                 Libs.mountNode(
                     {
@@ -120,7 +127,9 @@ export class AccessoryBox {
                                         title: `${this.options!.textAccessoryDeselect}${modelData.textContent}`,
                                         onclick: (evt: MouseEvent) => {
                                             evt.preventDefault();
-                                            this.modelManager?.triggerChanging?.("select");
+                                            this.modelManager?.triggerChanging?.(
+                                                "select",
+                                            );
                                             setTimeout(() => {
                                                 modelData.selected = false;
                                             }, 10);
@@ -137,13 +146,32 @@ export class AccessoryBox {
                             },
                         },
                     },
-                    this.node
+                    this.node,
                 );
             });
-        } else {
-            this.node.classList.add("hide");
+        }
+        else {
+            modelDatas = [];
         }
 
+        this.modelDatas = modelDatas;
+        this.refreshDisplay();
         iEvents.trigger(window, "resize");
+    }
+
+    private refreshDisplay(): void {
+        if (this.options?.accessoryVisible && this.modelDatas.length > 0 && this.options.multiple) {
+            this.show();
+        } else {
+            this.hide();
+        }
+    }
+
+    private show(): void {
+        this.node.classList.remove("hide");
+    }
+
+    private hide(): void {
+        this.node.classList.add("hide");
     }
 }

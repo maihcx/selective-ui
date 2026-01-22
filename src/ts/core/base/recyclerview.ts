@@ -11,9 +11,9 @@ export class RecyclerView<
     TItem extends ModelContract<any, any>,
     TAdapter extends AdapterContract<TItem>
 > implements RecyclerViewContract<TAdapter> {
-    viewElement: HTMLDivElement | null = null;
+    public viewElement: HTMLDivElement | null = null;
 
-    adapter: TAdapter | null = null;
+    public adapter: TAdapter | null = null;
 
     /**
      * Constructs a RecyclerView with an optional container element that will host rendered item views.
@@ -29,7 +29,7 @@ export class RecyclerView<
      *
      * @param {HTMLDivElement} viewElement - The root element for rendering.
      */
-    setView(viewElement: HTMLDivElement): void {
+    public setView(viewElement: HTMLDivElement): void {
         this.viewElement = viewElement;
     }
 
@@ -41,7 +41,7 @@ export class RecyclerView<
      *
      * @param {TAdapter} adapter - The adapter managing models and their views.
      */
-    setAdapter(adapter: TAdapter): void {
+    public setAdapter(adapter: TAdapter): void {
         this.adapter = adapter;
 
         adapter.onPropChanging("items", () => {
@@ -59,7 +59,7 @@ export class RecyclerView<
      * Removes all child nodes from the rendering container, if present.
      * Used prior to re-rendering or when items are changing.
      */
-    clear(): void {
+    public clear(): void {
         if (!this.viewElement) return;
         this.viewElement.replaceChildren();
     }
@@ -68,7 +68,7 @@ export class RecyclerView<
      * Renders the current adapter contents into the container.
      * No-ops if either the adapter or the container is not set.
      */
-    render(): void {
+    public render(): void {
         if (!this.adapter || !this.viewElement) return;
         this.adapter.updateRecyclerView(this.viewElement);
     }
@@ -79,7 +79,7 @@ export class RecyclerView<
      * 
      * @param isUpdate - Indicates if this refresh is due to an update operation.
      */
-    refresh(isUpdate: boolean): void {
+    public refresh(isUpdate: boolean): void {
         this.render();
     }
 }

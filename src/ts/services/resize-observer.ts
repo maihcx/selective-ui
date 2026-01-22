@@ -4,23 +4,23 @@ import { ElementMetrics } from "../types/services/resize-observer.type";
  * @class
  */
 export class ResizeObserverService {
-    isInit = false;
+    public isInit = false;
 
-    element: Element | null = null;
+    public element: Element | null = null;
 
-    private _resizeObserver: ResizeObserver | null = null;
+    private resizeObserver: ResizeObserver | null = null;
 
-    private _mutationObserver: MutationObserver | null = null;
+    private mutationObserver: MutationObserver | null = null;
 
-    private _boundUpdateChanged: () => void;
+    private boundUpdateChanged: () => void;
 
     /**
      * Initializes the service and binds the internal update handler to `this`.
      * Sets the service to an initialized state.
      */
-    constructor() {
+    public constructor() {
         this.isInit = true;
-        this._boundUpdateChanged = this._updateChanged.bind(this);
+        this.boundUpdateChanged = this.updateChanged.bind(this);
     }
 
     /**
@@ -30,13 +30,13 @@ export class ResizeObserverService {
      * @param {ElementMetrics} metrics - Calculated box metrics (size, position, padding, border, margin).
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onChanged(metrics: ElementMetrics): void { }
+    public onChanged(metrics: ElementMetrics): void { }
 
     /**
      * Computes the current metrics of the bound element (bounding rect + computed styles)
      * and forwards them to `onChanged(metrics)`.
      */
-    private _updateChanged(): void {
+    private updateChanged(): void {
         const el = this.element as HTMLElement | null;
 
         if (!el || typeof el.getBoundingClientRect !== "function") {
@@ -93,8 +93,8 @@ export class ResizeObserverService {
     /**
      * Manually triggers a metrics computation and notification via `onChanged`.
      */
-    trigger(): void {
-        this._updateChanged();
+    public trigger(): void {
+        this.updateChanged();
     }
 
     /**
@@ -104,28 +104,28 @@ export class ResizeObserverService {
      * @param {Element} element - The element to observe; must be a valid DOM Element.
      * @throws {Error} If `element` is not an instance of Element.
      */
-    connect(element: Element): void {
+    public connect(element: Element): void {
         if (!(element instanceof Element)) {
             throw new Error("Invalid element");
         }
 
         this.element = element;
 
-        this._resizeObserver = new ResizeObserver(this._boundUpdateChanged);
-        this._resizeObserver.observe(element);
+        this.resizeObserver = new ResizeObserver(this.boundUpdateChanged);
+        this.resizeObserver.observe(element);
 
-        this._mutationObserver = new MutationObserver(this._boundUpdateChanged);
-        this._mutationObserver.observe(element, {
+        this.mutationObserver = new MutationObserver(this.boundUpdateChanged);
+        this.mutationObserver.observe(element, {
             attributes: true,
             attributeFilter: ["style", "class"],
         });
 
-        window.addEventListener("scroll", this._boundUpdateChanged, true);
-        window.addEventListener("resize", this._boundUpdateChanged);
+        window.addEventListener("scroll", this.boundUpdateChanged, true);
+        window.addEventListener("resize", this.boundUpdateChanged);
 
         if (window.visualViewport) {
-            window.visualViewport.addEventListener("resize", this._boundUpdateChanged);
-            window.visualViewport.addEventListener("scroll", this._boundUpdateChanged);
+            window.visualViewport.addEventListener("resize", this.boundUpdateChanged);
+            window.visualViewport.addEventListener("scroll", this.boundUpdateChanged);
         }
     }
 
@@ -133,22 +133,22 @@ export class ResizeObserverService {
      * Stops all observations and event listeners, resets the change handler,
      * and releases internal observer resources.
      */
-    disconnect(): void {
-        this._resizeObserver?.disconnect();
-        this._mutationObserver?.disconnect();
+    public disconnect(): void {
+        this.resizeObserver?.disconnect();
+        this.mutationObserver?.disconnect();
 
         this.onChanged = (_metrics: ElementMetrics) => { };
 
-        window.removeEventListener("scroll", this._boundUpdateChanged, true);
-        window.removeEventListener("resize", this._boundUpdateChanged);
+        window.removeEventListener("scroll", this.boundUpdateChanged, true);
+        window.removeEventListener("resize", this.boundUpdateChanged);
 
         if (window.visualViewport) {
-            window.visualViewport.removeEventListener("resize", this._boundUpdateChanged);
-            window.visualViewport.removeEventListener("scroll", this._boundUpdateChanged);
+            window.visualViewport.removeEventListener("resize", this.boundUpdateChanged);
+            window.visualViewport.removeEventListener("scroll", this.boundUpdateChanged);
         }
 
-        this._resizeObserver = null;
-        this._mutationObserver = null;
+        this.resizeObserver = null;
+        this.mutationObserver = null;
         this.element = null;
     }
 }

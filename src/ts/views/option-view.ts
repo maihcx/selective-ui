@@ -7,13 +7,13 @@ import type { OptionViewTags, OptionViewResult, OptionConfig, OptionConfigPatch 
  * @extends {View<OptionViewTags>}
  */
 export class OptionView extends View<OptionViewTags> {
-    view: OptionViewResult | null = null;
+    public view: OptionViewResult | null = null;
 
-    private _config: OptionConfig | null = null;
+    private config: OptionConfig | null = null;
 
-    private _configProxy: OptionConfig | null = null;
+    private configProxy: OptionConfig | null = null;
     
-    private _isRendered = false;
+    private isRendered = false;
 
     /**
      * Initializes the OptionView with a parent container and sets up the reactive config proxy.
@@ -21,9 +21,9 @@ export class OptionView extends View<OptionViewTags> {
      *
      * @param {HTMLElement} parent - The parent element into which this view will be mounted.
      */
-    constructor(parent: HTMLElement) {
+    public constructor(parent: HTMLElement) {
         super(parent);
-        this._setupConfigProxy();
+        this.setupConfigProxy();
     }
 
     /**
@@ -32,10 +32,10 @@ export class OptionView extends View<OptionViewTags> {
      * applies only the necessary DOM changes for the updated property.
      * No DOM mutations occur before the first render.
      */
-    private _setupConfigProxy(): void {
+    private setupConfigProxy(): void {
         const self = this;
 
-        this._config = {
+        this.config = {
             isMultiple: false,
             hasImage: false,
             imagePosition: "right",
@@ -46,7 +46,7 @@ export class OptionView extends View<OptionViewTags> {
             labelHalign: "left",
         };
 
-        this._configProxy = new Proxy(this._config, {
+        this.configProxy = new Proxy(this.config, {
             set(target, prop, value) {
                 if (typeof prop !== "string") return true;
 
@@ -55,8 +55,8 @@ export class OptionView extends View<OptionViewTags> {
 
                 if (oldValue !== value) {
                     target[key] = value as never;
-                    if (self._isRendered) {
-                        self._applyPartialChange(key, value, oldValue);
+                    if (self.isRendered) {
+                        self.applyPartialChange(key, value, oldValue);
                     }
                 }
                 return true;
@@ -69,8 +69,8 @@ export class OptionView extends View<OptionViewTags> {
      *
      * @returns {boolean} True if multiple selection is enabled; otherwise false.
      */
-    get isMultiple(): boolean {
-        return this._config!.isMultiple;
+    public get isMultiple(): boolean {
+        return this.config!.isMultiple;
     }
 
     /**
@@ -79,8 +79,8 @@ export class OptionView extends View<OptionViewTags> {
      *
      * @param {boolean} value - True to enable multiple selection; false for single selection.
      */
-    set isMultiple(value: boolean) {
-        (this._configProxy as OptionConfig).isMultiple = !!value;
+    public set isMultiple(value: boolean) {
+        (this.configProxy as OptionConfig).isMultiple = !!value;
     }
 
     /**
@@ -88,8 +88,8 @@ export class OptionView extends View<OptionViewTags> {
      *
      * @returns {boolean} True if an image is displayed; otherwise false.
      */
-    get hasImage(): boolean {
-        return this._config!.hasImage;
+    public get hasImage(): boolean {
+        return this.config!.hasImage;
     }
 
     /**
@@ -98,8 +98,8 @@ export class OptionView extends View<OptionViewTags> {
      *
      * @param {boolean} value - True to show the image; false to hide it.
      */
-    set hasImage(value: boolean) {
-        (this._configProxy as OptionConfig).hasImage = !!value;
+    public set hasImage(value: boolean) {
+        (this.configProxy as OptionConfig).hasImage = !!value;
     }
 
     /**
@@ -108,8 +108,8 @@ export class OptionView extends View<OptionViewTags> {
      *
      * @returns {object} The proxied configuration object.
      */
-    get optionConfig(): OptionConfig {
-        return this._configProxy as OptionConfig;
+    public get optionConfig(): OptionConfig {
+        return this.configProxy as OptionConfig;
     }
 
     /**
@@ -117,19 +117,19 @@ export class OptionView extends View<OptionViewTags> {
      * Only properties that differ from the current config are updated.
      * When rendered, each changed property triggers a targeted DOM update via the proxy.
      */
-    set optionConfig(config: OptionConfigPatch | null) {
-        if (!config || !this._configProxy || !this._config) return;
+    public set optionConfig(config: OptionConfigPatch | null) {
+        if (!config || !this.configProxy || !this.config) return;
 
         const changes: OptionConfigPatch = {};
 
-        if (config.imageWidth !== undefined && config.imageWidth !== this._config.imageWidth) changes.imageWidth = config.imageWidth;
-        if (config.imageHeight !== undefined && config.imageHeight !== this._config.imageHeight) changes.imageHeight = config.imageHeight;
-        if (config.imageBorderRadius !== undefined && config.imageBorderRadius !== this._config.imageBorderRadius) changes.imageBorderRadius = config.imageBorderRadius;
-        if (config.imagePosition !== undefined && config.imagePosition !== this._config.imagePosition) changes.imagePosition = config.imagePosition;
-        if (config.labelValign !== undefined && config.labelValign !== this._config.labelValign) changes.labelValign = config.labelValign;
-        if (config.labelHalign !== undefined && config.labelHalign !== this._config.labelHalign) changes.labelHalign = config.labelHalign;
+        if (config.imageWidth !== undefined && config.imageWidth !== this.config.imageWidth) changes.imageWidth = config.imageWidth;
+        if (config.imageHeight !== undefined && config.imageHeight !== this.config.imageHeight) changes.imageHeight = config.imageHeight;
+        if (config.imageBorderRadius !== undefined && config.imageBorderRadius !== this.config.imageBorderRadius) changes.imageBorderRadius = config.imageBorderRadius;
+        if (config.imagePosition !== undefined && config.imagePosition !== this.config.imagePosition) changes.imagePosition = config.imagePosition;
+        if (config.labelValign !== undefined && config.labelValign !== this.config.labelValign) changes.labelValign = config.labelValign;
+        if (config.labelHalign !== undefined && config.labelHalign !== this.config.labelHalign) changes.labelHalign = config.labelHalign;
 
-        if (Object.keys(changes).length > 0) Object.assign(this._configProxy, changes);
+        if (Object.keys(changes).length > 0) Object.assign(this.configProxy, changes);
     }
 
     /**
@@ -138,35 +138,35 @@ export class OptionView extends View<OptionViewTags> {
      * assigns classes and ARIA attributes, mounts via Libs.mountView, and marks as rendered
      * to allow future incremental updates through the config proxy.
      */
-    render(): void {
+    public render(): void {
         const viewClass: Array<string> = ["selective-ui-option-view"];
         const opt_id = Libs.randomString(7);
         const inputID = `option_${opt_id}`;
 
-        if (this._config!.isMultiple) viewClass.push("multiple");
-        if (this._config!.hasImage) {
+        if (this.config!.isMultiple) viewClass.push("multiple");
+        if (this.config!.hasImage) {
             viewClass.push("has-image");
-            viewClass.push(`image-${this._config!.imagePosition}`);
+            viewClass.push(`image-${this.config!.imagePosition}`);
         }
 
         const childStructure: any = {
             OptionInput: {
                 tag: {
                     node: "input",
-                    type: this._config!.isMultiple ? "checkbox" : "radio",
+                    type: this.config!.isMultiple ? "checkbox" : "radio",
                     classList: "allow-choice",
                     id: inputID,
                 },
             },
-            ...(this._config!.hasImage && {
+            ...(this.config!.hasImage && {
                 OptionImage: {
                     tag: {
                         node: "img",
                         classList: "option-image",
                         style: {
-                            width: this._config!.imageWidth,
-                            height: this._config!.imageHeight,
-                            borderRadius: this._config!.imageBorderRadius,
+                            width: this.config!.imageWidth,
+                            height: this.config!.imageHeight,
+                            borderRadius: this.config!.imageBorderRadius,
                         },
                     },
                 },
@@ -176,8 +176,8 @@ export class OptionView extends View<OptionViewTags> {
                     node: "label",
                     htmlFor: inputID,
                     classList: [
-                        `align-vertical-${this._config!.labelValign}`,
-                        `align-horizontal-${this._config!.labelHalign}`,
+                        `align-vertical-${this.config!.labelValign}`,
+                        `align-horizontal-${this.config!.labelHalign}`,
                     ],
                 },
                 child: {
@@ -201,14 +201,14 @@ export class OptionView extends View<OptionViewTags> {
         }) as OptionViewResult;
 
         this.parent!.appendChild(this.view.view);
-        this._isRendered = true;
+        this.isRendered = true;
     }
 
     /**
      * Applies a targeted DOM update for a single configuration property change.
      * Safely updates classes, attributes, styles, and child elements without re-rendering the whole view.
      */
-    private _applyPartialChange<K extends keyof OptionConfig>(
+    private applyPartialChange<K extends keyof OptionConfig>(
         prop: K,
         newValue: OptionConfig[K],
         oldValue: OptionConfig[K]
@@ -235,8 +235,8 @@ export class OptionView extends View<OptionViewTags> {
                 root.classList.toggle("has-image", val);
 
                 if (val) {
-                    root.classList.add(`image-${this._config!.imagePosition}`);
-                    this._createImage();
+                    root.classList.add(`image-${this.config!.imagePosition}`);
+                    this.createImage();
                 } else {
                     root.className = root.className.replace(/image-(top|right|bottom|left)/g, "").trim();
 
@@ -250,7 +250,7 @@ export class OptionView extends View<OptionViewTags> {
             }
 
             case "imagePosition": {
-                if (this._config!.hasImage) {
+                if (this.config!.hasImage) {
                     root.className = root.className.replace(/image-(top|right|bottom|left)/g, "").trim();
                     root.classList.add(`image-${String(newValue)}`);
                 }
@@ -277,7 +277,7 @@ export class OptionView extends View<OptionViewTags> {
             case "labelHalign": {
                 if (label) {
                     const newClass =
-                        `align-vertical-${this._config!.labelValign} align-horizontal-${this._config!.labelHalign}`;
+                        `align-vertical-${this.config!.labelValign} align-horizontal-${this.config!.labelHalign}`;
                     if (label.className !== newClass) label.className = newClass;
                 }
                 break;
@@ -294,7 +294,7 @@ export class OptionView extends View<OptionViewTags> {
      * The image receives configured styles (width, height, borderRadius) and is placed
      * before the label if present; otherwise appended to the root. Updates `v.tags.OptionImage`.
      */
-    private _createImage(): void {
+    private createImage(): void {
         const v = this.view;
         if (!v || !v.view) return;
 
@@ -306,9 +306,9 @@ export class OptionView extends View<OptionViewTags> {
 
         const image = document.createElement("img");
         image.className = "option-image";
-        image.style.width = this._config!.imageWidth;
-        image.style.height = this._config!.imageHeight;
-        image.style.borderRadius = this._config!.imageBorderRadius;
+        image.style.width = this.config!.imageWidth;
+        image.style.height = this.config!.imageHeight;
+        image.style.borderRadius = this.config!.imageBorderRadius;
 
         if (label && label.parentElement) root.insertBefore(image, label);
         else root.appendChild(image);

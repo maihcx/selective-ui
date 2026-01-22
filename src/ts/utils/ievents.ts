@@ -19,7 +19,7 @@ export class iEvents {
      * Creates an event token and its controller callbacks.
      * @returns {{ token: IEventToken, callback: IEventCallback }}
      */
-    static buildEventToken(): { token: IEventToken; callback: IEventCallback } {
+    public static buildEventToken(): { token: IEventToken; callback: IEventCallback } {
         const privToken = { isContinue: true, isCancel: false };
 
         const token: IEventToken = {
@@ -52,7 +52,7 @@ export class iEvents {
      * @param {...IEventHandler<TParams>} handles
      * @returns {IEventToken}
      */
-    static callEvent<TParams extends unknown[]>(
+    public static callEvent<TParams extends unknown[]>(
         params: TParams | null,
         ...handles: Array<IEventHandler<TParams> | unknown>
     ): IEventToken {
@@ -80,7 +80,7 @@ export class iEvents {
      * @param {string} eventSTR
      * @param {{bubbles?: boolean, cancelable?: boolean}} [opts]
      */
-    static trigger(
+    public static trigger(
         element: HTMLElement | Window | Document,
         eventSTR: string,
         opts: EventInit = { bubbles: true, cancelable: true }
@@ -95,7 +95,7 @@ export class iEvents {
      * @param {Function[]} funcs
      * @param {...any} params
      */
-    static callFunctions<TParams extends unknown[]>(
+    public static callFunctions<TParams extends unknown[]>(
         funcs: Array<((...args: TParams) => unknown) | unknown>,
         ...params: TParams
     ): void {

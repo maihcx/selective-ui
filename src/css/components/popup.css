@@ -10,7 +10,7 @@
     display: none;
     position: fixed;
     z-index: 9999;
-    overflow: none;
+    overflow: hidden;
     flex-direction: column;
     
     height: 0px;
@@ -22,6 +22,8 @@
     border-style: var(--seui-popup-border-style);
     border-width: var(--seui-popup-border-width);
     border-radius: var(--seui-popup-border-radius);
+
+    transition: none;
 }
 
 .selective-ui-options-container {

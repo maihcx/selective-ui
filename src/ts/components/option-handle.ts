@@ -7,22 +7,22 @@ import { Libs } from "../utils/libs";
  * @class
  */
 export class OptionHandle {
-    nodeMounted: MountViewResult<any> | null = null;
+    private nodeMounted: MountViewResult<any> | null = null;
 
-    node: HTMLDivElement | null = null;
+    public node: HTMLDivElement | null = null;
 
-    options: SelectiveOptions | null = null;
+    private options: SelectiveOptions | null = null;
 
-    private _ActionOnSelectAll: Array<(...args: unknown[]) => unknown> = [];
+    private actionOnSelectAll: Array<(...args: unknown[]) => unknown> = [];
 
-    private _ActionOnDeSelectAll: Array<(...args: unknown[]) => unknown> = [];
+    private actionOnDeSelectAll: Array<(...args: unknown[]) => unknown> = [];
 
     /**
      * Represents an option handle component that provides "Select All" and "Deselect All" actions
      * for multiple-selection lists. Includes methods to show/hide the handle, refresh its visibility,
      * and register callbacks for select/deselect events.
      */
-    constructor(options: SelectiveOptions | null = null) {
+    public constructor(options: SelectiveOptions | null = null) {
         if (options) this.init(options);
     }
 
@@ -32,7 +32,7 @@ export class OptionHandle {
      *
      * @param {object} options - Configuration object containing text labels and feature flags.
      */
-    init(options: SelectiveOptions): void {
+    private init(options: SelectiveOptions): void {
         this.nodeMounted = Libs.mountNode({
             OptionHandle: {
                 tag: { node: "div", classList: ["selective-ui-option-handle", "hide"] },
@@ -43,7 +43,7 @@ export class OptionHandle {
                             classList: "selective-ui-option-handle-item",
                             textContent: options.textSelectAll,
                             onclick: () => {
-                                iEvents.callFunctions(this._ActionOnSelectAll);
+                                iEvents.callFunctions(this.actionOnSelectAll);
                             },
                         },
                     },
@@ -53,7 +53,7 @@ export class OptionHandle {
                             classList: "selective-ui-option-handle-item",
                             textContent: options.textDeselectAll,
                             onclick: () => {
-                                iEvents.callFunctions(this._ActionOnDeSelectAll);
+                                iEvents.callFunctions(this.actionOnDeSelectAll);
                             },
                         },
                     },
@@ -70,7 +70,7 @@ export class OptionHandle {
      *
      * @returns {boolean} - True if multiple selection and select-all features are enabled.
      */
-    available(): boolean {
+    private available(): boolean {
         if (!this.options) return false;
         return Libs.string2Boolean(this.options.multiple) && Libs.string2Boolean(this.options.selectall);
     }
@@ -79,7 +79,7 @@ export class OptionHandle {
      * Refreshes the visibility of the option handle based on availability.
      * Shows the handle if available; hides it otherwise.
      */
-    refresh(): void {
+    public refresh(): void {
         if (!this.node) return;
         if (this.available()) this.show();
         else this.hide();
@@ -88,7 +88,7 @@ export class OptionHandle {
     /**
      * Makes the option handle visible by removing the "hide" class.
      */
-    show(): void {
+    public show(): void {
         if (!this.node) return;
         this.node.classList.remove("hide");
     }
@@ -96,7 +96,7 @@ export class OptionHandle {
     /**
      * Hides the option handle by adding the "hide" class.
      */
-    hide(): void {
+    public hide(): void {
         if (!this.node) return;
         this.node.classList.add("hide");
     }
@@ -106,8 +106,8 @@ export class OptionHandle {
      *
      * @param {Function|null} action - The function to call on select-all action.
      */
-    OnSelectAll(action: ((...args: unknown[]) => unknown) | null = null): void {
-        if (typeof action === "function") this._ActionOnSelectAll.push(action);
+    public OnSelectAll(action: ((...args: unknown[]) => unknown) | null = null): void {
+        if (typeof action === "function") this.actionOnSelectAll.push(action);
     }
 
     /**
@@ -115,7 +115,7 @@ export class OptionHandle {
      *
      * @param {Function|null} action - The function to call on deselect-all action.
      */
-    OnDeSelectAll(action: ((...args: unknown[]) => unknown) | null = null): void {
-        if (typeof action === "function") this._ActionOnDeSelectAll.push(action);
+    public OnDeSelectAll(action: ((...args: unknown[]) => unknown) | null = null): void {
+        if (typeof action === "function") this.actionOnDeSelectAll.push(action);
     }
 }
