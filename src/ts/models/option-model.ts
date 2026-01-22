@@ -6,12 +6,12 @@ import { OptionView } from "../views/option-view";
 import type { IEventCallback } from "../types/utils/ievents.type";
 import type { OptionViewTags } from "../types/views/view.option.type";
 import type { GroupModel } from "./group-model";
-import { DefaultConfig } from "../types/utils/istorage.type";
+import { SelectiveOptions } from "../types/utils/selective.type";
 
 /**
- * @extends {Model<HTMLOptionElement, OptionViewTags, OptionView>}
+ * @extends {Model<HTMLOptionElement, OptionViewTags, OptionView, SelectiveOptions>}
  */
-export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, OptionView, DefaultConfig> {
+export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, OptionView, SelectiveOptions> {
     private _privOnSelected: Array<(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void> = [];
 
     private _privOnInternalSelected: Array<(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void> = [];
@@ -23,6 +23,22 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
     private _highlighted = false;
 
     group: GroupModel | null = null;
+
+    /**
+     * Constructs a Model instance with configuration options and optional bindings to a target element and view.
+     * Stores references for later updates and rendering.
+     *
+     * @param {SelectiveOptions} options - Configuration options for the model.
+     * @param {HTMLOptionElement|null} [targetElement=null] - The underlying element (e.g., <option> or group node).
+     * @param {OptionView|null} [view=null] - The associated view responsible for rendering the model.
+     */
+    constructor(options: SelectiveOptions, targetElement: HTMLOptionElement | null = null, view: OptionView | null = null) {
+        super(options, targetElement, view);
+        
+        (async () => {
+            this.textToFind = Libs.string2normalize(this.textContent.toLowerCase());
+        })();
+    }
 
     /**
      * Returns the image source from dataset (imgsrc or image), or an empty string if absent.
@@ -149,6 +165,8 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
         return this.options.allowHtml ? Libs.stripHtml(this.text).trim() : this.text.trim();
     }
 
+    textToFind: string;
+
     /**
      * Returns the dataset object of the underlying <option> element, or an empty object.
      *
@@ -214,6 +232,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      * and synchronizes initial selected state to the view.
      */
     onTargetChanged(): void {
+        this.textToFind = Libs.string2normalize(this.textContent.toLowerCase());
         if (!this.view) return;
 
         const labelContent = this.view.view.tags.LabelContent;

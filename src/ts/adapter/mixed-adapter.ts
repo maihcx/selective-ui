@@ -6,6 +6,7 @@ import { OptionView } from "../views/option-view";
 import { MixedItem, VisibilityStats } from "../types/core/base/mixed-adapter.type";
 import { IEventCallback } from "../types/utils/ievents.type";
 import { ImagePosition, LabelHalign, LabelValign } from "../types/views/view.option.type";
+import { Libs } from "../utils/libs";
 
 /**
  * @extends {Adapter<GroupModel|OptionModel>}
@@ -25,6 +26,21 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     constructor(items: MixedItem[] = []) {
         super(items);
         this._buildFlatStructure();
+        
+        Libs.callbackScheduler.on(`sche_vis_${this.adapterKey}`, () => {
+            const visibleCount = this.flatOptions.filter((item) => item.visible).length;
+            const totalCount = this.flatOptions.length;
+
+            this._visibilityChangedCallbacks.forEach((callback) => {
+                callback({
+                    visibleCount,
+                    totalCount,
+                    hasVisible: visibleCount > 0,
+                    isEmpty: totalCount === 0,
+                });
+            });
+            Libs.callbackScheduler.run(`sche_vis_proxy_${this.adapterKey}`);
+        }, {debounce: 10});
     }
 
     /**
@@ -289,17 +305,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * Computes visible and total counts, then emits aggregated state.
      */
     private _notifyVisibilityChanged(): void {
-        const visibleCount = this.flatOptions.filter((item) => item.visible).length;
-        const totalCount = this.flatOptions.length;
-
-        this._visibilityChangedCallbacks.forEach((callback) => {
-            callback({
-                visibleCount,
-                totalCount,
-                hasVisible: visibleCount > 0,
-                isEmpty: totalCount === 0,
-            });
-        });
+        Libs.callbackScheduler.run(`sche_vis_${this.adapterKey}`);
     }
 
     /**

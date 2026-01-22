@@ -696,6 +696,7 @@ export class VirtualRecyclerView<
         }
 
         const item = this.adapter!.items[index];
+        if (!item) return;
         const existing = this.created.get(index);
 
         if (existing) {

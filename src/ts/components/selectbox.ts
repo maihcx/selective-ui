@@ -251,6 +251,7 @@ export class SelectBox {
         }
 
         const optionAdapter = container.popup!.optionAdapter as MixedAdapter;
+        let hightlightTimer : ReturnType<typeof setTimeout> | null = null;
 
         const searchHandle = (keyword: string, isTrigger: boolean) => {
             if (!isTrigger && keyword === "") {
@@ -261,13 +262,17 @@ export class SelectBox {
                 searchController
                     .search(keyword)
                     .then((result: any) => {
-                        container.popup?.triggerResize?.();
-                        if (result?.hasResults) {
-                            setTimeout(() => {
-                                container.popup?.triggerResize?.();
-                                optionAdapter.resetHighlight();
-                            }, options.animationtime ? options.animationtime + 10 : 0);
-                        }
+                        clearTimeout(hightlightTimer!);
+                        Libs.callbackScheduler.on(`sche_vis_proxy_${optionAdapter.adapterKey}`, () => {
+                            container.popup?.triggerResize?.();
+
+                            if (result?.hasResults) {
+                                hightlightTimer = setTimeout(() => {
+                                    optionAdapter.resetHighlight();
+                                    container.popup?.triggerResize?.();
+                                }, options.animationtime ?? 0);
+                            }
+                        }, { debounce: 10 });
                     })
                     .catch((error: unknown) => {
                         console.error("Search error:", error);
@@ -279,15 +284,17 @@ export class SelectBox {
 
         searchbox.onSearch = (keyword: string, isTrigger: boolean) => {
             if (!searchController.compareSearchTrigger(keyword)) return;
+            if (searchHandleTimer) clearTimeout(searchHandleTimer);
 
             if (searchController.isAjax()) {
-                if (searchHandleTimer) clearTimeout(searchHandleTimer);
                 container.popup?.showLoading?.();
                 searchHandleTimer = setTimeout(() => {
                     searchHandle(keyword, isTrigger);
                 }, options.delaysearchtime ?? 0);
             } else {
-                searchHandle(keyword, isTrigger);
+                searchHandleTimer = setTimeout(() => {
+                    searchHandle(keyword, isTrigger);
+                }, 10);
             }
         };
 
