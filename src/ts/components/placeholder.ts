@@ -1,4 +1,4 @@
-import { DefaultConfig } from "../types/utils/istorage.type";
+import { SelectiveOptions } from "../types/utils/selective.type";
 import { Libs } from "../utils/libs";
 
 /**
@@ -7,13 +7,13 @@ import { Libs } from "../utils/libs";
 export class PlaceHolder {
     public node: HTMLElement | null = null;
 
-    private options: DefaultConfig | null = null;
+    private options: SelectiveOptions | null = null;
 
     /**
      * Represents a placeholder component for the Select UI, allowing dynamic updates to placeholder text.
      * Supports HTML content based on configuration and provides methods to get or set the placeholder value.
      */
-    constructor(options: DefaultConfig | null) {
+    constructor(options: SelectiveOptions | null) {
         if (options) this.init(options);
     }
 
@@ -22,7 +22,7 @@ export class PlaceHolder {
      *
      * @param {object} options - Configuration object containing placeholder text and HTML allowance.
      */
-    private init(options: DefaultConfig): void {
+    private init(options: SelectiveOptions): void {
         this.node = Libs.nodeCreator({
             node: "div",
             classList: "selective-ui-placeholder",

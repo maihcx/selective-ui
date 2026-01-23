@@ -71,7 +71,7 @@ const FIND_PROPERTIES = [
 ];
 
 const DATA_PROPERTIES = [
-  'showPanel',
+  'accessoryVisible',
   'accessoryStyle',
   'multiple',
   'minWidth',

@@ -265,7 +265,7 @@ export class SelectBox {
                     .search(keyword)
                     .then((result: any) => {
                         clearTimeout(hightlightTimer!);
-                        Libs.callbackScheduler.off(`sche_vis_proxy_${optionAdapter.adapterKey}`);
+                        Libs.callbackScheduler.clear(`sche_vis_proxy_${optionAdapter.adapterKey}`);
                         Libs.callbackScheduler.on(`sche_vis_proxy_${optionAdapter.adapterKey}`, () => {
                             container.popup?.triggerResize?.();
 

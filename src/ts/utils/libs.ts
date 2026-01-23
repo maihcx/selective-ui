@@ -270,9 +270,18 @@ export class Libs {
         for (const optionKey in myOptions) {
             const propValue = element[optionKey];
             if (propValue) {
-                myOptions[optionKey] = propValue;
+                if (typeof myOptions[optionKey] === "boolean") {
+                    myOptions[optionKey] = this.string2Boolean(propValue);
+                }
+                else {
+                    myOptions[optionKey] = propValue;
+                }
             } else if (typeof element?.dataset?.[optionKey] !== "undefined") {
-                myOptions[optionKey] = element.dataset[optionKey];
+                if (typeof myOptions[optionKey] === "boolean") {
+                    myOptions[optionKey] = this.string2Boolean(element.dataset[optionKey]);
+                } else {
+                    myOptions[optionKey] = element.dataset[optionKey];
+                }
             }
         }
 

@@ -5,12 +5,12 @@ import type { GroupViewTags } from "../types/views/view.group.type";
 import { GroupView } from "../views/group-view";
 import { OptionModel } from "./option-model";
 import type { IEventCallback } from "../types/utils/ievents.type";
-import { DefaultConfig } from "../types/utils/istorage.type";
+import { SelectiveOptions } from "../types/utils/selective.type";
 
 /**
  * @extends {Model<HTMLOptGroupElement, GroupViewTags, GroupView>}
  */
-export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupView, DefaultConfig> {
+export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupView, SelectiveOptions> {
     public label = "";
 
     public items: OptionModel[] = [];
@@ -23,10 +23,10 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      * Initializes a group model with options and an optional <optgroup> target.
      * Reads the label and collapsed state from the target element's attributes/dataset.
      *
-     * @param {DefaultConfig} options - Configuration for the model.
+     * @param {SelectiveOptions} options - Configuration for the model.
      * @param {HTMLOptGroupElement} [targetElement] - The source <optgroup> element.
      */
-    public constructor(options: DefaultConfig, targetElement?: HTMLOptGroupElement) {
+    public constructor(options: SelectiveOptions, targetElement?: HTMLOptGroupElement) {
         super(options, targetElement ?? null, null);
 
         if (targetElement) {

@@ -1,3 +1,21 @@
+# 1.2.2 (2026-01-23)
+
+### Fixes
+
+- **SelectBox** Events were not properly cleaned up during the search process
+
+- **Effector** Popups are slow to respond when scrolling
+
+### Features
+
+- **Builder,iStorage,AccessoryBox** Introduced the `accessoryVisible` flag to decide whether to display the selected item
+
+### Optimizations
+
+- **SelectBox,MixedAdapter** Optimize performance by selecting options when the file is too long
+
+- **SelectBox,MixedAdapter** Increase the overall response speed of popups
+
 # 1.2.1 (2026-01-22)
 
 ### Optimizations
