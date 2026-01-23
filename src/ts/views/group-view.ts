@@ -6,13 +6,13 @@ import type { GroupViewTags, GroupViewResult } from "../types/views/view.group.t
  * @extends {View<GroupViewTags>}
  */
 export class GroupView extends View<GroupViewTags> {
-    view: GroupViewResult | null = null;
+    public view: GroupViewResult | null = null;
 
     /**
      * Renders the group view structure (header + items container), sets ARIA attributes,
      * and appends the root element to the parent container.
      */
-    render(): void {
+    public render(): void {
         const group_id = Libs.randomString(7);
 
         this.view = Libs.mountView<GroupViewTags>({
@@ -51,7 +51,7 @@ export class GroupView extends View<GroupViewTags> {
     /**
      * Performs a lightweight refresh of the view (currently updates the header label).
      */
-    update(): void {
+    public update(): void {
         this.updateLabel();
     }
 
@@ -60,7 +60,7 @@ export class GroupView extends View<GroupViewTags> {
      *
      * @param {string|null} [label=null] - The new label to display; if null, keeps current.
      */
-    updateLabel(label: string | null = null): void {
+    public updateLabel(label: string | null = null): void {
         if (!this.view) return;
         const headerEl = this.view.tags.GroupHeader;
         if (label !== null) headerEl.textContent = label;
@@ -71,7 +71,7 @@ export class GroupView extends View<GroupViewTags> {
      *
      * @returns {HTMLDivElement} - The items container element.
      */
-    getItemsContainer(): HTMLDivElement {
+    public getItemsContainer(): HTMLDivElement {
         if (!this.view) throw new Error("GroupView is not rendered.");
         return this.view.tags.GroupItems;
     }
@@ -80,7 +80,7 @@ export class GroupView extends View<GroupViewTags> {
      * Toggles the group's visibility based on whether any child item is visible.
      * Hides the entire group when all children are hidden.
      */
-    updateVisibility(): void {
+    public updateVisibility(): void {
         if (!this.view) return;
 
         const items = this.view.tags.GroupItems;
@@ -97,7 +97,7 @@ export class GroupView extends View<GroupViewTags> {
      *
      * @param {boolean} collapsed - True to collapse; false to expand.
      */
-    setCollapsed(collapsed: boolean): void {
+    public setCollapsed(collapsed: boolean): void {
         if (!this.view) return;
 
         this.view.view.classList.toggle("collapsed", collapsed);

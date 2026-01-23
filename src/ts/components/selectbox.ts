@@ -37,35 +37,37 @@ export class SelectBox {
      * @param {HTMLSelectElement|null} [select=null] - The native select element to enhance.
      * @param {any|null} [Selective=null] - The Selective framework/context used for configuration and services.
      */
-    constructor(select: HTMLSelectElement | null = null, Selective: any | null = null) {
+    public constructor(select: HTMLSelectElement | null = null, Selective: any | null = null) {
         if (select) this.init(select, Selective);
     }
 
-    container: Partial<ContainerRuntime> = {};
+    public container: Partial<ContainerRuntime> = {};
 
-    oldValue: unknown = null;
+    private oldValue: unknown = null;
 
-    node: HTMLDivElement | null = null;
+    private node: HTMLDivElement | null = null;
 
-    options: SelectiveOptions | null = null;
+    private options: SelectiveOptions | null = null;
 
-    optionModelManager: ModelManager<MixedItem, MixedAdapter> | null = null;
+    private optionModelManager: ModelManager<MixedItem, MixedAdapter> | null = null;
 
-    isOpen = false;
-    hasLoadedOnce = false;
-    isBeforeSearch = false;
+    private isOpen = false;
+
+    private hasLoadedOnce = false;
+
+    private isBeforeSearch = false;
 
     /** Selective context (global helper) */
-    Selective: Selective | null = null;
+    public Selective: Selective | null = null;
 
     /**
      * Gets or sets the disabled state of the SelectBox.
      * When set, updates CSS class and ARIA attributes to reflect the disabled state.
      */
-    get isDisabled(): boolean {
+    public get isDisabled(): boolean {
         return !!this.options?.disabled;
     }
-    set isDisabled(value: boolean) {
+    public set isDisabled(value: boolean) {
         if (!this.options || !this.node) return;
         this.options.disabled = value;
         this.node.classList.toggle("disabled", value);
@@ -77,10 +79,10 @@ export class SelectBox {
      * Gets or sets the read-only state of the SelectBox.
      * When set, toggles the "readonly" CSS class to prevent user interaction.
      */
-    get isReadOnly(): boolean {
+    public get isReadOnly(): boolean {
         return !!this.options?.readonly;
     }
-    set isReadOnly(value: boolean) {
+    public set isReadOnly(value: boolean) {
         if (!this.options || !this.node) return;
         this.options.readonly = value;
         this.node.classList.toggle("readonly", value);
@@ -90,10 +92,10 @@ export class SelectBox {
      * Gets or sets the visibility state of the SelectBox.
      * When set, toggles the "invisible" CSS class to show or hide the component.
      */
-    get isVisible(): boolean {
+    public get isVisible(): boolean {
         return !!this.options?.visible;
     }
-    set isVisible(value: boolean) {
+    public set isVisible(value: boolean) {
         if (!this.options || !this.node) return;
         this.options.visible = value;
         this.node.classList.toggle("invisible", !value);
@@ -105,7 +107,7 @@ export class SelectBox {
      * @param {HTMLSelectElement} select - The native <select> element to enhance.
      * @param {any} Selective - The Selective framework/context for services and configuration.
      */
-    init(select: HTMLSelectElement, Selective: any): void {
+    private init(select: HTMLSelectElement, Selective: any): void {
         const bindedMap = Libs.getBinderMap(select) as BinderMap;
         const options = bindedMap.options as SelectiveOptions;
 
@@ -263,6 +265,7 @@ export class SelectBox {
                     .search(keyword)
                     .then((result: any) => {
                         clearTimeout(hightlightTimer!);
+                        Libs.callbackScheduler.clear(`sche_vis_proxy_${optionAdapter.adapterKey}`);
                         Libs.callbackScheduler.on(`sche_vis_proxy_${optionAdapter.adapterKey}`, () => {
                             container.popup?.triggerResize?.();
 
@@ -327,7 +330,7 @@ export class SelectBox {
     /**
      * Disconnects observers associated with the SelectBox instance.
      */
-    deInit(): void {
+    public deInit(): void {
         const c: any = this.container ?? {};
         const { selectObserver, datasetObserver } = c;
 
@@ -338,7 +341,7 @@ export class SelectBox {
     /**
      * Returns an action API for controlling the SelectBox instance.
      */
-    getAction(): SelectBoxAction | null {
+    public getAction(): SelectBoxAction | null {
         const container = this.container;
         const superThis = this;
         const getInstance = () => {
@@ -724,7 +727,7 @@ export class SelectBox {
     /**
      * Creates a property on the given object with custom getter and setter behavior.
      */
-    createSymProp(
+    private createSymProp(
         obj: Record<string, any>,
         prop: "disabled" | "readonly" | "visible",
         privateProp: "isDisabled" | "isReadOnly" | "isVisible"
@@ -749,7 +752,7 @@ export class SelectBox {
     /**
      * Flattens and returns all option models from the current resources.
      */
-    getModelOption(isSelected: boolean | null = null): OptionModel[] {
+    private getModelOption(isSelected: boolean | null = null): OptionModel[] {
         if (!this.optionModelManager) return [];
 
         const { modelList } = this.optionModelManager.getResources();
@@ -771,7 +774,7 @@ export class SelectBox {
         return flatOptions;
     }
 
-    detroy() {
+    public detroy() {
         this.container.popup!.detroy();
     }
 }

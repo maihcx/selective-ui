@@ -36,7 +36,7 @@ export class CallbackScheduler {
      * - `options.debounce` is treated as a per-callback delay (milliseconds).
      * - `options.once` removes the entry after its first execution (index is preserved).
      */
-    on(
+    public on(
         key: TimerKey,
         callback: (payload: any[] | null) => void,
         options: TimerOptions = {}
@@ -55,7 +55,7 @@ export class CallbackScheduler {
      *
      * @param key - Key whose callbacks and timers will be removed.
      */
-    off(key: TimerKey): void {
+    public off(key: TimerKey): void {
         const runner = this.timerRunner.get(key);
         if (runner) {
             for (const t of runner.values()) clearTimeout(t);
@@ -84,7 +84,7 @@ export class CallbackScheduler {
      * - If an entry has `once = true`, it is removed after execution by setting its slot to `undefined`.
      *   (The list is not spliced to preserve indices.)
      */
-    run(key: TimerKey, ...params: any[]): void {
+    public run(key: TimerKey, ...params: any[]): void {
         const executes = this.executeStored.get(key);
         if (!executes) return;
 
@@ -121,7 +121,7 @@ export class CallbackScheduler {
      *
      * @param key - When provided, clears only that key; otherwise clears all keys.
      */
-    clear(key?: TimerKey): void {
+    public clear(key?: TimerKey): void {
         if (key !== undefined) {
             this.off(key);
             return;

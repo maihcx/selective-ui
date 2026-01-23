@@ -10,56 +10,41 @@ import { ResizeObserverService } from "../services/resize-observer";
 import { ElementMetrics } from "../types/services/resize-observer.type";
 import { MixedItem, VisibilityStats } from "../types/core/base/mixed-adapter.type";
 import { SelectiveOptions } from "../types/utils/selective.type";
-
-type ParentBinderMapLike = {
-    container: {
-        tags: {
-            ViewPanel: HTMLElement;
-        };
-    };
-    [key: string]: unknown;
-};
-
-interface VirtualRecyclerOptions {
-  scrollEl?: HTMLElement;
-  estimateItemHeight?: number;
-  overscan?: number;
-  dynamicHeights?: boolean;
-}
+import { ParentBinderMapLike, VirtualRecyclerOptions } from "../types/components/popup.type";
 
 /**
  * @class
  */
 export class Popup {
-    private _modelManager: ModelManager<MixedItem, MixedAdapter> | null;
+    private modelManager: ModelManager<MixedItem, MixedAdapter> | null;
 
-    options: SelectiveOptions | null = null;
+    private options: SelectiveOptions | null = null;
 
-    isCreated = false;
+    private isCreated = false;
 
-    optionAdapter: MixedAdapter | null = null;
+    public optionAdapter: MixedAdapter | null = null;
 
-    node: HTMLDivElement | null = null;
+    public node: HTMLDivElement | null = null;
 
-    private _effSvc: EffectorInterface | null = null;
+    private effSvc: EffectorInterface | null = null;
 
-    private _resizeObser: ResizeObserverService | null = null;
+    private resizeObser: ResizeObserverService | null = null;
 
-    private _parent: ParentBinderMapLike | null = null;
+    private parent: ParentBinderMapLike | null = null;
 
-    optionHandle: OptionHandle | null = null;
+    public optionHandle: OptionHandle | null = null;
 
-    emptyState: EmptyState | null = null;
+    public emptyState: EmptyState | null = null;
 
-    loadingState: LoadingState | null = null;
+    public loadingState: LoadingState | null = null;
 
-    recyclerView: RecyclerViewContract<MixedAdapter> | null = null;
+    public recyclerView: RecyclerViewContract<MixedAdapter> | null = null;
 
-    private _optionsContainer: HTMLDivElement | null = null;
+    private optionsContainer: HTMLDivElement | null = null;
 
-    private _scrollListener: (() => Promise<void>) | null = null;
+    private scrollListener: (() => Promise<void>) | null = null;
 
-    private _hideLoadHandle: ReturnType<typeof setTimeout> | null = null;
+    private hideLoadHandle: ReturnType<typeof setTimeout> | null = null;
 
     private virtualScrollConfig = {
         estimateItemHeight: 36,
@@ -75,12 +60,12 @@ export class Popup {
      * @param {object|null} [options=null] - Configuration options for the popup.
      * @param {ModelManager|null} [modelManager=null] - The model manager instance for data handling.
      */
-    constructor(
+    public constructor(
         select: HTMLSelectElement | null = null,
         options: SelectiveOptions | null = null,
         modelManager: ModelManager<MixedItem, MixedAdapter> | null = null
     ) {
-        this._modelManager = modelManager;
+        this.modelManager = modelManager;
 
         if (select && options) {
             this.init(select, options);
@@ -94,8 +79,8 @@ export class Popup {
      * @param {HTMLSelectElement} select - The source select element to bind.
      * @param {object} options - Configuration for panel, IDs, multiple mode, and texts.
      */
-    init(select: HTMLSelectElement, options: SelectiveOptions): void {
-        if (!this._modelManager) throw new Error("Popup requires a ModelManager instance.");
+    private init(select: HTMLSelectElement, options: SelectiveOptions): void {
+        if (!this.modelManager) throw new Error("Popup requires a ModelManager instance.");
 
         this.optionHandle = new OptionHandle(options);
         this.emptyState = new EmptyState(options);
@@ -128,9 +113,9 @@ export class Popup {
         );
 
         this.node = nodeMounted.view as HTMLDivElement;
-        this._optionsContainer = nodeMounted.tags.OptionsContainer as HTMLDivElement;
+        this.optionsContainer = nodeMounted.tags.OptionsContainer as HTMLDivElement;
 
-        this._parent = Libs.getBinderMap(select) as ParentBinderMapLike | null;
+        this.parent = Libs.getBinderMap(select) as ParentBinderMapLike | null;
         this.options = options;
 
         
@@ -145,9 +130,9 @@ export class Popup {
 
 
         // Load ModelManager resources into container
-        this._modelManager.load<VirtualRecyclerOptions>(this._optionsContainer, { isMultiple: options.multiple }, recyclerViewOpt);
+        this.modelManager.load<VirtualRecyclerOptions>(this.optionsContainer, { isMultiple: options.multiple }, recyclerViewOpt);
 
-        const MMResources = this._modelManager.getResources() as {
+        const MMResources = this.modelManager.getResources() as {
             adapter: MixedAdapter;
             recyclerView: RecyclerViewContract<MixedAdapter>;
         };
@@ -163,22 +148,22 @@ export class Popup {
             MMResources.adapter.checkAll(false);
         });
 
-        this._setupEmptyStateLogic();
+        this.setupEmptyStateLogic();
     }
 
     /**
      * Shows the loading state and temporarily skips model events.
      * Adjusts size based on current visibility stats and triggers a resize.
      */
-    async showLoading(): Promise<void> {
-        if (!this.options || !this.loadingState || !this.optionHandle || !this.optionAdapter || !this._modelManager) return;
+    public async showLoading(): Promise<void> {
+        if (!this.options || !this.loadingState || !this.optionHandle || !this.optionAdapter || !this.modelManager) return;
 
-        if (this._hideLoadHandle) clearTimeout(this._hideLoadHandle);
-        this._modelManager.skipEvent(true);
+        if (this.hideLoadHandle) clearTimeout(this.hideLoadHandle);
+        this.modelManager.skipEvent(true);
 
         if (Libs.string2Boolean(this.options.loadingfield) === false) return;
 
-        // this._updateEmptyState({isEmpty: false, hasVisible: true});
+        // this.updateEmptyState({isEmpty: false, hasVisible: true});
         this.emptyState.hide();
         this.loadingState.show(this.optionAdapter.getVisibilityStats().hasVisible);
         // this.optionHandle.hide();
@@ -189,17 +174,17 @@ export class Popup {
      * Hides the loading state after a short delay, restores event handling,
      * updates empty state based on adapter visibility stats, and triggers a resize.
      */
-    async hideLoading(): Promise<void> {
-        if (!this.options || !this.loadingState || !this.optionAdapter || !this._modelManager) return;
+    public async hideLoading(): Promise<void> {
+        if (!this.options || !this.loadingState || !this.optionAdapter || !this.modelManager) return;
 
-        if (this._hideLoadHandle) clearTimeout(this._hideLoadHandle);
+        if (this.hideLoadHandle) clearTimeout(this.hideLoadHandle);
 
-        this._hideLoadHandle = setTimeout(() => {
-            this._modelManager?.skipEvent(false);
+        this.hideLoadHandle = setTimeout(() => {
+            this.modelManager?.skipEvent(false);
             this.loadingState?.hide();
 
             const stats = this.optionAdapter?.getVisibilityStats();
-            this._updateEmptyState(stats ?? undefined);
+            this.updateEmptyState(stats ?? undefined);
 
             this.triggerResize();
         }, 200);
@@ -209,16 +194,16 @@ export class Popup {
      * Subscribes to adapter visibility and item changes to keep the empty state in sync.
      * Triggers resize when items change to reflect layout updates.
      */
-    private _setupEmptyStateLogic(): void {
+    private setupEmptyStateLogic(): void {
         if (!this.optionAdapter) return;
 
         this.optionAdapter.onVisibilityChanged((stats: VisibilityStats) => {
-            this._updateEmptyState(stats);
+            this.updateEmptyState(stats);
         });
 
         this.optionAdapter.onPropChanged("items", () => {
             const stats = this.optionAdapter!.getVisibilityStats();
-            this._updateEmptyState(stats);
+            this.updateEmptyState(stats);
             this.triggerResize();
         });
     }
@@ -229,22 +214,22 @@ export class Popup {
      *
      * @param {VisibilityStats|undefined} stats - Visibility stats; computed if omitted.
      */
-    private _updateEmptyState(stats?: VisibilityStats): void {
-        if (!this.optionAdapter || !this.emptyState || !this.optionHandle || !this._optionsContainer) return;
+    private updateEmptyState(stats?: VisibilityStats): void {
+        if (!this.optionAdapter || !this.emptyState || !this.optionHandle || !this.optionsContainer) return;
 
         const s = stats ?? this.optionAdapter.getVisibilityStats();
 
         if (s.isEmpty) {
             this.emptyState.show("nodata");
-            this._optionsContainer.classList.add("hide");
+            this.optionsContainer.classList.add("hide");
             this.optionHandle.hide();
         } else if (!s.hasVisible) {
             this.emptyState.show("notfound");
-            this._optionsContainer.classList.add("hide");
+            this.optionsContainer.classList.add("hide");
             this.optionHandle.hide();
         } else {
             this.emptyState.hide();
-            this._optionsContainer.classList.remove("hide");
+            this.optionsContainer.classList.remove("hide");
             this.optionHandle.refresh();
         }
     }
@@ -252,37 +237,37 @@ export class Popup {
     /**
      * Registers a callback for adapter property pre-change notifications.
      */
-    onAdapterPropChanging(propName: string, callback: (...args: unknown[]) => void): void {
+    public onAdapterPropChanging(propName: string, callback: (...args: unknown[]) => void): void {
         this.optionAdapter?.onPropChanging(propName, callback);
     }
 
     /**
      * Registers a callback for adapter property post-change notifications.
      */
-    onAdapterPropChanged(propName: string, callback: (...args: unknown[]) => void): void {
+    public onAdapterPropChanged(propName: string, callback: (...args: unknown[]) => void): void {
         this.optionAdapter?.onPropChanged(propName, callback);
     }
 
     /**
      * Injects an effector service used to perform side effects (e.g., animations or external actions).
      */
-    setupEffector(effectorSvc: EffectorInterface): void {
-        this._effSvc = effectorSvc;
+    public setupEffector(effectorSvc: EffectorInterface): void {
+        this.effSvc = effectorSvc;
     }
 
     /**
      * Opens the popup: creates and attaches DOM if needed, initializes observers and effector,
      * computes position and dimensions, and runs expand animation. Invokes callback on completion.
      */
-    open(callback: (() => void) | null = null, isShowEmptyState: boolean): void {
-        if (!this.node || !this.options || !this.optionHandle || !this._parent || !this._effSvc) return;
+    public open(callback: (() => void) | null = null, isShowEmptyState: boolean): void {
+        if (!this.node || !this.options || !this.optionHandle || !this.parent || !this.effSvc) return;
 
         if (!this.isCreated) {
             document.body.appendChild(this.node);
             this.isCreated = true;
 
-            this._resizeObser = new ResizeObserverService();
-            this._effSvc.setElement(this.node);
+            this.resizeObser = new ResizeObserverService();
+            this.effSvc.setElement(this.node);
 
             this.node.addEventListener("mousedown", (e: MouseEvent) => {
                 e.stopPropagation();
@@ -292,13 +277,13 @@ export class Popup {
 
         this.optionHandle.refresh();
         if (isShowEmptyState) {
-            this._updateEmptyState();
+            this.updateEmptyState();
         }
 
-        const location = this._getParentLocation();
-        const { position, top, maxHeight, realHeight } = this._calculatePosition(location);
+        const location = this.getParentLocation();
+        const { position, top, maxHeight, realHeight } = this.calculatePosition(location);
 
-        this._effSvc.expand({
+        this.effSvc.expand({
             duration: this.options.animationtime,
             display: "flex",
             width: location.width,
@@ -308,15 +293,15 @@ export class Popup {
             realHeight,
             position,
             onComplete: () => {
-                if (!this._resizeObser || !this._parent) return;
+                if (!this.resizeObser || !this.parent) return;
 
-                this._resizeObser.onChanged = (_metrics: ElementMetrics) => {
+                this.resizeObser.onChanged = (_metrics: ElementMetrics) => {
                     // Recompute from parent each time to keep behavior identical.
-                    const loc = this._getParentLocation();
-                    this._handleResize(loc);
+                    const loc = this.getParentLocation();
+                    this.handleResize(loc);
                 };
 
-                this._resizeObser.connect(this._parent.container.tags.ViewPanel);
+                this.resizeObser.connect(this.parent.container.tags.ViewPanel);
                 callback?.();
                 
                 const rv: any = this.recyclerView;
@@ -329,13 +314,13 @@ export class Popup {
      * Closes the popup: disconnects the resize observer and runs collapse animation.
      * Safely no-ops if the popup has not been created.
      */
-    close(callback: (() => void) | null = null): void {
-        if (!this.isCreated || !this.options || !this._resizeObser || !this._effSvc) return;
+    public close(callback: (() => void) | null = null): void {
+        if (!this.isCreated || !this.options || !this.resizeObser || !this.effSvc) return;
         const rv: any = this.recyclerView;
         rv?.suspend?.();
 
-        this._resizeObser.disconnect();
-        this._effSvc.collapse({
+        this.resizeObser.disconnect();
+        this.effSvc.collapse({
             duration: this.options.animationtime,
             onComplete: callback ?? undefined,
         });
@@ -345,8 +330,8 @@ export class Popup {
      * Programmatically triggers a resize recalculation if the popup is created,
      * causing the layout to update based on the current parent dimensions.
      */
-    triggerResize(): void {
-        if (this.isCreated) this._resizeObser?.trigger();
+    public triggerResize(): void {
+        if (this.isCreated) this.resizeObser?.trigger();
     }
 
     /**
@@ -356,7 +341,7 @@ export class Popup {
      * @param searchController - Provides pagination state and a method to load more items.
      * @param _options - Optional SelectiveOptions (reserved for future behavior tuning).
      */
-    setupInfiniteScroll(
+    public setupInfiniteScroll(
         searchController: {
             getPaginationState(): { isPaginationEnabled: boolean; isLoading: boolean; hasMore: boolean };
             loadMore(): Promise<{ success: boolean; message?: string }>;
@@ -365,7 +350,7 @@ export class Popup {
     ): void {
         if (!this.node) return;
 
-        this._scrollListener = async () => {
+        this.scrollListener = async () => {
             const state = searchController.getPaginationState();
             if (!state.isPaginationEnabled) return;
 
@@ -385,7 +370,7 @@ export class Popup {
             }
         };
 
-        this.node.addEventListener("scroll", this._scrollListener);
+        this.node.addEventListener("scroll", this.scrollListener);
     }
     
     /**
@@ -400,26 +385,26 @@ export class Popup {
      * 
      * Safe to call multiple times; all operations are guarded via optional chaining.
      */
-    detroy(): void {
-        if (this._hideLoadHandle) {
-            clearTimeout(this._hideLoadHandle);
-            this._hideLoadHandle = null;
+    public detroy(): void {
+        if (this.hideLoadHandle) {
+            clearTimeout(this.hideLoadHandle);
+            this.hideLoadHandle = null;
         }
 
-        if (this.node && this._scrollListener) {
-            this.node.removeEventListener("scroll", this._scrollListener);
-            this._scrollListener = null;
+        if (this.node && this.scrollListener) {
+            this.node.removeEventListener("scroll", this.scrollListener);
+            this.scrollListener = null;
         }
 
         try {
-            this._resizeObser?.disconnect();
+            this.resizeObser?.disconnect();
         } catch (_) {}
-        this._resizeObser = null;
+        this.resizeObser = null;
 
         try {
-            this._effSvc?.setElement?.(null);
+            this.effSvc?.setElement?.(null);
         } catch (_) {}
-        this._effSvc = null;
+        this.effSvc = null;
 
         if (this.node) {
             try {
@@ -431,10 +416,10 @@ export class Popup {
             }
         }
         this.node = null;
-        this._optionsContainer = null;
+        this.optionsContainer = null;
 
         try {
-            this._modelManager?.skipEvent?.(false);
+            this.modelManager?.skipEvent?.(false);
 
             this.recyclerView?.clear?.();
             this.recyclerView = null;
@@ -444,12 +429,12 @@ export class Popup {
             this.node.remove();
         } catch (_) {}
 
-        this._modelManager = null;
+        this.modelManager = null;
         this.optionHandle = null;
         this.emptyState = null;
         this.loadingState = null;
 
-        this._parent = null;
+        this.parent = null;
         this.options = null;
 
         this.isCreated = false;
@@ -459,7 +444,7 @@ export class Popup {
      * Computes the parent panel's location and box metrics, including size, position,
      * padding, and border, accounting for iOS visual viewport offsets.
      */
-    private _getParentLocation(): {
+    private getParentLocation(): {
         width: number;
         height: number;
         top: number;
@@ -467,7 +452,7 @@ export class Popup {
         padding: { top: number; right: number; bottom: number; left: number };
         border: { top: number; right: number; bottom: number; left: number };
     } {
-        const viewPanel = this._parent!.container.tags.ViewPanel;
+        const viewPanel = this.parent!.container.tags.ViewPanel;
         const rect = viewPanel.getBoundingClientRect();
         const style = window.getComputedStyle(viewPanel);
 
@@ -495,7 +480,7 @@ export class Popup {
      * Determines popup placement (top/bottom) and height constraints based on available viewport space,
      * content size, and configured min/max heights; returns final position, top, and heights.
      */
-    private _calculatePosition(location: { width: number; height: number; top: number; left: number }): {
+    private calculatePosition(location: { width: number; height: number; top: number; left: number }): {
         position: "top" | "bottom";
         top: number;
         maxHeight: number;
@@ -510,7 +495,7 @@ export class Popup {
         const gap = 3;
         const safeMargin = 15;
 
-        const dimensions: DimensionObject = this._effSvc!.getHiddenDimensions("flex");
+        const dimensions: DimensionObject = this.effSvc!.getHiddenDimensions("flex");
         const contentHeight = dimensions.scrollHeight;
 
         const configMaxHeight = parseFloat(this.options?.panelHeight ?? "220") || 220;
@@ -557,12 +542,12 @@ export class Popup {
      * Handles parent resize events by recalculating placement and dimensions,
      * then animates the popup to the new size and position.
      */
-    private _handleResize(location: { width: number; height: number; top: number; left: number }): void {
-        if (!this.options || !this._effSvc) return;
+    private handleResize(location: { width: number; height: number; top: number; left: number }): void {
+        if (!this.options || !this.effSvc) return;
 
-        const { position, top, maxHeight, realHeight } = this._calculatePosition(location);
+        const { position, top, maxHeight, realHeight } = this.calculatePosition(location);
 
-        this._effSvc.resize({
+        this.effSvc.resize({
             duration: this.options.animationtime,
             width: location.width,
             left: location.left,

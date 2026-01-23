@@ -5,28 +5,28 @@ import type { GroupViewTags } from "../types/views/view.group.type";
 import { GroupView } from "../views/group-view";
 import { OptionModel } from "./option-model";
 import type { IEventCallback } from "../types/utils/ievents.type";
-import { DefaultConfig } from "../types/utils/istorage.type";
+import { SelectiveOptions } from "../types/utils/selective.type";
 
 /**
  * @extends {Model<HTMLOptGroupElement, GroupViewTags, GroupView>}
  */
-export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupView, DefaultConfig> {
-    label = "";
+export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupView, SelectiveOptions> {
+    public label = "";
 
-    items: OptionModel[] = [];
+    public items: OptionModel[] = [];
 
-    collapsed = false;
+    public collapsed = false;
 
-    private _privOnCollapsedChanged: Array<(evtToken: IEventCallback, model: GroupModel, collapsed: boolean) => void> = [];
+    private privOnCollapsedChanged: Array<(evtToken: IEventCallback, model: GroupModel, collapsed: boolean) => void> = [];
 
     /**
      * Initializes a group model with options and an optional <optgroup> target.
      * Reads the label and collapsed state from the target element's attributes/dataset.
      *
-     * @param {DefaultConfig} options - Configuration for the model.
+     * @param {SelectiveOptions} options - Configuration for the model.
      * @param {HTMLOptGroupElement} [targetElement] - The source <optgroup> element.
      */
-    constructor(options: DefaultConfig, targetElement?: HTMLOptGroupElement) {
+    public constructor(options: SelectiveOptions, targetElement?: HTMLOptGroupElement) {
         super(options, targetElement ?? null, null);
 
         if (targetElement) {
@@ -40,7 +40,7 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      *
      * @type {string[]}
      */
-    get value(): string[] {
+    public get value(): string[] {
         return this.items.map((item) => item.value);
     }
 
@@ -49,7 +49,7 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      *
      * @type {OptionModel[]}
      */
-    get selectedItems(): OptionModel[] {
+    public get selectedItems(): OptionModel[] {
         return this.items.filter((item) => item.selected);
     }
 
@@ -58,7 +58,7 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      *
      * @type {OptionModel[]}
      */
-    get visibleItems(): OptionModel[] {
+    public get visibleItems(): OptionModel[] {
         return this.items.filter((item) => item.visible);
     }
 
@@ -67,7 +67,7 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      *
      * @type {boolean}
      */
-    get hasVisibleItems(): boolean {
+    public get hasVisibleItems(): boolean {
         return this.visibleItems.length > 0;
     }
 
@@ -76,7 +76,7 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      *
      * @param {HTMLOptGroupElement} targetElement - The updated <optgroup> element.
      */
-    update(targetElement: HTMLOptGroupElement): void {
+    public update(targetElement: HTMLOptGroupElement): void {
         this.label = targetElement.label;
         this.view?.updateLabel(this.label);
     }
@@ -85,7 +85,7 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      * Hook invoked when the target element reference changes.
      * Updates the view's label and collapsed state to keep UI in sync.
      */
-    onTargetChanged(): void {
+    public onTargetChanged(): void {
         if (this.view) {
             this.view.updateLabel(this.label);
             this.view.setCollapsed(this.collapsed);
@@ -97,18 +97,18 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      *
      * @param {(evtToken: IEventCallback, model: GroupModel, collapsed: boolean) => void} callback - Listener for collapse changes.
      */
-    onCollapsedChanged(callback: (evtToken: IEventCallback, model: GroupModel, collapsed: boolean) => void): void {
-        this._privOnCollapsedChanged.push(callback);
+    public onCollapsedChanged(callback: (evtToken: IEventCallback, model: GroupModel, collapsed: boolean) => void): void {
+        this.privOnCollapsedChanged.push(callback);
     }
 
     /**
      * Toggles the group's collapsed state, updates the view, and notifies registered listeners.
      */
-    toggleCollapse(): void {
+    public toggleCollapse(): void {
         this.collapsed = !this.collapsed;
         this.view?.setCollapsed(this.collapsed);
 
-        iEvents.callEvent<[GroupModel, boolean]>([this, this.collapsed], ...this._privOnCollapsedChanged);
+        iEvents.callEvent<[GroupModel, boolean]>([this, this.collapsed], ...this.privOnCollapsedChanged);
     }
 
     /**
@@ -116,7 +116,7 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      *
      * @param {OptionModel} optionModel - The option to add.
      */
-    addItem(optionModel: OptionModel): void {
+    public addItem(optionModel: OptionModel): void {
         this.items.push(optionModel);
         optionModel.group = this;
     }
@@ -126,7 +126,7 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      *
      * @param {OptionModel} optionModel - The option to remove.
      */
-    removeItem(optionModel: OptionModel): void {
+    public removeItem(optionModel: OptionModel): void {
         const index = this.items.indexOf(optionModel);
         if (index > -1) {
             this.items.splice(index, 1);
@@ -138,7 +138,7 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      * Updates the group's visibility in the view, typically based on children visibility.
      * No-ops if the view is not initialized.
      */
-    updateVisibility(): void {
+    public updateVisibility(): void {
         this.view?.updateVisibility();
     }
 }

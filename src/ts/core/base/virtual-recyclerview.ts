@@ -100,17 +100,17 @@ export class VirtualRecyclerView<
     private end = -1;
     private resizeObs?: ResizeObserver;
 
-    private _rafId: number | null = null;
-    private _measureRaf: number | null = null;
-    private _updating = false;
-    private _suppressResize = false;
-    private _lastRenderCount = 0;
-    private _suspended = false;
-    private _boundOnScroll?: () => void;
-    private _resumeResizeAfter = false;
+    private rafId: number | null = null;
+    private measureRaf: number | null = null;
+    private updating = false;
+    private suppressResize = false;
+    private lastRenderCount = 0;
+    private suspended = false;
+    private boundOnScroll?: () => void;
+    private resumeResizeAfter = false;
 
-    private _stickyCacheTick = 0;
-    private _stickyCacheVal = 0;
+    private stickyCacheTick = 0;
+    private stickyCacheVal = 0;
 
     private measuredSum = 0;
     private measuredCount = 0;
@@ -132,7 +132,7 @@ export class VirtualRecyclerView<
      * Binds adapter and initializes virtualization scaffold.
      * Removes previous adapter if exists, sets up scroll listeners and DOM structure.
      */
-    override setAdapter(adapter: TAdapter) {
+    public override setAdapter(adapter: TAdapter) {
         if (this.adapter) this.dispose();
 
         super.setAdapter(adapter);
@@ -158,8 +158,8 @@ export class VirtualRecyclerView<
 
         if (!this.scrollEl) throw new Error("VirtualRecyclerView: scrollEl not found");
 
-        this._boundOnScroll = this.onScroll.bind(this);
-        this.scrollEl.addEventListener("scroll", this._boundOnScroll, { passive: true });
+        this.boundOnScroll = this.onScroll.bind(this);
+        this.scrollEl.addEventListener("scroll", this.boundOnScroll, { passive: true });
 
         this.refresh(false);
         this.attachResizeObserverOnce();
@@ -171,16 +171,16 @@ export class VirtualRecyclerView<
      * Cancels pending frames and disconnects observers.
      */
     public suspend() {
-        this._suspended = true;
+        this.suspended = true;
         this.cancelFrames();
         
-        if (this.scrollEl && this._boundOnScroll) {
-            this.scrollEl.removeEventListener("scroll", this._boundOnScroll);
+        if (this.scrollEl && this.boundOnScroll) {
+            this.scrollEl.removeEventListener("scroll", this.boundOnScroll);
         }
 
         if (this.resizeObs) {
             this.resizeObs.disconnect();
-            this._resumeResizeAfter = true;
+            this.resumeResizeAfter = true;
         }
     }
 
@@ -189,15 +189,15 @@ export class VirtualRecyclerView<
      * Re-attaches listeners and schedules window update.
      */
     public resume() {
-        this._suspended = false;
+        this.suspended = false;
 
-        if (this.scrollEl && this._boundOnScroll) {
-            this.scrollEl.addEventListener("scroll", this._boundOnScroll, { passive: true });
+        if (this.scrollEl && this.boundOnScroll) {
+            this.scrollEl.addEventListener("scroll", this.boundOnScroll, { passive: true });
         }
 
-        if (this._resumeResizeAfter) {
+        if (this.resumeResizeAfter) {
             this.attachResizeObserverOnce();
-            this._resumeResizeAfter = false;
+            this.resumeResizeAfter = false;
         }
 
         this.scheduleUpdateWindow();
@@ -209,12 +209,12 @@ export class VirtualRecyclerView<
      * 
      * @param isUpdate - True if called from data update, false on initial setup
      */
-    override refresh(isUpdate: boolean): void {
+    public override refresh(isUpdate: boolean): void {
         if (!this.adapter || !this.viewElement) return;
         if (!isUpdate) this.refreshItem();
 
         const count = this.adapter.itemCount();
-        this._lastRenderCount = count;
+        this.lastRenderCount = count;
 
         if (count === 0) {
             this.resetState();
@@ -264,8 +264,8 @@ export class VirtualRecyclerView<
     public dispose() {
         this.cancelFrames();
         
-        if (this.scrollEl && this._boundOnScroll) {
-            this.scrollEl.removeEventListener("scroll", this._boundOnScroll);
+        if (this.scrollEl && this.boundOnScroll) {
+            this.scrollEl.removeEventListener("scroll", this.boundOnScroll);
         }
         
         this.resizeObs?.disconnect();
@@ -295,13 +295,13 @@ export class VirtualRecyclerView<
 
     /** Cancels all pending animation frames. */
     private cancelFrames() {
-        if (this._rafId != null) {
-            cancelAnimationFrame(this._rafId);
-            this._rafId = null;
+        if (this.rafId != null) {
+            cancelAnimationFrame(this.rafId);
+            this.rafId = null;
         }
-        if (this._measureRaf != null) {
-            cancelAnimationFrame(this._measureRaf);
-            this._measureRaf = null;
+        if (this.measureRaf != null) {
+            cancelAnimationFrame(this.measureRaf);
+            this.measureRaf = null;
         }
     }
 
@@ -393,19 +393,19 @@ export class VirtualRecyclerView<
      */
     private stickyTopHeight(): number {
         const now = performance.now();
-        if (now - this._stickyCacheTick < 16) return this._stickyCacheVal;
+        if (now - this.stickyCacheTick < 16) return this.stickyCacheVal;
 
         const sticky = this.scrollEl.querySelector(".selective-ui-option-handle:not(.hide)") as HTMLElement | null;
-        this._stickyCacheVal = sticky?.offsetHeight ?? 0;
-        this._stickyCacheTick = now;
-        return this._stickyCacheVal;
+        this.stickyCacheVal = sticky?.offsetHeight ?? 0;
+        this.stickyCacheTick = now;
+        return this.stickyCacheVal;
     }
 
     /** Schedules window update on next frame if not already scheduled. */
     private scheduleUpdateWindow() {
-        if (this._rafId != null || this._suspended) return;
-        this._rafId = requestAnimationFrame(() => {
-            this._rafId = null;
+        if (this.rafId != null || this.suspended) return;
+        this.rafId = requestAnimationFrame(() => {
+            this.rafId = null;
             this.updateWindowInternal();
         });
     }
@@ -546,10 +546,10 @@ export class VirtualRecyclerView<
         if (this.resizeObs) return;
 
         this.resizeObs = new ResizeObserver(() => {
-            if (this._suppressResize || this._suspended || !this.adapter || this._measureRaf != null) return;
+            if (this.suppressResize || this.suspended || !this.adapter || this.measureRaf != null) return;
             
-            this._measureRaf = requestAnimationFrame(() => {
-                this._measureRaf = null;
+            this.measureRaf = requestAnimationFrame(() => {
+                this.measureRaf = null;
                 this.measureVisibleAndUpdate();
             });
         });
@@ -602,8 +602,8 @@ export class VirtualRecyclerView<
      * 7. Adjusts scroll position to maintain anchor item position
      */
     private updateWindowInternal() {
-        if (this._updating || this._suspended) return;
-        this._updating = true;
+        if (this.updating || this.suspended) return;
+        this.updating = true;
 
         try {
             if (!this.adapter) return;
@@ -611,8 +611,8 @@ export class VirtualRecyclerView<
             const count = this.adapter.itemCount();
             if (count <= 0) return;
 
-            if (this._lastRenderCount !== count) {
-                this._lastRenderCount = count;
+            if (this.lastRenderCount !== count) {
+                this.lastRenderCount = count;
                 this.heightCache.length = count;
                 this.rebuildFenwick(count);
             }
@@ -647,7 +647,7 @@ export class VirtualRecyclerView<
             this.start = startIndex;
             this.end = endIndex;
 
-            this._suppressResize = true;
+            this.suppressResize = true;
             try {
                 this.mountRange(this.start, this.end);
                 this.unmountOutside(this.start, this.end);
@@ -662,7 +662,7 @@ export class VirtualRecyclerView<
                 this.PadTop.style.height = `${topPx}px`;
                 this.PadBottom.style.height = `${bottomPx}px`;
             } finally {
-                this._suppressResize = false;
+                this.suppressResize = false;
             }
 
             const anchorTopNew = this.offsetTopOf(anchorIndex);
@@ -674,7 +674,7 @@ export class VirtualRecyclerView<
                 this.scrollEl.scrollTop = clamped;
             }
         } finally {
-            this._updating = false;
+            this.updating = false;
         }
     }
 

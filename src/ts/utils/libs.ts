@@ -15,7 +15,7 @@ export class Libs {
      *
      * @returns {iStorage} - The global storage utility used by Libs.
      */
-    static get iStorage(): iStorage {
+    public static get iStorage(): iStorage {
         if (!this._iStorage) this._iStorage = new iStorage();
         return this._iStorage;
     }
@@ -24,7 +24,7 @@ export class Libs {
      * Schedules and batches function executions keyed by name, with debounced timers.
      * Provides setExecute(), clearExecute(), and run() to manage deferred callbacks.
      */
-    static readonly callbackScheduler = new CallbackScheduler();
+    public static readonly callbackScheduler = new CallbackScheduler();
 
     /**
      * Deep-copies plain objects/arrays recursively. Returns primitives as-is.
@@ -32,7 +32,7 @@ export class Libs {
      * @param {T} obj - The source object or array.
      * @returns {T} - A deep-cloned copy.
      */
-    static jsCopyObject<T>(obj: T): T {
+    public static jsCopyObject<T>(obj: T): T {
         if (obj === null || typeof obj !== "object") return obj;
 
         const copy: any = Array.isArray(obj) ? [] : {};
@@ -50,7 +50,7 @@ export class Libs {
      * @param {number} [length=6] - Desired length.
      * @returns {string} - The generated string.
      */
-    static randomString(length: number = 6): string {
+    public static randomString(length: number = 6): string {
         let result = "";
         const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         const charactersLength = characters.length;
@@ -67,7 +67,7 @@ export class Libs {
      * @param {string|NodeListOf<Element>|Element|HTMLElement|ArrayLike<Element>|null} queryCommon - CSS selector, NodeList, or Element.
      * @returns {Element[]} - Array of matched elements (empty if none).
      */
-    static getElements(
+    public static getElements(
         queryCommon:
             | string
             | NodeListOf<Element>
@@ -102,7 +102,7 @@ export class Libs {
      * @param {NodeSpec} data - Specification describing the element to create.
      * @returns {Element} - The created element.
      */
-    static nodeCreator(data: Partial<NodeSpec> = {}): Element {
+    public static nodeCreator(data: Partial<NodeSpec> = {}): Element {
         const nodeName = (data.node ?? "div") as string;
         return this.nodeCloner(document.createElement(nodeName), data as NodeSpec, true);
     }
@@ -116,7 +116,7 @@ export class Libs {
      * @param {boolean} systemNodeCreate - If true, do not clone; use original node.
      * @returns {Element} - The processed element.
      */
-    static nodeCloner(node: Element = document.documentElement, _nodeOption: NodeSpec | null = null, systemNodeCreate = false): Element {
+    public static nodeCloner(node: Element = document.documentElement, _nodeOption: NodeSpec | null = null, systemNodeCreate = false): Element {
         const nodeOption: Record<string, unknown> = { ...(_nodeOption ?? {}) };
 
         const element_creation: Element = systemNodeCreate ? node : this.nodeToElement(node.cloneNode(true));
@@ -191,7 +191,7 @@ export class Libs {
      * @returns {Element} - The element cast.
      * @throws {TypeError} - If node is not an Element.
      */
-    static nodeToElement(node: Node): Element {
+    public static nodeToElement(node: Node): Element {
         if (node instanceof Element) return node;
         throw new TypeError("Node is not an Element");
     }
@@ -204,7 +204,7 @@ export class Libs {
      * @param {object} rawObj - The specification describing elements and tags.
      * @returns {MountViewResult<TTags>} - The mounted view and its tag references.
      */
-    static mountView<TTags extends Record<string, any>>(rawObj: Record<string, any>): MountViewResult<TTags> {
+    public static mountView<TTags extends Record<string, any>>(rawObj: Record<string, any>): MountViewResult<TTags> {
         return this.mountNode<TTags>(rawObj) as MountViewResult<TTags>;
     }
 
@@ -220,7 +220,7 @@ export class Libs {
      * @param {TTags|Object} [recursiveTemp={}] - Accumulator for tag references.
      * @returns {MountViewResult<TTags>|TTags} - Tag map or the final mount result.
      */
-    static mountNode<TTags extends Record<string, any>>(
+    public static mountNode<TTags extends Record<string, any>>(
         rawObj: Record<string, any>,
         parentE: Element | null = null,
         isPrepend = false,
@@ -264,15 +264,24 @@ export class Libs {
      * @param {SelectiveOptions} options - Default configuration to be merged.
      * @returns {SelectiveOptions} - Final configuration after element overrides.
      */
-    static buildConfig(element: HTMLElement, options: SelectiveOptions): SelectiveOptions {
+    public static buildConfig(element: HTMLElement, options: SelectiveOptions): SelectiveOptions {
         const myOptions = this.jsCopyObject<SelectiveOptions>(options);
 
         for (const optionKey in myOptions) {
             const propValue = element[optionKey];
             if (propValue) {
-                myOptions[optionKey] = propValue;
+                if (typeof myOptions[optionKey] === "boolean") {
+                    myOptions[optionKey] = this.string2Boolean(propValue);
+                }
+                else {
+                    myOptions[optionKey] = propValue;
+                }
             } else if (typeof element?.dataset?.[optionKey] !== "undefined") {
-                myOptions[optionKey] = element.dataset[optionKey];
+                if (typeof myOptions[optionKey] === "boolean") {
+                    myOptions[optionKey] = this.string2Boolean(element.dataset[optionKey]);
+                } else {
+                    myOptions[optionKey] = element.dataset[optionKey];
+                }
             }
         }
 
@@ -286,7 +295,7 @@ export class Libs {
      * @param {...object} params - Config objects in priority order (leftmost is base).
      * @returns {object} - Merged configuration object.
      */
-    static mergeConfig<T extends Record<string, any>>(...params: T[]): T {
+    public static mergeConfig<T extends Record<string, any>>(...params: T[]): T {
         if (params.length === 0) return {} as T;
         if (params.length === 1) return this.jsCopyObject(params[0]);
 
@@ -317,7 +326,7 @@ export class Libs {
      * @param {unknown} str - String or any value to convert.
      * @returns {boolean} - The normalized boolean.
      */
-    static string2Boolean(str: unknown): boolean {
+    public static string2Boolean(str: unknown): boolean {
         if (typeof str === "boolean") return str;
         if (typeof str !== "string") return Boolean(str);
 
@@ -343,7 +352,7 @@ export class Libs {
      * @param {HTMLElement} element - Element key to remove from the binder map.
      * @returns {boolean} - True if an entry existed and was removed.
      */
-    static removeBinderMap(element: HTMLElement): boolean {
+    public static removeBinderMap(element: HTMLElement): boolean {
         return this.iStorage.bindedMap.delete(element);
     }
 
@@ -353,7 +362,7 @@ export class Libs {
      * @param {HTMLElement} item - Element key whose binder map is requested.
      * @returns {BinderMap | null} - The stored binder map value or undefined if absent.
      */
-    static getBinderMap(item: HTMLElement): BinderMap | null {
+    public static getBinderMap(item: HTMLElement): BinderMap | null {
         return this.iStorage.bindedMap.get(item);
     }
 
@@ -363,7 +372,7 @@ export class Libs {
      * @param {HTMLElement} item - Element key to associate with the binder map.
      * @param {BinderMap} bindMap - Value to store in the binder map.
      */
-    static setBinderMap(item: HTMLElement, bindMap: BinderMap): void {
+    public static setBinderMap(item: HTMLElement, bindMap: BinderMap): void {
         this.iStorage.bindedMap.set(item, bindMap);
     }
 
@@ -373,7 +382,7 @@ export class Libs {
      * @param {HTMLElement} element - Element key to remove from the unbinder map.
      * @returns {boolean} - True if an entry existed and was removed.
      */
-    static removeUnbinderMap(element: HTMLElement): boolean {
+    public static removeUnbinderMap(element: HTMLElement): boolean {
         return this.iStorage.unbindedMap.delete(element);
     }
 
@@ -383,7 +392,7 @@ export class Libs {
      * @param {HTMLElement} item - Element key whose unbinder map is requested.
      * @returns {unknown} - The stored unbinder map value or undefined if absent.
      */
-    static getUnbinderMap(item: HTMLElement): unknown {
+    public static getUnbinderMap(item: HTMLElement): unknown {
         return this.iStorage.unbindedMap.get(item);
     }
 
@@ -393,7 +402,7 @@ export class Libs {
      * @param {HTMLElement} item - Element key to associate with the unbinder map.
      * @param {BinderMap} bindMap - Value to store in the unbinder map.
      */
-    static setUnbinderMap(item: HTMLElement, bindMap: BinderMap): void {
+    public static setUnbinderMap(item: HTMLElement, bindMap: BinderMap): void {
         this.iStorage.unbindedMap.set(item, bindMap);
     }
 
@@ -402,7 +411,7 @@ export class Libs {
      *
      * @returns {object} - The default config object.
      */
-    static getDefaultConfig(): unknown {
+    public static getDefaultConfig(): unknown {
         return this.iStorage.defaultConfig;
     }
 
@@ -411,7 +420,7 @@ export class Libs {
      *
      * @returns {string[]} - The bound command list.
      */
-    static getBindedCommand(): string[] {
+    public static getBindedCommand(): string[] {
         return this.iStorage.bindedCommand;
     }
 
@@ -421,7 +430,7 @@ export class Libs {
      * @param {string} str_tag - The input string to sanitize/translate.
      * @returns {string} - Safe innerHTML string.
      */
-    static tagTranslate(str_tag: unknown): string {
+    public static tagTranslate(str_tag: unknown): string {
         if (str_tag == null) return "";
 
         let s = String(str_tag)
@@ -475,7 +484,7 @@ export class Libs {
      * @param {string} html - The HTML string to strip.
      * @returns {string} - The extracted plain text.
      */
-    static stripHtml(html: string): string {
+    public static stripHtml(html: string): string {
         const tmp = document.createElement("DIV");
         tmp.innerHTML = html;
         const text_tmp = tmp.textContent ?? tmp.innerText ?? "";
@@ -490,7 +499,7 @@ export class Libs {
      * @param {string} str - The input text.
      * @returns {string} - The diacritic-free lowercase string.
      */
-    static string2normalize(str: unknown): string {
+    public static string2normalize(str: unknown): string {
         if (str == null) return "";
         const s = String(str).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         return s.replace(/đ/g, "d").replace(/Đ/g, "d");
@@ -501,7 +510,7 @@ export class Libs {
      * @param {HTMLSelectElement} selectElement
      * @returns {Array<HTMLOptGroupElement|HTMLOptionElement>}
      */
-    static parseSelectToArray(selectElement: HTMLSelectElement): Array<HTMLOptGroupElement | HTMLOptionElement> {
+    public static parseSelectToArray(selectElement: HTMLSelectElement): Array<HTMLOptGroupElement | HTMLOptionElement> {
         const result: Array<HTMLOptGroupElement | HTMLOptionElement> = [];
         const children = Array.from(selectElement.children);
 
@@ -528,7 +537,7 @@ export class Libs {
      *
      * @returns {boolean} - True if the user agent/platform appears to be iOS; otherwise false.
      */
-    static IsIOS(): boolean {
+    public static IsIOS(): boolean {
         const ua = navigator.userAgent;
         return /iP(hone|ad|od)/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     }
@@ -540,7 +549,7 @@ export class Libs {
      * @param {string} value - Any valid CSS size (e.g., "2rem", "5vh", "12pt").
      * @returns {string} - The equivalent pixel value (e.g., "32px").
      */
-    static any2px(value: string): string {
+    public static any2px(value: string): string {
         const v = String(value).trim();
         if (v.endsWith("px")) return v;
         if (v.endsWith("vh")) return (window.innerHeight * parseFloat(v)) / 100 + "px";

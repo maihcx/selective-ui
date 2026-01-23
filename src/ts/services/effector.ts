@@ -8,10 +8,10 @@ export function Effector(query?: string | HTMLElement | null): EffectorInterface
 }
 
 class EffectorImpl implements EffectorInterface {
-    element!: HTMLElement;
+    public element!: HTMLElement;
 
-    private _timeOut: ReturnType<typeof setTimeout> | null = null;
-    private _resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+    private timeOut: ReturnType<typeof setTimeout> | null = null;
+    private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
     private _isAnimating = false;
 
     /**
@@ -21,7 +21,7 @@ class EffectorImpl implements EffectorInterface {
      *
      * @param {string|HTMLElement|null} [query] - A CSS selector or the target element to control.
      */
-    constructor(query: string | HTMLElement | null = null) {
+    public constructor(query: string | HTMLElement | null = null) {
         if (query) this.setElement(query);
     }
 
@@ -31,7 +31,7 @@ class EffectorImpl implements EffectorInterface {
      *
      * @param {string|HTMLElement} query - The element or selector to bind.
      */
-    setElement(query: string | HTMLElement): void {
+    public setElement(query: string | HTMLElement): void {
         if (typeof query === "string") {
             const el = document.querySelector(query);
             if (el instanceof HTMLElement) this.element = el;
@@ -46,14 +46,14 @@ class EffectorImpl implements EffectorInterface {
      *
      * @returns {this} - The effector instance for chaining.
      */
-    cancel(): this {
-        if (this._timeOut) {
-            clearTimeout(this._timeOut);
-            this._timeOut = null;
+    public cancel(): this {
+        if (this.timeOut) {
+            clearTimeout(this.timeOut);
+            this.timeOut = null;
         }
-        if (this._resizeTimeout) {
-            clearTimeout(this._resizeTimeout);
-            this._resizeTimeout = null;
+        if (this.resizeTimeout) {
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = null;
         }
         this._isAnimating = false;
         return this;
@@ -64,7 +64,7 @@ class EffectorImpl implements EffectorInterface {
      * @param {string} display
      * @returns {{width: number, height: number, scrollHeight: number}}
      */
-    getHiddenDimensions(display: "flex" | string = "flex"): DimensionObject {
+    public getHiddenDimensions(display: "flex" | string = "flex"): DimensionObject {
         // Guard: element may not be set yet.
         if (!this.element) return { width: 0, height: 0, scrollHeight: 0 };
 
@@ -106,7 +106,7 @@ class EffectorImpl implements EffectorInterface {
      * @param {Object} config
      * @returns {this}
      */
-    expand(config: ExpandConfig): this {
+    public expand(config: ExpandConfig): this {
         if (!this.element) return this;
 
         this.cancel();
@@ -152,7 +152,7 @@ class EffectorImpl implements EffectorInterface {
                 overflow: isScrollable ? "auto" : "hidden",
             });
 
-            this._timeOut = setTimeout(() => {
+            this.timeOut = setTimeout(() => {
                 this.element.style.transition = "none";
                 this._isAnimating = false;
                 onComplete?.();
@@ -167,7 +167,7 @@ class EffectorImpl implements EffectorInterface {
      * @param {Object} config
      * @returns {this}
      */
-    collapse(config: CollapseConfig): this {
+    public collapse(config: CollapseConfig): this {
         if (!this.element) return this;
 
         this.cancel();
@@ -191,7 +191,7 @@ class EffectorImpl implements EffectorInterface {
                 overflow: isScrollable ? "auto" : "hidden",
             });
 
-            this._timeOut = setTimeout(() => {
+            this.timeOut = setTimeout(() => {
                 Object.assign(this.element.style, {
                     display: "none",
                     transition: "none",
@@ -210,7 +210,7 @@ class EffectorImpl implements EffectorInterface {
      * @param {Object} config
      * @returns {this}
      */
-    showSwipeWidth(config: SwipeConfig): this {
+    public showSwipeWidth(config: SwipeConfig): this {
         if (!this.element) return this;
 
         this.cancel();
@@ -236,7 +236,7 @@ class EffectorImpl implements EffectorInterface {
             });
         });
 
-        this._timeOut = setTimeout(() => {
+        this.timeOut = setTimeout(() => {
             Object.assign(this.element.style, {
                 width: "",
                 overflow: "",
@@ -255,7 +255,7 @@ class EffectorImpl implements EffectorInterface {
      * @param {Object} config
      * @returns {this}
      */
-    hideSwipeWidth(config: SwipeConfig): this {
+    public hideSwipeWidth(config: SwipeConfig): this {
         if (!this.element) return this;
 
         this.cancel();
@@ -278,7 +278,7 @@ class EffectorImpl implements EffectorInterface {
             });
         });
 
-        this._timeOut = setTimeout(() => {
+        this.timeOut = setTimeout(() => {
             Object.assign(this.element.style, {
                 width: "",
                 overflow: "",
@@ -298,7 +298,7 @@ class EffectorImpl implements EffectorInterface {
      * @param {Object} config
      * @returns {this}
      */
-    resize(config: ResizeConfig): this {
+    public resize(config: ResizeConfig): this {
         if (!this.element) return this;
 
         this.cancel();
@@ -341,7 +341,7 @@ class EffectorImpl implements EffectorInterface {
             if (animate && (isPositionChanged || heightDiff > 5)) {
                 styles.transition = `height ${duration}ms, top ${duration}ms`;
             } else {
-                this._resizeTimeout = setTimeout(() => {
+                this.resizeTimeout = setTimeout(() => {
                     if (this.element?.style) {
                         this.element.style.transition = null;
                     }
@@ -351,7 +351,7 @@ class EffectorImpl implements EffectorInterface {
             Object.assign(this.element.style, styles);
 
             if (animate && (isPositionChanged || heightDiff > 1)) {
-                this._resizeTimeout = setTimeout(() => {
+                this.resizeTimeout = setTimeout(() => {
                     this.element.style.transition = null;
                     if (isPositionChanged) delete this.element.style.transition;
                     onComplete?.();
@@ -369,7 +369,7 @@ class EffectorImpl implements EffectorInterface {
      * Check if currently animating
      * @returns {boolean}
      */
-    get isAnimating(): boolean {
+    public get isAnimating(): boolean {
         return this._isAnimating;
     }
 }

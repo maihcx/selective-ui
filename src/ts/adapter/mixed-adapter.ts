@@ -12,26 +12,26 @@ import { Libs } from "../utils/libs";
  * @extends {Adapter<GroupModel|OptionModel>}
  */
 export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
-    isMultiple = false;
+    public isMultiple = false;
 
-    private _visibilityChangedCallbacks: Array<(stats: VisibilityStats) => void> = [];
-    private _currentHighlightIndex = -1;
+    private visibilityChangedCallbacks: Array<(stats: VisibilityStats) => void> = [];
+    private currentHighlightIndex = -1;
 
-    private _selectedItemSingle: OptionModel | null = null;
+    private selectedItemSingle: OptionModel | null = null;
 
-    groups: GroupModel[] = [];
+    public groups: GroupModel[] = [];
 
-    flatOptions: OptionModel[] = [];
+    public flatOptions: OptionModel[] = [];
 
-    constructor(items: MixedItem[] = []) {
+    public constructor(items: MixedItem[] = []) {
         super(items);
-        this._buildFlatStructure();
+        this.buildFlatStructure();
         
         Libs.callbackScheduler.on(`sche_vis_${this.adapterKey}`, () => {
             const visibleCount = this.flatOptions.filter((item) => item.visible).length;
             const totalCount = this.flatOptions.length;
 
-            this._visibilityChangedCallbacks.forEach((callback) => {
+            this.visibilityChangedCallbacks.forEach((callback) => {
                 callback({
                     visibleCount,
                     totalCount,
@@ -46,7 +46,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     /**
      * Build flat list of all options for navigation
      */
-    private _buildFlatStructure(): void {
+    private buildFlatStructure(): void {
         this.flatOptions = [];
         this.groups = [];
 
@@ -84,9 +84,9 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
         item.position = position;
 
         if (item instanceof GroupModel) {
-            this._handleGroupView(item, viewer as GroupView, position);
+            this.handleGroupView(item, viewer as GroupView, position);
         } else if (item instanceof OptionModel) {
-            this._handleOptionView(item, viewer as OptionView, position);
+            this.handleOptionView(item, viewer as OptionView, position);
         }
 
         item.isInit = true;
@@ -100,7 +100,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {GroupView} groupView - The view instance that renders the group in the UI.
      * @param {number} position - The position (index) of the group within a list.
      */
-    private _handleGroupView(groupModel: GroupModel, groupView: GroupView, position: number): void {
+    private handleGroupView(groupModel: GroupModel, groupView: GroupView, position: number): void {
         super.onViewHolder(groupModel, groupView, position);
         groupModel.view = groupView;
 
@@ -134,7 +134,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
                 optionViewer = new OptionView(itemsContainer);
             }
 
-            this._handleOptionView(optionModel, optionViewer, idx);
+            this.handleOptionView(optionModel, optionViewer, idx);
             optionModel.isInit = true;
         });
 
@@ -150,7 +150,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {OptionView} optionViewer - The view instance that renders the option in the UI.
      * @param {number} position - The index of this option within its group's item list.
      */
-    private _handleOptionView(optionModel: OptionModel, optionViewer: OptionView, position: number): void {
+    private handleOptionView(optionModel: OptionModel, optionViewer: OptionView, position: number): void {
         optionViewer.isMultiple = this.isMultiple;
         optionViewer.hasImage = optionModel.hasImage;
 
@@ -194,7 +194,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
                 } else if (optionModel.selected !== true) {
                     this.changingProp("select");
                     setTimeout(() => {
-                        if (this._selectedItemSingle) this._selectedItemSingle.selected = false;
+                        if (this.selectedItemSingle) this.selectedItemSingle.selected = false;
                         optionModel.selected = true;
                     }, 5);
                 }
@@ -212,18 +212,18 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
             });
 
             optionModel.onInternalSelected((_evtToken: IEventCallback, _el: OptionModel, selected: boolean) => {
-                if (selected) this._selectedItemSingle = optionModel;
+                if (selected) this.selectedItemSingle = optionModel;
                 this.changeProp("selected_internal");
             });
 
             optionModel.onVisibilityChanged((_evtToken: IEventCallback, model: OptionModel, _visible: boolean) => {
                 model.group?.updateVisibility();
-                this._notifyVisibilityChanged();
+                this.notifyVisibilityChanged();
             });
         }
 
         if (optionModel.selected) {
-            this._selectedItemSingle = optionModel;
+            this.selectedItemSingle = optionModel;
             optionModel.selectedNonTrigger = true;
         }
     }
@@ -236,7 +236,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     override setItems(items: MixedItem[]): void {
         this.changingProp("items", items);
         this.items = items;
-        this._buildFlatStructure();
+        this.buildFlatStructure();
         this.changeProp("items", items);
     }
 
@@ -257,7 +257,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      */
     override updateData(items: MixedItem[]): void {
         this.items = items;
-        this._buildFlatStructure();
+        this.buildFlatStructure();
     }
 
     /**
@@ -265,7 +265,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      *
      * @returns {OptionModel[]} - An array of selected option items from the flat list.
      */
-    getSelectedItems(): OptionModel[] {
+    public getSelectedItems(): OptionModel[] {
         return this.flatOptions.filter((item) => item.selected);
     }
 
@@ -274,7 +274,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      *
      * @returns {OptionModel|undefined} - The first selected option or undefined if none are selected.
      */
-    getSelectedItem(): OptionModel | undefined {
+    public getSelectedItem(): OptionModel | undefined {
         return this.flatOptions.find((item) => item.selected);
     }
 
@@ -283,7 +283,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      *
      * @param {boolean} isChecked - If true, select all; if false, deselect all.
      */
-    checkAll(isChecked: boolean): void {
+    public checkAll(isChecked: boolean): void {
         if (!this.isMultiple) return;
         this.flatOptions.forEach((item) => {
             item.selected = isChecked;
@@ -296,22 +296,22 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {(stats: {visibleCount:number,totalCount:number,hasVisible:boolean,isEmpty:boolean}) => void} callback
      * - Function to invoke when visibility stats change.
      */
-    onVisibilityChanged(callback: (stats: VisibilityStats) => void): void {
-        this._visibilityChangedCallbacks.push(callback);
+    public onVisibilityChanged(callback: (stats: VisibilityStats) => void): void {
+        this.visibilityChangedCallbacks.push(callback);
     }
 
     /**
      * Notifies all registered visibility-change callbacks with up-to-date statistics.
      * Computes visible and total counts, then emits aggregated state.
      */
-    private _notifyVisibilityChanged(): void {
+    private notifyVisibilityChanged(): void {
         Libs.callbackScheduler.run(`sche_vis_${this.adapterKey}`);
     }
 
     /**
      * Computes and returns current visibility statistics for options.
      */
-    getVisibilityStats(): VisibilityStats {
+    public getVisibilityStats(): VisibilityStats {
         const visibleCount = this.flatOptions.filter((item) => item.visible).length;
         const totalCount = this.flatOptions.length;
 
@@ -326,7 +326,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     /**
      * Resets the highlight to the first visible option (index 0).
      */
-    resetHighlight(): void {
+    public resetHighlight(): void {
         this.setHighlight(0);
     }
 
@@ -336,12 +336,12 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {number} direction - Increment (+1) or decrement (-1) of the current visible index.
      * @param {boolean} [isScrollToView=true] - Whether to scroll the highlighted item into view.
      */
-    navigate(direction: number, isScrollToView: boolean = true): void {
+    public navigate(direction: number, isScrollToView: boolean = true): void {
         const visibleOptions = this.flatOptions.filter((opt) => opt.visible);
         if (visibleOptions.length === 0) return;
 
         let currentVisibleIndex = visibleOptions.findIndex(
-            (opt) => opt === this.flatOptions[this._currentHighlightIndex]
+            (opt) => opt === this.flatOptions[this.currentHighlightIndex]
         );
         if (currentVisibleIndex === -1) currentVisibleIndex = -1;
 
@@ -359,9 +359,9 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * Triggers a click on the currently highlighted and visible option to select it.
      * No-op if nothing is highlighted or the highlighted item is not visible.
      */
-    selectHighlighted(): void {
-        if (this._currentHighlightIndex > -1 && this.flatOptions[this._currentHighlightIndex]) {
-            const item = this.flatOptions[this._currentHighlightIndex];
+    public selectHighlighted(): void {
+        if (this.currentHighlightIndex > -1 && this.flatOptions[this.currentHighlightIndex]) {
+            const item = this.flatOptions[this.currentHighlightIndex];
             if (item.visible) {
                 const viewEl = item.view?.getView?.();
                 if (viewEl) viewEl.click();
@@ -376,7 +376,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {number|OptionModel} target - Flat index or the specific OptionModel to highlight.
      * @param {boolean} [isScrollToView=true] - Whether to scroll the highlighted item into view.
      */
-    setHighlight(target: number | OptionModel, isScrollToView: boolean = true): void {
+    public setHighlight(target: number | OptionModel, isScrollToView: boolean = true): void {
         let index = 0;
 
         if (typeof target === "number") {
@@ -388,8 +388,8 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
             index = 0;
         }
 
-        if (this._currentHighlightIndex > -1 && this.flatOptions[this._currentHighlightIndex]) {
-            this.flatOptions[this._currentHighlightIndex].highlighted = false;
+        if (this.currentHighlightIndex > -1 && this.flatOptions[this.currentHighlightIndex]) {
+            this.flatOptions[this.currentHighlightIndex].highlighted = false;
         }
 
         for (let i = index; i < this.flatOptions.length; i++) {
@@ -397,7 +397,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
             if (!item?.visible) continue;
 
             item.highlighted = true;
-            this._currentHighlightIndex = i;
+            this.currentHighlightIndex = i;
 
             if (isScrollToView) {
                 const el = item.view?.getView?.();
@@ -417,11 +417,11 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * Hook invoked whenever the highlight changes.
      * Override to handle UI side effects (e.g., ARIA announcement, focus sync).
      */
-    onHighlightChange(index: number, id?: string): void { }
+    public onHighlightChange(index: number, id?: string): void { }
 
     /**
      * Hook invoked when a group's collapsed state changes.
      * Override to handle side effects like analytics or layout adjustments.
      */
-    onCollapsedChange(model: GroupModel, collapsed: boolean): void { }
+    public onCollapsedChange(model: GroupModel, collapsed: boolean): void { }
 }

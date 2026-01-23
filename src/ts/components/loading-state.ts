@@ -5,15 +5,15 @@ import { Libs } from "../utils/libs";
  * @class
  */
 export class LoadingState {
-    node: HTMLDivElement | null = null;
+    public node: HTMLDivElement | null = null;
 
-    options: SelectiveOptions | null = null;
+    public options: SelectiveOptions | null = null;
 
     /**
      * Represents a loading state component that displays a loading message during data fetch or processing.
      * Provides methods to show/hide the state and check its visibility.
      */
-    constructor(options: SelectiveOptions | null = null) {
+    public constructor(options: SelectiveOptions | null = null) {
         if (options) this.init(options);
     }
 
@@ -22,7 +22,7 @@ export class LoadingState {
      *
      * @param {object} options - Configuration object containing text for the loading message.
      */
-    init(options: SelectiveOptions): void {
+    private init(options: SelectiveOptions): void {
         this.options = options;
 
         this.node = Libs.nodeCreator({
@@ -39,7 +39,7 @@ export class LoadingState {
      *
      * @param {boolean} hasItems - If true, applies a "small" style for compact display.
      */
-    show(hasItems: boolean): void {
+    public show(hasItems: boolean): void {
         if (!this.node || !this.options) return;
 
         this.node.textContent = this.options.textLoading;
@@ -50,7 +50,7 @@ export class LoadingState {
     /**
      * Hides the loading state element by adding the "hide" class.
      */
-    hide(): void {
+    public hide(): void {
         if (!this.node) return;
         this.node.classList.add("hide");
     }
@@ -60,7 +60,7 @@ export class LoadingState {
      *
      * @returns {boolean} - True if visible, false otherwise.
      */
-    get isVisible(): boolean {
+    public get isVisible(): boolean {
         return !!this.node && !this.node.classList.contains("hide");
     }
 }

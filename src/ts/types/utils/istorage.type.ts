@@ -20,7 +20,7 @@ export type StorageEvents = {
  * Includes UI settings, behavior flags, and AJAX configuration.
  */
 export interface DefaultConfig {
-    showPanel?: boolean;             // Whether to show the panel initially
+    accessoryVisible?: boolean;      // Whether to show the accessory panel initially
     virtualScroll?: boolean;         // Enable virtual scroll
     accessoryStyle?: string;         // CSS style for accessory elements
     multiple?: boolean;              // Enable multiple selection

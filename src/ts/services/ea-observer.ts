@@ -2,26 +2,26 @@
  * @class
  */
 export class ElementAdditionObserver<T extends Element = Element> {
-    private _isActive = false;
+    private isActive = false;
 
-    private _observer: MutationObserver | null = null;
+    private observer: MutationObserver | null = null;
 
-    private _actions: Array<(el: T) => void> = [];
+    private actions: Array<(el: T) => void> = [];
 
     /**
      * Registers a callback to be invoked whenever a matching element is detected being added to the DOM.
      *
      * @param {(el: T) => void} action - Function executed with the newly added element.
      */
-    onDetect(action: (el: T) => void): void {
-        this._actions.push(action);
+    public onDetect(action: (el: T) => void): void {
+        this.actions.push(action);
     }
 
     /**
      * Clears all previously registered detection callbacks.
      */
-    clearDetect(): void {
-        this._actions = [];
+    public clearDetect(): void {
+        this.actions = [];
     }
 
     /**
@@ -30,15 +30,15 @@ export class ElementAdditionObserver<T extends Element = Element> {
      *
      * @param {string} tag - The tag name to watch for (e.g., "select", "div").
      */
-    start(tag: string): void {
-        if (this._isActive) return;
+    public start(tag: string): void {
+        if (this.isActive) return;
 
-        this._isActive = true;
+        this.isActive = true;
 
         const upperTag = tag.toUpperCase();
         const lowerTag = tag.toLowerCase();
 
-        this._observer = new MutationObserver((mutations: MutationRecord[]) => {
+        this.observer = new MutationObserver((mutations: MutationRecord[]) => {
             for (const mutation of mutations) {
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType !== 1) return;
@@ -46,16 +46,16 @@ export class ElementAdditionObserver<T extends Element = Element> {
                     const subnode = node as HTMLElement;
 
                     if (subnode.tagName === upperTag) {
-                        this._handle(subnode as unknown as T);
+                        this.handle(subnode as unknown as T);
                     }
 
                     const matches = subnode.querySelectorAll(lowerTag);
-                    matches.forEach((el) => this._handle(el as unknown as T));
+                    matches.forEach((el) => this.handle(el as unknown as T));
                 });
             }
         });
 
-        this._observer.observe(document.body, {
+        this.observer.observe(document.body, {
             childList: true,
             subtree: true,
         });
@@ -65,12 +65,12 @@ export class ElementAdditionObserver<T extends Element = Element> {
      * Stops observing for element additions and releases internal resources.
      * No-ops if the observer is not active.
      */
-    stop(): void {
-        if (!this._isActive) return;
+    public stop(): void {
+        if (!this.isActive) return;
 
-        this._isActive = false;
-        this._observer?.disconnect();
-        this._observer = null;
+        this.isActive = false;
+        this.observer?.disconnect();
+        this.observer = null;
     }
 
     /**
@@ -78,7 +78,7 @@ export class ElementAdditionObserver<T extends Element = Element> {
      *
      * @param {T} element - The element that was detected as added to the DOM.
      */
-    private _handle(element: T): void {
-        this._actions.forEach((action) => action(element));
+    private handle(element: T): void {
+        this.actions.forEach((action) => action(element));
     }
 }

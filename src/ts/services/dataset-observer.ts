@@ -2,11 +2,11 @@
  * @class
  */
 export class DatasetObserver {
-    private _observer: MutationObserver;
+    private observer: MutationObserver;
 
-    private _element: HTMLElement;
+    private element: HTMLElement;
 
-    private _debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     /**
      * Observes data-* attribute changes on a target element and debounces notifications.
@@ -14,10 +14,10 @@ export class DatasetObserver {
      *
      * @param {HTMLElement} element - The element whose dataset (data-* attributes) will be observed.
      */
-    constructor(element: HTMLElement) {
-        this._element = element;
+    public constructor(element: HTMLElement) {
+        this.element = element;
 
-        this._observer = new MutationObserver((mutations: MutationRecord[]) => {
+        this.observer = new MutationObserver((mutations: MutationRecord[]) => {
             let datasetChanged = false;
 
             for (const mutation of mutations) {
@@ -29,14 +29,14 @@ export class DatasetObserver {
 
             if (!datasetChanged) return;
 
-            if (this._debounceTimer) clearTimeout(this._debounceTimer);
-            this._debounceTimer = setTimeout(() => {
-                this.onChanged({ ...this._element.dataset });
+            if (this.debounceTimer) clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+                this.onChanged({ ...this.element.dataset });
             }, 50);
         });
 
         element.addEventListener("dataset:changed", () => {
-            this.onChanged({ ...this._element.dataset });
+            this.onChanged({ ...this.element.dataset });
         });
     }
 
@@ -44,8 +44,8 @@ export class DatasetObserver {
      * Starts observing the element for attribute changes, including old values.
      * Uses MutationObserver to track updates to data-* attributes.
      */
-    connect(): void {
-        this._observer.observe(this._element, {
+    public connect(): void {
+        this.observer.observe(this.element, {
             attributes: true,
             attributeOldValue: true,
         });
@@ -58,16 +58,16 @@ export class DatasetObserver {
      * @param {Record<string, string>} dataset - A shallow copy of the element's current dataset.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onChanged(dataset: Record<string, string>): void {
+    public onChanged(dataset: Record<string, string>): void {
         // override
     }
 
     /**
      * Stops observing the element and clears any pending debounce timers.
      */
-    disconnect(): void {
-        if (this._debounceTimer) clearTimeout(this._debounceTimer);
-        this._debounceTimer = null;
-        this._observer.disconnect();
+    public disconnect(): void {
+        if (this.debounceTimer) clearTimeout(this.debounceTimer);
+        this.debounceTimer = null;
+        this.observer.disconnect();
     }
 }

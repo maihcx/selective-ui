@@ -12,7 +12,7 @@ export class Refresher {
      * @param {HTMLSelectElement} select - The native select element used to derive dimensions.
      * @param {HTMLElement} view - The view panel element whose styles will be updated.
      */
-    static resizeBox(select: HTMLSelectElement, view: HTMLElement): void {
+    public static resizeBox(select: HTMLSelectElement, view: HTMLElement): void {
         const bindedMap = Libs.getBinderMap(select);
         if (!bindedMap?.options) return;
 
