@@ -187,6 +187,11 @@ export class SelectBox {
 
         optionModelManager.onUpdated = () => {
             container.popup?.triggerResize?.();
+            return new Promise<void>((resolve) => {
+                setTimeout(() => {
+                    resolve();
+                }, options.animationtime);
+            });
         };
 
         this.optionModelManager = optionModelManager;
@@ -225,6 +230,7 @@ export class SelectBox {
         selectObserver.onChanged = (sel) => {
             optionModelManager.update(Libs.parseSelectToArray(sel));
             this.getAction()?.refreshMask();
+            container.popup?.triggerResize?.();
         };
 
         datasetObserver.connect();
@@ -239,13 +245,6 @@ export class SelectBox {
                 this.isVisible = Libs.string2Boolean(dataset.visible ?? "1");
             }
         };
-
-        // Custom event (manual refresh)
-        select.addEventListener("options:changed", () => {
-            optionModelManager.update(Libs.parseSelectToArray(select));
-            this.getAction()?.refreshMask();
-            container.popup?.triggerResize?.();
-        });
 
         // AJAX setup (if provided)
         if (options.ajax) {

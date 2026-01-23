@@ -29,6 +29,8 @@ export class ModelManager<
 
     private options: SelectiveOptions = null;
 
+    private oldPosition = 0;
+
     /**
      * Constructs a ModelManager with configuration options used by created models and components.
      *
@@ -273,6 +275,11 @@ export class ModelManager<
         });
 
         let isUpdate = true;
+        if (this.oldPosition == 0) {
+            isUpdate = false;
+        }
+        this.oldPosition = position;
+
         oldGroupMap.forEach((removedGroup) => {
             isUpdate = false;
             removedGroup.remove();
@@ -289,7 +296,7 @@ export class ModelManager<
             this.privAdapterHandle.updateData(this.privModelList as unknown as TModel[]);
         }
 
-        this.onUpdated();
+        // this.onUpdated();
         this.refresh(isUpdate);
     }
 
@@ -297,7 +304,7 @@ export class ModelManager<
      * Hook invoked after the manager completes an update or refresh cycle.
      * Override to run side effects (e.g., layout adjustments or analytics).
      */
-    public onUpdated(): void { }
+    public async onUpdated(): Promise<void> { }
 
     /**
      * Instructs the adapter to temporarily skip event handling (e.g., during batch updates).
@@ -314,10 +321,13 @@ export class ModelManager<
      * 
      * @param isUpdate - Indicates if this refresh is due to an update operation.
      */
-    public refresh(isUpdate: boolean): void {
+    public async refresh(isUpdate: boolean): Promise<void> {
         if (!this.privRecyclerViewHandle) return;
         this.privRecyclerViewHandle.refresh(isUpdate);
-        this.onUpdated();
+        await this.onUpdated();
+        if (!isUpdate) {
+            (this.privRecyclerViewHandle as any)?.refreshItem?.();
+        }
     }
 
     /**

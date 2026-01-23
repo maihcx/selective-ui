@@ -16,7 +16,7 @@ export class SelectObserver {
 
     /**
      * Initializes the SelectObserver for a given <select> element.
-     * Captures the initial snapshot, sets up a MutationObserver, and listens for custom "options:changed" events.
+     * Captures the initial snapshot, sets up a MutationObserver.
      * Changes are debounced to prevent excessive calls.
      *
      * @param {HTMLSelectElement} select - The <select> element to observe.
@@ -26,13 +26,6 @@ export class SelectObserver {
         this.lastSnapshot = this.createSnapshot();
 
         this.observer = new MutationObserver(() => {
-            if (this.debounceTimer) clearTimeout(this.debounceTimer);
-            this.debounceTimer = setTimeout(() => {
-                this.handleChange();
-            }, this._DEBOUNCE_DELAY);
-        });
-
-        select.addEventListener("options:changed", () => {
             if (this.debounceTimer) clearTimeout(this.debounceTimer);
             this.debounceTimer = setTimeout(() => {
                 this.handleChange();

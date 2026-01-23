@@ -467,7 +467,5 @@ export class SearchController {
                 select.appendChild(option);
             }
         });
-
-        select.dispatchEvent(new CustomEvent("options:changed"));
     }
 }
