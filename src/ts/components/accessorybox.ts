@@ -125,14 +125,12 @@ export class AccessoryBox {
                                         role: "button",
                                         ariaLabel: `${this.options!.textAccessoryDeselect}${modelData.textContent}`,
                                         title: `${this.options!.textAccessoryDeselect}${modelData.textContent}`,
-                                        onclick: (evt: MouseEvent) => {
+                                        onclick: async (evt: MouseEvent) => {
                                             evt.preventDefault();
-                                            this.modelManager?.triggerChanging?.(
+                                            await this.modelManager?.triggerChanging?.(
                                                 "select",
                                             );
-                                            setTimeout(() => {
-                                                modelData.selected = false;
-                                            }, 10);
+                                            modelData.selected = false;
                                         },
                                     },
                                 },

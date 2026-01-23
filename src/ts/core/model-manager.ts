@@ -142,13 +142,13 @@ export class ModelManager<
      *
      * @param {Array<HTMLOptGroupElement|HTMLOptionElement>} modelData - New source elements to rebuild models from.
      */
-    public replace(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): void {
+    public async replace(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): Promise<void> {
         this.lastFingerprint = null;
         this.createModelResources(modelData);
 
         if (this.privAdapterHandle) {
             // Adapter expects TModel[], but this manager's list is GroupModel|OptionModel.
-            this.privAdapterHandle.syncFromSource(this.privModelList as unknown as TModel[]);
+            await this.privAdapterHandle.syncFromSource(this.privModelList as unknown as TModel[]);
         }
 
         this.refresh(false);
@@ -340,15 +340,15 @@ export class ModelManager<
      * Triggers the adapter's pre-change pipeline for a named event,
      * enabling observers to react before a change is applied.
      */
-    public triggerChanging(event_name: string): void {
-        this.privAdapterHandle?.changingProp(event_name);
+    public triggerChanging(event_name: string): Promise<void> {
+        return this.privAdapterHandle?.changingProp(event_name);
     }
 
     /**
      * Triggers the adapter's post-change pipeline for a named event,
      * notifying observers after a change has been applied.
      */
-    public triggerChanged(event_name: string): void {
-        this.privAdapterHandle?.changeProp(event_name);
+    public triggerChanged(event_name: string): Promise<void> {
+        return this.privAdapterHandle?.changeProp(event_name);
     }
 }

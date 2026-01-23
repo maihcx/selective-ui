@@ -64,7 +64,7 @@ export class Adapter<
      * @param {Function} callback - Function to execute before the property changes.
      */
     public onPropChanging(propName: string, callback: (...args: unknown[]) => void): void {
-        Libs.callbackScheduler.on(`${propName}ing_${this.adapterKey}`, callback, { debounce: 1 });
+        Libs.callbackScheduler.on(`${propName}ing_${this.adapterKey}`, callback, { debounce: 0 });
     }
 
     /**
@@ -75,7 +75,7 @@ export class Adapter<
      * @param {Function} callback - Function to execute after the property changes.
      */
     public onPropChanged(propName: string, callback: (...args: unknown[]) => void): void {
-        Libs.callbackScheduler.on(`${propName}_${this.adapterKey}`, callback);
+        Libs.callbackScheduler.on(`${propName}_${this.adapterKey}`, callback, { debounce: 0 });
     }
 
     /**
@@ -85,8 +85,8 @@ export class Adapter<
      * @param {string} propName - The property name to emit (e.g., "items").
      * @param {...any} params - Parameters forwarded to the callbacks.
      */
-    public changeProp(propName: string, ...params: unknown[]): void {
-        Libs.callbackScheduler.run(`${propName}_${this.adapterKey}`, ...params);
+    public changeProp(propName: string, ...params: unknown[]): Promise<void> {
+        return Libs.callbackScheduler.run(`${propName}_${this.adapterKey}`, ...params) as Promise<void>;
     }
 
     /**
@@ -96,8 +96,8 @@ export class Adapter<
      * @param {string} propName - The property name to emit (e.g., "items").
      * @param {...any} params - Parameters forwarded to the callbacks.
      */
-    public changingProp(propName: string, ...params: unknown[]): void {
-        Libs.callbackScheduler.run(`${propName}ing_${this.adapterKey}`, ...params);
+    public changingProp(propName: string, ...params: unknown[]): Promise<void> {
+        return Libs.callbackScheduler.run(`${propName}ing_${this.adapterKey}`, ...params) as Promise<void>;
     }
 
     /**
@@ -129,10 +129,10 @@ export class Adapter<
      *
      * @param {TItem[]} items - The new list of items to set.
      */
-    public setItems(items: TItem[]): void {
-        this.changingProp("items", items);
+    public async setItems(items: TItem[]): Promise<void> {
+        await this.changingProp("items", items);
         this.items = items;
-        this.changeProp("items", items);
+        await this.changeProp("items", items);
     }
 
     /**
@@ -141,8 +141,8 @@ export class Adapter<
      *
      * @param {TItem[]} items - The source list of items to synchronize.
      */
-    public syncFromSource(items: TItem[]): void {
-        this.setItems(items);
+    public async syncFromSource(items: TItem[]): Promise<void> {
+        await this.setItems(items);
     }
 
     /**

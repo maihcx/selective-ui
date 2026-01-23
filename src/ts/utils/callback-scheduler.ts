@@ -84,12 +84,18 @@ export class CallbackScheduler {
      * - If an entry has `once = true`, it is removed after execution by setting its slot to `undefined`.
      *   (The list is not spliced to preserve indices.)
      */
-    public run(key: TimerKey, ...params: any[]): void {
+    public run(key: TimerKey, ...params: any[]): Promise<void> | void {
         const executes = this.executeStored.get(key);
-        if (!executes) return;
+        if (!executes || executes.length === 0) {
+            return Promise.resolve();
+        }
 
-        if (!this.timerRunner.has(key)) this.timerRunner.set(key, new Map());
+        if (!this.timerRunner.has(key)) {
+            this.timerRunner.set(key, new Map());
+        }
+
         const runner = this.timerRunner.get(key)!;
+        const tasks: Promise<void>[] = [];
 
         for (let i = 0; i < executes.length; i++) {
             const entry = executes[i];
@@ -98,22 +104,36 @@ export class CallbackScheduler {
             const prev = runner.get(i);
             if (prev) clearTimeout(prev);
 
-            const timer = setTimeout(() => {
-                entry.callback(params.length > 0 ? params : null);
+            const task = new Promise<void>((resolve) => {
+                const timer = setTimeout(async () => {
+                    try {
+                        const resp = entry.callback(
+                            params.length > 0 ? params : null
+                        ) as any;
 
-                if (entry.once) {
-                    // Preserve index stability by leaving an empty slot.
-                    executes[i] = undefined;
+                        if (resp instanceof Promise) {
+                            await resp;
+                        }
+                    } catch {} finally {
+                        if (entry.once) {
+                            executes[i] = undefined;
 
-                    // Cleanup the timer handle for this index.
-                    const current = runner.get(i);
-                    if (current) clearTimeout(current);
-                    runner.delete(i);
-                }
-            }, entry.timeout);
+                            const current = runner.get(i);
+                            if (current) clearTimeout(current);
+                            runner.delete(i);
+                        }
 
-            runner.set(i, timer);
+                        resolve();
+                    }
+                }, entry.timeout);
+
+                runner.set(i, timer);
+            });
+
+            tasks.push(task);
         }
+
+        return Promise.all(tasks).then(() => void 0);
     }
 
     /**

@@ -180,23 +180,19 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
         optionViewer.view.tags.LabelContent.innerHTML = optionModel.text;
 
         if (!optionModel.isInit) {
-            optionViewer.view.tags.OptionView.addEventListener("click", (ev: MouseEvent) => {
+            optionViewer.view.tags.OptionView.addEventListener("click", async (ev: MouseEvent) => {
                 ev.stopPropagation();
                 ev.preventDefault();
 
                 if (this.isSkipEvent) return;
 
                 if (this.isMultiple) {
-                    this.changingProp("select");
-                    setTimeout(() => {
-                        optionModel.selected = !optionModel.selected;
-                    }, 5);
+                    await this.changingProp("select");
+                    optionModel.selected = !optionModel.selected;
                 } else if (optionModel.selected !== true) {
-                    this.changingProp("select");
-                    setTimeout(() => {
-                        if (this.selectedItemSingle) this.selectedItemSingle.selected = false;
-                        optionModel.selected = true;
-                    }, 5);
+                    await this.changingProp("select");
+                    if (this.selectedItemSingle) this.selectedItemSingle.selected = false;
+                    optionModel.selected = true;
                 }
             });
 
@@ -233,11 +229,11 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      *
      * @param {Array<GroupModel|OptionModel>} items - The new collection of items to be displayed.
      */
-    override setItems(items: MixedItem[]): void {
-        this.changingProp("items", items);
+    override async setItems(items: MixedItem[]): Promise<void> {
+        await this.changingProp("items", items);
         this.items = items;
         this.buildFlatStructure();
-        this.changeProp("items", items);
+        await this.changeProp("items", items);
     }
 
     /**
@@ -245,8 +241,8 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      *
      * @param {Array<GroupModel|OptionModel>} items - The new collection of items to sync.
      */
-    override syncFromSource(items: MixedItem[]): void {
-        this.setItems(items);
+    override async syncFromSource(items: MixedItem[]): Promise<void> {
+        await this.setItems(items);
     }
 
     /**
