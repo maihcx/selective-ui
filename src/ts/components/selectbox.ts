@@ -211,8 +211,6 @@ export class SelectBox {
             this.getAction()?.change(null, true);
         });
         container.popup!.onAdapterPropChanged("selected_internal", () => {
-            console.log('val changed');
-            
             this.getAction()?.change(null, false);
         });
         container.popup!.onAdapterPropChanging("select", () => {
