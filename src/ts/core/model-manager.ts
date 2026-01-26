@@ -304,7 +304,7 @@ export class ModelManager<
      * Hook invoked after the manager completes an update or refresh cycle.
      * Override to run side effects (e.g., layout adjustments or analytics).
      */
-    public async onUpdated(): Promise<void> { }
+    public onUpdated(): void { }
 
     /**
      * Instructs the adapter to temporarily skip event handling (e.g., during batch updates).
@@ -321,13 +321,10 @@ export class ModelManager<
      * 
      * @param isUpdate - Indicates if this refresh is due to an update operation.
      */
-    public async refresh(isUpdate: boolean): Promise<void> {
+    public refresh(isUpdate: boolean): void {
         if (!this.privRecyclerViewHandle) return;
         this.privRecyclerViewHandle.refresh(isUpdate);
-        await this.onUpdated();
-        if (!isUpdate) {
-            (this.privRecyclerViewHandle as any)?.refreshItem?.();
-        }
+        this.onUpdated();
     }
 
     /**

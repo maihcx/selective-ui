@@ -657,8 +657,8 @@
         .number { color: #005cc5; }
     </style>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/selective-ui@1.2.2/dist/selective-ui.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/selective-ui@1.2.2/dist/selective-ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/selective-ui@1.2.3/dist/selective-ui.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/selective-ui@1.2.3/dist/selective-ui.min.js"></script>
     <script src="./javascript.js"></script>
 </head>
 <body>
@@ -944,14 +944,14 @@
 
             <h3>1. CDN</h3>
             <pre><code><span class="comment">// Add to your HTML</span>
-<span class="keyword">&lt;link</span> <span class="string">rel="stylesheet"</span> <span class="string">href="https://cdn.jsdelivr.net/npm/selective-ui@1.2.2/dist/selective-ui.min.css"</span><span class="keyword">&gt;</span>
-<span class="keyword">&lt;script</span> <span class="string">src="https://cdn.jsdelivr.net/npm/selective-ui@1.2.2/dist/selective-ui.min.js"</span><span class="keyword">&gt;&lt;/script&gt;</span></code></pre>
+<span class="keyword">&lt;link</span> <span class="string">rel="stylesheet"</span> <span class="string">href="https://cdn.jsdelivr.net/npm/selective-ui@1.2.3/dist/selective-ui.min.css"</span><span class="keyword">&gt;</span>
+<span class="keyword">&lt;script</span> <span class="string">src="https://cdn.jsdelivr.net/npm/selective-ui@1.2.3/dist/selective-ui.min.js"</span><span class="keyword">&gt;&lt;/script&gt;</span></code></pre>
 
             <h3>2. NPM</h3>
             <pre><code>npm install selective-ui</code></pre>
 
             <h3>3. Download</h3>
-            <p>Download files directly <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.2.2/dist/selective-ui.min.js"><code>selective-ui.min.js</code></a> and <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.2.2/dist/selective-ui.min.css"><code>selective-ui.min.css</code></a></p>
+            <p>Download files directly <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.2.3/dist/selective-ui.min.js"><code>selective-ui.min.js</code></a> and <a href="https://cdn.jsdelivr.net/npm/selective-ui@1.2.3/dist/selective-ui.min.css"><code>selective-ui.min.css</code></a></p>
 
             <div class="alert alert-info">
                 <strong>💡 Note:</strong> Ensure that CSS is loaded before JavaScript to avoid FOUC (Flash of Unstyled Content)
@@ -2519,6 +2519,43 @@ SelectiveUI.rebind(<span class="string">'#mySelect'</span>, {
                         <tr>
                             <td><strong>Vietcombank</strong></td>
                             <td>1047526877</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>V1.2.3 | 2026-01-26</h3>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fixes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>The popup size is incorrect in some cases when working with Ajax</td>
+                        </tr>
+                        <tr>
+                            <td>Custom events are being triggered excessively</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Optimizations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Optimize responsiveness when selecting items in pop-ups</td>
+                        </tr>
+                        <tr>
+                            <td>Improve the stability of VirtualScroll</td>
                         </tr>
                     </tbody>
                 </table>
