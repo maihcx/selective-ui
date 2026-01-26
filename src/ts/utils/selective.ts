@@ -177,7 +177,7 @@ export class Selective {
         if (!bindMap) return;
 
         const popup = bindMap.container?.popup as Popup | null;
-        popup?.detroy();
+        popup?.destroy();
 
         Libs.setUnbinderMap(selectElement, bindMap);
 
