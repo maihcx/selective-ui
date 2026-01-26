@@ -326,7 +326,7 @@ class EffectorImpl implements EffectorInterface {
             this.element.style.transition = `top ${duration}ms ease-out, height ${duration}ms ease-out, max-height ${duration}ms ease-out;`;
         }
 
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             const styles: Partial<CSSStyleDeclaration> & Record<string, string> = {
                 width: `${width}px`,
                 left: `${left}px`,
@@ -360,7 +360,7 @@ class EffectorImpl implements EffectorInterface {
                 if (isPositionChanged) delete this.element.style.transition;
                 onComplete?.();
             }
-        }, 20);
+        });
 
         return this;
     }

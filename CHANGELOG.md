@@ -1,3 +1,17 @@
+# 1.2.3 (2026-01-26)
+
+### Fixes
+
+- **SelectBox,VirtualRecyclerView,MixedAdapter** The popup size is incorrect in some cases when working with Ajax
+
+- **SelectBox** Custom events are being triggered excessively
+
+### Optimizations
+
+- **SelectBox,Popup** Optimize responsiveness when selecting items in pop-ups
+
+- **SelectBox,VirtualRecyclerView** Improve the stability of VirtualScroll
+
 # 1.2.2 (2026-01-23)
 
 ### Fixes

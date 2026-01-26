@@ -384,7 +384,7 @@ export class VirtualRecyclerView<
     private containerTopInScroll(): number {
         const a = this.viewElement!.getBoundingClientRect();
         const b = this.scrollEl.getBoundingClientRect();
-        return a.top - b.top + this.scrollEl.scrollTop;
+        return Math.max(0, a.top - b.top + this.scrollEl.scrollTop);
     }
 
     /** 
@@ -670,7 +670,10 @@ export class VirtualRecyclerView<
             const maxScroll = Math.max(0, this.scrollEl.scrollHeight - this.scrollEl.clientHeight);
             const clamped = Math.min(Math.max(0, targetScroll), maxScroll);
 
-            if (Math.abs(this.scrollEl.scrollTop - clamped) > 0.5) {
+            const heightChanged = Math.abs(anchorTopNew - anchorTop) > 1;
+            const scrollDiff = Math.abs(this.scrollEl.scrollTop - clamped);
+
+            if (heightChanged && scrollDiff > 0.5 && scrollDiff < 100) {
                 this.scrollEl.scrollTop = clamped;
             }
         } finally {

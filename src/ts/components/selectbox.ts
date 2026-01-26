@@ -240,13 +240,6 @@ export class SelectBox {
             }
         };
 
-        // Custom event (manual refresh)
-        select.addEventListener("options:changed", () => {
-            optionModelManager.update(Libs.parseSelectToArray(select));
-            this.getAction()?.refreshMask();
-            container.popup?.triggerResize?.();
-        });
-
         // AJAX setup (if provided)
         if (options.ajax) {
             searchController.setAjax(options.ajax);

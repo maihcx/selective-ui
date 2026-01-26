@@ -187,7 +187,7 @@ export class Popup {
             this.updateEmptyState(stats ?? undefined);
 
             this.triggerResize();
-        }, 200);
+        }, this.options.animationtime);
     }
 
     /**
