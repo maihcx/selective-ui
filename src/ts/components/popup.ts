@@ -385,7 +385,7 @@ export class Popup {
      * 
      * Safe to call multiple times; all operations are guarded via optional chaining.
      */
-    public detroy(): void {
+    public destroy(): void {
         if (this.hideLoadHandle) {
             clearTimeout(this.hideLoadHandle);
             this.hideLoadHandle = null;
