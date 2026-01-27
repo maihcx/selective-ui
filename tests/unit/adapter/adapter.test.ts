@@ -31,7 +31,7 @@ describe('MixedAdapter', () => {
             const model = new OptionModel({}, option);
             
             const view = new OptionView(container);
-            view.render();
+            view.mount();
             model.view = view;
             model.isInit = true;
             
@@ -329,7 +329,7 @@ describe('MixedAdapter', () => {
             
             const model = new OptionModel({}, option);
             const view = new OptionView(parent);
-            view.render();
+            view.mount();
             
             model.view = view;
             model.isInit = true;
@@ -422,7 +422,7 @@ describe('MixedAdapter', () => {
             const groupModel = new GroupModel({}, optgroup);
             const parent = document.createElement('div');
             const groupView = new GroupView(parent);
-            groupView.render();
+            groupView.mount();
             
             groupModel.view = groupView;
             groupModel.isInit = true;

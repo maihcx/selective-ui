@@ -4,12 +4,30 @@ import { SelectBox } from "../components/selectbox";
 import { ElementAdditionObserver } from "../services/ea-observer";
 import { SelectiveActionApi, SelectiveOptions } from "../types/utils/selective.type";
 import { BinderMap, PropertiesType } from "../types/utils/istorage.type";
-import { Popup } from "../components/popup";
+import { Lifecycle } from "../core/base/lifecycle";
+import { LifecycleState } from "../types/core/base/lifecycle.type";
 
-export class Selective {
+export class Selective extends Lifecycle {
     private EAObserver: ElementAdditionObserver;
 
     private bindedQueries: Map<string, SelectiveOptions> = new Map();
+
+    constructor() {
+        super();
+        this.init();
+    }
+
+    /**
+     * Override lifecycle init - Initialize Selective system
+     */
+    public init(): void {
+        if (!this.is(LifecycleState.NEW)) return;
+
+        // Initialize core properties
+        this.bindedQueries = new Map();
+
+        super.init();
+    }
 
     /**
      * Binds Selective UI to all <select> elements matching the query.
@@ -20,27 +38,40 @@ export class Selective {
      * @param {object} options - Configuration overrides merged with defaults.
      */
     public bind(query: string, options: SelectiveOptions): void {
-        const merged = Libs.mergeConfig(Libs.getDefaultConfig(), options) as SelectiveOptions;
+        // Auto-init if not initialized
+        if (this.is(LifecycleState.NEW)) {
+            this.init();
+        }
+
+        const merged = Libs.mergeConfig(
+            Libs.getDefaultConfig(),
+            options,
+        ) as SelectiveOptions;
 
         // Ensure hooks exist
         merged.on = merged.on ?? {};
-        merged.on.load = (merged.on.load ?? []) as Array<(...args: any[]) => void>;
+        merged.on.load = (merged.on.load ?? []) as Array<
+            (...args: any[]) => void
+        >;
 
         this.bindedQueries.set(query, merged);
 
         const doneToken = Libs.randomString();
         Libs.callbackScheduler.on(doneToken, () => {
-            iEvents.callEvent([this.find(query)], ...(merged.on!.load));
+            iEvents.callEvent([this.find(query)], ...merged.on!.load);
             Libs.callbackScheduler.clear(doneToken);
             merged.on!.load = [];
         });
 
         const selectElements = Libs.getElements(query) as HTMLSelectElement[];
+        let hasAnyBound = false;
+
         selectElements.forEach((item) => {
             (async () => {
                 if (item.tagName === "SELECT") {
                     Libs.removeUnbinderMap(item);
                     if (this.applySelectBox(item, merged)) {
+                        hasAnyBound = true;
                         Libs.callbackScheduler.run(doneToken);
                     }
                 }
@@ -50,6 +81,34 @@ export class Selective {
         if (!Libs.getBindedCommand().includes(query)) {
             Libs.getBindedCommand().push(query);
         }
+
+        // Mount if first bind and has elements
+        if (this.is(LifecycleState.INITIALIZED) && hasAnyBound) {
+            this.mount();
+        }
+
+        // Trigger update if already mounted
+        if (this.is(LifecycleState.MOUNTED)) {
+            this.update();
+        }
+    }
+
+    /**
+     * Override lifecycle mount - System is ready and has bound elements
+     */
+    public mount(): void {
+        if (this.state !== LifecycleState.INITIALIZED) return;
+
+        super.mount();
+    }
+
+    /**
+     * Override lifecycle update - Called when bindings change
+     */
+    public update(): void {
+        if (this.state !== LifecycleState.MOUNTED) return;
+
+        super.update();
     }
 
     /**
@@ -101,19 +160,27 @@ export class Selective {
      * Selective bindings automatically when they match previously bound queries.
      */
     public Observer(): void {
-        this.EAObserver = new ElementAdditionObserver();
-        this.EAObserver.onDetect((selectElement: HTMLSelectElement) => {
-            this.bindedQueries.forEach((options, query) => {
-                try {
-                    if (selectElement.matches(query)) {
-                        this.applySelectBox(selectElement, options);
+        if (!this.EAObserver) {
+            this.EAObserver = new ElementAdditionObserver();
+            this.EAObserver.onDetect((selectElement: HTMLSelectElement) => {
+                this.bindedQueries.forEach((options, query) => {
+                    try {
+                        if (selectElement.matches(query)) {
+                            this.applySelectBox(selectElement, options);
+
+                            // Trigger update when new element is bound
+                            if (this.is(LifecycleState.MOUNTED)) {
+                                this.update();
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`Invalid selector: ${query}`, error);
                     }
-                } catch (error) {
-                    console.warn(`Invalid selector: ${query}`, error);
-                }
+                });
             });
-        });
-        this.EAObserver.start("select");
+        }
+
+        this.EAObserver.connect("select");
     }
 
     /**
@@ -132,19 +199,30 @@ export class Selective {
         } else if (target instanceof HTMLSelectElement) {
             this.destroyElement(target);
         }
+
+        // Trigger update after partial destroy
+        if (target !== null && this.is(LifecycleState.MOUNTED)) {
+            this.update();
+        }
     }
 
     /**
      * Destroys all bound Selective instances and clears bindings/state.
      * Stops the ElementAdditionObserver.
+     * Calls lifecycle destroy.
      */
     private destroyAll(): void {
+        if (this.state === LifecycleState.DESTROYED) return;
+
         const bindedCommands = Libs.getBindedCommand();
         bindedCommands.forEach((query: string) => this.destroyByQuery(query));
 
         this.bindedQueries.clear();
         Libs.getBindedCommand().length = 0;
-        this.EAObserver?.stop();
+        this.EAObserver?.disconnect();
+
+        // Call parent lifecycle destroy
+        super.destroy();
     }
 
     /**
@@ -176,20 +254,20 @@ export class Selective {
         const bindMap = Libs.getBinderMap(selectElement) as BinderMap | null;
         if (!bindMap) return;
 
-        const popup = bindMap.container?.popup as Popup | null;
-        popup?.detroy();
+        const selfBox = bindMap.self as SelectBox | null;
 
         Libs.setUnbinderMap(selectElement, bindMap);
 
         const wasObserving = !!this.EAObserver;
-        if (wasObserving) this.EAObserver?.stop();
+        if (wasObserving) this.EAObserver?.disconnect();
 
         try {
             bindMap.self?.deInit?.();
-        } catch (_) { }
+        } catch (_) {}
 
         const wrapper: HTMLElement | null =
-            (bindMap.container?.element as HTMLElement | undefined) ?? selectElement.parentElement;
+            (bindMap.container?.element as HTMLElement | undefined) ??
+            selectElement.parentElement;
 
         selectElement.style.display = "";
         selectElement.style.visibility = "";
@@ -199,14 +277,16 @@ export class Selective {
         if (wrapper && wrapper.parentNode) {
             wrapper.parentNode.replaceChild(selectElement, wrapper);
         } else {
-            document.body.appendChild(selectElement);
+            selectElement.appendChild(selectElement);
         }
 
         Libs.removeBinderMap(selectElement);
 
         if (wasObserving && this.bindedQueries.size > 0) {
-            this.EAObserver?.start("select");
+            this.EAObserver?.connect("select");
         }
+
+        selfBox?.destroy?.();
     }
 
     /**
@@ -219,6 +299,11 @@ export class Selective {
     public rebind(query: string, options: SelectiveOptions): void {
         this.destroyByQuery(query);
         this.bind(query, options);
+
+        // Trigger update after rebind
+        if (this.is(LifecycleState.MOUNTED)) {
+            this.update();
+        }
     }
 
     /**
@@ -230,13 +315,22 @@ export class Selective {
      * @param {object} options - Configuration used for this instance.
      * @returns {boolean} - False if already bound; true if successfully applied.
      */
-    private applySelectBox(selectElement: HTMLSelectElement, options: SelectiveOptions): boolean {
-        if (Libs.getBinderMap(selectElement) || Libs.getUnbinderMap(selectElement)) {
+    private applySelectBox(
+        selectElement: HTMLSelectElement,
+        options: SelectiveOptions,
+    ): boolean {
+        if (
+            Libs.getBinderMap(selectElement) ||
+            Libs.getUnbinderMap(selectElement)
+        ) {
             return false;
         }
 
         const SEID = Libs.randomString(8);
-        const options_cfg = Libs.buildConfig(selectElement, options) as SelectiveOptions;
+        const options_cfg = Libs.buildConfig(
+            selectElement,
+            options,
+        ) as SelectiveOptions;
 
         options_cfg.SEID = SEID;
         options_cfg.SEID_LIST = `seui-${SEID}-optionlist`;
@@ -245,14 +339,23 @@ export class Selective {
         const bindMap: BinderMap = { options: options_cfg };
         Libs.setBinderMap(selectElement, bindMap);
 
+        // Create SelectBox with lifecycle
         const selectBox = new SelectBox(selectElement, this);
+
+        selectBox.on("onMount", () => {
+            if (selectBox.container.view) {
+                selectBox.container.view.addEventListener("mouseup", () => {
+                    bindMap.action?.toggle?.();
+                });
+            }
+        });
+
+        // Mount the SelectBox
+        selectBox.mount();
+
         bindMap.container = selectBox.container;
         bindMap.action = selectBox.getAction();
         bindMap.self = selectBox;
-
-        selectBox.container.view.addEventListener("mouseup", () => {
-            bindMap.action?.toggle?.();
-        });
 
         return true;
     }
@@ -268,11 +371,17 @@ export class Selective {
      * @param {*} action - The object containing the property.
      * @returns {PropertiesType} - The derived property type and name.
      */
-    private getProperties(actionName: string, action: Record<string, any>): PropertiesType {
+    private getProperties(
+        actionName: string,
+        action: Record<string, any>,
+    ): PropertiesType {
         const descriptor = Object.getOwnPropertyDescriptor(action, actionName);
         let type: PropertiesType["type"] = "variable";
 
-        if (descriptor?.get || (descriptor?.set && typeof action[actionName] !== "function")) {
+        if (
+            descriptor?.get ||
+            (descriptor?.set && typeof action[actionName] !== "function")
+        ) {
             type = "get-set";
         } else if (typeof action[actionName] === "function") {
             type = "func";
@@ -289,7 +398,11 @@ export class Selective {
      * @param {string} name - The property name to expose.
      * @param {HTMLElement[]} els - The list of bound elements to proxy.
      */
-    private buildGetSetAction(object: Record<string, any>, name: string, els: HTMLElement[]): void {
+    private buildGetSetAction(
+        object: Record<string, any>,
+        name: string,
+        els: HTMLElement[],
+    ): void {
         Object.defineProperty(object, name, {
             get() {
                 const binded = Libs.getBinderMap(els[0]) as BinderMap;
@@ -315,7 +428,11 @@ export class Selective {
      * @param {string} name - The function name to expose.
      * @param {HTMLElement[]} els - The list of bound elements to invoke against.
      */
-    private buildFuntionAction(object: Record<string, any>, name: string, els: HTMLElement[]): void {
+    private buildFuntionAction(
+        object: Record<string, any>,
+        name: string,
+        els: HTMLElement[],
+    ): void {
         object[name] = (...params: any[]) => {
             let resp = null;
             for (let index = 0; index < els.length; index++) {

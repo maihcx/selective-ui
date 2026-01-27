@@ -6,6 +6,7 @@ import { GroupView } from "../views/group-view";
 import { OptionModel } from "./option-model";
 import type { IEventCallback } from "../types/utils/ievents.type";
 import { SelectiveOptions } from "../types/utils/selective.type";
+import { LifecycleState } from "../types/core/base/lifecycle.type";
 
 /**
  * @extends {Model<HTMLOptGroupElement, GroupViewTags, GroupView>}
@@ -28,11 +29,16 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      */
     public constructor(options: SelectiveOptions, targetElement?: HTMLOptGroupElement) {
         super(options, targetElement ?? null, null);
-
-        if (targetElement) {
-            this.label = targetElement.label;
-            this.collapsed = Libs.string2Boolean(targetElement.dataset?.collapsed);
+    }
+    
+    public override init() {
+        if (this.targetElement) {
+            this.label = this.targetElement.label;
+            this.collapsed = Libs.string2Boolean(this.targetElement.dataset?.collapsed);
         }
+
+        super.init();
+        this.mount();
     }
 
     /**
@@ -76,20 +82,35 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      *
      * @param {HTMLOptGroupElement} targetElement - The updated <optgroup> element.
      */
-    public update(targetElement: HTMLOptGroupElement): void {
+    public updateTarget(targetElement: HTMLOptGroupElement): void {
         this.label = targetElement.label;
         this.view?.updateLabel(this.label);
+        this.update();
     }
 
     /**
      * Hook invoked when the target element reference changes.
      * Updates the view's label and collapsed state to keep UI in sync.
      */
-    public onTargetChanged(): void {
+    public override update(): void {
         if (this.view) {
             this.view.updateLabel(this.label);
             this.view.setCollapsed(this.collapsed);
         }
+        super.update();
+    }
+
+    public override destroy(): void {
+        if (this.is(LifecycleState.DESTROYED)) {
+            return;
+        }
+
+        this.items.forEach(item => {
+            item.destroy();
+        });
+
+        this.items = [];
+        super.destroy();
     }
 
     /**

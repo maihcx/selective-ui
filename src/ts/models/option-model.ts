@@ -7,6 +7,7 @@ import type { IEventCallback } from "../types/utils/ievents.type";
 import type { OptionViewTags } from "../types/views/view.option.type";
 import type { GroupModel } from "./group-model";
 import { SelectiveOptions } from "../types/utils/selective.type";
+import { LifecycleState } from "../types/core/base/lifecycle.type";
 
 /**
  * @extends {Model<HTMLOptionElement, OptionViewTags, OptionView, SelectiveOptions>}
@@ -34,10 +35,13 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      */
     public constructor(options: SelectiveOptions, targetElement: HTMLOptionElement | null = null, view: OptionView | null = null) {
         super(options, targetElement, view);
-        
-        (async () => {
-            this.textToFind = Libs.string2normalize(this.textContent.toLowerCase());
-        })();
+    }
+
+    public override init(): void {
+        this.textToFind = Libs.string2normalize(this.textContent.toLowerCase());
+
+        super.init();
+        this.mount();
     }
 
     /**
@@ -231,9 +235,12 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      * Updates label content (HTML or text), image src/alt if present,
      * and synchronizes initial selected state to the view.
      */
-    public onTargetChanged(): void {
+    public override update(): void {
         this.textToFind = Libs.string2normalize(this.textContent.toLowerCase());
-        if (!this.view) return;
+        if (!this.view) {
+            super.update();
+            return;
+        }
 
         const labelContent = this.view.view.tags.LabelContent;
         if (labelContent) {
@@ -251,5 +258,21 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
         }
 
         if (this.targetElement) this.selectedNonTrigger = this.targetElement.selected;
+
+        super.update();
+    }
+
+    public override destroy(): void {
+        if (this.is(LifecycleState.DESTROYED)) {
+            return;
+        }
+
+        this.privOnSelected = [];
+        this.privOnInternalSelected = [];
+        this.privOnVisibilityChanged = [];
+        this.group = null;
+        this.textToFind = null;
+        
+        super.destroy();
     }
 }

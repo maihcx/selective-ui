@@ -1,10 +1,12 @@
+import { Lifecycle } from "src/ts/core/base/lifecycle";
+
 /**
  * Generic model contract for binding a target element and an optional view.
  *
  * @template TTarget - The type of the target element (e.g., DOM element, data object).
  * @template TView - The type of the view associated with the target (e.g., UI component).
  */
-export interface ModelContract<TTarget, TView> {
+export interface ModelContract<TTarget, TView> extends Lifecycle {
     /**
      * The target element that this model is bound to.
      * Can be null if not yet initialized.

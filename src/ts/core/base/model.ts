@@ -1,10 +1,18 @@
+
 import { ModelContract } from "src/ts/types/core/base/model.type";
 import { ViewContract } from "src/ts/types/core/base/view.type";
+import { Lifecycle } from "./lifecycle";
+import { LifecycleState } from "src/ts/types/core/base/lifecycle.type";
 
 /**
- * @template TTarget
- * @template TTags
- * @template TView
+ * Base Model class that connects a target DOM element with its corresponding View.
+ * Handles lifecycle, state, and synchronization between model, view, and DOM.
+ *
+ * @template TTarget - The HTML element this model is bound to
+ * @template TTags - A map of named HTML elements used by the view
+ * @template TView - The view implementation associated with this model
+ * @template TOptions - Configuration options for the model
+ *
  * @implements {ModelContract<TTarget, TView>}
  */
 export class Model<
@@ -12,70 +20,93 @@ export class Model<
     TTags extends Record<string, HTMLElement>,
     TView extends ViewContract<TTags>,
     TOptions = unknown
-> implements ModelContract<TTarget, TView> {
+> extends Lifecycle implements ModelContract<TTarget, TView> {
+
+    /** The underlying DOM element associated with this model */
     public targetElement: TTarget | null = null;
 
+    /** Configuration options provided at construction time */
     public options: TOptions;
 
+    /** View instance responsible for rendering this model */
     public view: TView | null = null;
 
+    /** Position index of the model (used for ordering or tracking) */
     public position = -1;
 
+    /** Indicates whether the model has been initialized */
     public isInit = false;
 
+    /** Indicates whether the model has been destroyed/removed */
     public isRemoved = false;
+
     /**
-     * Returns the current value from the underlying target element's "value" attribute.
-     * For single-select, this is typically a string; for multi-select, may be an array depending on usage.
+     * Returns the current value of the bound target element.
+     *
+     * - For single-value elements, this is usually a string
+     * - For multi-value elements, this may be an array depending on usage
      */
     public get value(): string | null | string[] {
         return this.targetElement?.getAttribute("value") ?? null;
     }
 
     /**
-     * Constructs a Model instance with configuration options and optional bindings to a target element and view.
-     * Stores references for later updates and rendering.
+     * Creates a new Model instance.
      *
-     * @param {TOptions} options - Configuration options for the model.
-     * @param {TTarget|null} [targetElement=null] - The underlying element (e.g., <option> or group node).
-     * @param {TView|null} [view=null] - The associated view responsible for rendering the model.
+     * Initializes the model with configuration options and optionally binds
+     * it to a target DOM element and a view.
+     *
+     * @param options - Configuration options for the model
+     * @param targetElement - Optional DOM element to bind to this model
+     * @param view - Optional view responsible for rendering the model
      */
-    public constructor(options: TOptions, targetElement: TTarget | null = null, view: TView | null = null) {
+    public constructor(
+        options: TOptions,
+        targetElement: TTarget | null = null,
+        view: TView | null = null
+    ) {
+        super();
         this.options = options;
         this.targetElement = targetElement;
         this.view = view;
+
+        this.init();
     }
 
     /**
-     * Updates the bound target element reference and invokes the change hook.
+     * Updates the bound target element and triggers the update lifecycle.
      *
-     * @param {TTarget|null} targetElement - The new target element to bind to the model.
+     * @param targetElement - The new DOM element to associate with this model
      */
-    public update(targetElement: TTarget | null): void {
+    public updateTarget(targetElement: TTarget | null): void {
         this.targetElement = targetElement;
-        this.onTargetChanged();
+        this.update();
     }
 
     /**
-     * Cleans up references and invokes the removal hook when the model is no longer needed.
+     * Hook executed when the model is updated.
+     * Intended to be overridden by subclasses.
      */
-    public remove() {
+    public onUpdate() { }
+
+    /**
+     * Destroys the model and releases all references.
+     *
+     * - Unbinds the target element
+     * - Removes the associated view from the DOM
+     * - Marks the model as removed
+     * - Triggers lifecycle cleanup
+     */
+    public override destroy() {
+        if (this.is(LifecycleState.DESTROYED)) {
+            return;
+        }
+
         this.targetElement = null;
-        this.view?.getView()?.remove?.();
+        this.view?.destroy();
         this.view = null;
         this.isRemoved = true;
-        this.onRemove();
+
+        super.destroy();
     }
-
-    /**
-     * Hook invoked whenever the target element changes.
-     * Override in subclasses to react to attribute/content updates (e.g., text, disabled state).
-     */
-    public onTargetChanged(): void { }
-
-    /**
-     * Hook invoked whenever the target element is removed.
-     * Override in subclasses to react to removal of the element.
-     */
-    public onRemove(): void {}
 }

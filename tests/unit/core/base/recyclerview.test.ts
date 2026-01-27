@@ -26,15 +26,6 @@ describe("RecyclerView", () => {
         expect(rv.adapter).toBeNull();
     });
 
-    test("setView updates viewElement", () => {
-        const rv = new RecyclerView();
-        const div = document.createElement("div");
-
-        rv.setView(div);
-
-        expect(rv.viewElement).toBe(div);
-    });
-
     test("clear does nothing when viewElement is null", () => {
         const rv = new RecyclerView(null);
 

@@ -2,7 +2,7 @@
  * Unit Tests for EmptyState
  */
 
-import { EmptyState } from "../../../src/ts/components/empty-state";
+import { EmptyState } from "../../../src/ts/components/popup/empty-state";
 import { Libs } from "../../../src/ts/utils/libs";
 
 describe("EmptyState", () => {

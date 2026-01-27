@@ -1,18 +1,34 @@
+
 import { View } from "../core/base/view";
 import { Libs } from "../utils/libs";
 import type { GroupViewTags, GroupViewResult } from "../types/views/view.group.type";
 
 /**
- * @extends {View<GroupViewTags>}
+ * View implementation responsible for rendering and managing
+ * a grouped collection of selectable items.
+ *
+ * The group consists of:
+ * - A header element (label)
+ * - A container holding child item views
+ *
+ * @extends View<GroupViewTags>
  */
 export class GroupView extends View<GroupViewTags> {
+
+    /**
+     * Strongly-typed reference to the mounted group view structure.
+     * Will be null until the view has been mounted.
+     */
     public view: GroupViewResult | null = null;
 
     /**
-     * Renders the group view structure (header + items container), sets ARIA attributes,
-     * and appends the root element to the parent container.
+     * Mounts the group view into the DOM.
+     *
+     * Creates the group container, header, and items wrapper,
+     * applies required ARIA attributes, and appends the root
+     * element to the parent container.
      */
-    public render(): void {
+    public override mount(): void {
         const group_id = Libs.randomString(7);
 
         this.view = Libs.mountView<GroupViewTags>({
@@ -44,63 +60,85 @@ export class GroupView extends View<GroupViewTags> {
             },
         }) as GroupViewResult;
 
-        // Parent is guaranteed by base constructor.
+        // Parent is guaranteed to exist by the base View constructor.
         this.parent!.appendChild(this.view.view);
+
+        super.mount();
     }
 
     /**
-     * Performs a lightweight refresh of the view (currently updates the header label).
-     */
-    public update(): void {
-        this.updateLabel();
-    }
-
-    /**
-     * Updates the group header text content if a label is provided.
+     * Called when the view needs to be updated.
      *
-     * @param {string|null} [label=null] - The new label to display; if null, keeps current.
+     * Currently performs a lightweight refresh by updating
+     * the group header label.
+     */
+    public override update(): void {
+        this.updateLabel();
+        super.update();
+    }
+
+    /**
+     * Updates the text content of the group header.
+     *
+     * @param label - The new label to display.
+     *                If null, the existing label is preserved.
      */
     public updateLabel(label: string | null = null): void {
         if (!this.view) return;
+
         const headerEl = this.view.tags.GroupHeader;
-        if (label !== null) headerEl.textContent = label;
+        if (label !== null) {
+            headerEl.textContent = label;
+        }
     }
 
     /**
-     * Returns the container element that holds all option/item views in this group.
+     * Returns the container element that holds all item/option views
+     * belonging to this group.
      *
-     * @returns {HTMLDivElement} - The items container element.
+     * @returns The HTMLDivElement used as the items container.
+     * @throws {Error} If the view has not been mounted yet.
      */
     public getItemsContainer(): HTMLDivElement {
-        if (!this.view) throw new Error("GroupView is not rendered.");
+        if (!this.view) {
+            throw new Error("GroupView has not been rendered.");
+        }
         return this.view.tags.GroupItems;
     }
 
     /**
-     * Toggles the group's visibility based on whether any child item is visible.
-     * Hides the entire group when all children are hidden.
+     * Updates the visibility of the group based on its children.
+     *
+     * If all child items are hidden, the entire group
+     * will be hidden as well.
      */
     public updateVisibility(): void {
         if (!this.view) return;
 
         const items = this.view.tags.GroupItems;
         const visibleItems = Array.from(items.children).filter(
-            (child) => !child.classList.contains("hide")
+            child => !child.classList.contains("hide")
         );
 
-        const isVisible = visibleItems.length > 0;
-        this.view.view.classList.toggle("hide", !isVisible);
+        this.view.view.classList.toggle("hide", visibleItems.length === 0);
     }
 
     /**
-     * Sets the collapsed state on the group and updates ARIA attributes accordingly.
+     * Sets the collapsed/expanded state of the group.
      *
-     * @param {boolean} collapsed - True to collapse; false to expand.
+     * This updates both:
+     * - Visual state (CSS classes)
+     * - Accessibility state (ARIA attributes)
+     *
+     * @param collapsed - True to collapse the group, false to expand it.
      */
     public setCollapsed(collapsed: boolean): void {
         if (!this.view) return;
 
         this.view.view.classList.toggle("collapsed", collapsed);
-        this.view.tags.GroupHeader.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        this.view.tags.GroupHeader.setAttribute(
+            "aria-expanded",
+            collapsed ? "false" : "true"
+        );
     }
 }

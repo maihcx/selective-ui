@@ -46,12 +46,12 @@ function createGroup(label: string): HTMLOptGroupElement {
 }
 
 beforeAll(() => {
-    jest.spyOn(OptionModel.prototype, "update")
+    jest.spyOn(OptionModel.prototype, "updateTarget")
         .mockImplementation(function (this: OptionModel, el: HTMLOptionElement | null) {
             (this as any).targetElement = el;
         });
 
-    jest.spyOn(GroupModel.prototype, "update")
+    jest.spyOn(GroupModel.prototype, "updateTarget")
         .mockImplementation(function (this: GroupModel, el: HTMLElement) {
             (this as any).targetElement = el;
         });

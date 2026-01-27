@@ -220,7 +220,7 @@ export class ModelManager<
                     // Label is used as key; keep original behavior.
                     const hasLabelChange = existingGroup.label !== dataVset.label;
                     if (hasLabelChange) {
-                        existingGroup.update(dataVset)
+                        existingGroup.updateTarget(dataVset)
                     }
 
                     existingGroup.position = position;
@@ -242,7 +242,7 @@ export class ModelManager<
                 const existingOption = oldOptionMap.get(key);
 
                 if (existingOption) {
-                    existingOption.update(dataVset);
+                    existingOption.updateTarget(dataVset);
                     existingOption.position = position;
 
                     const parentGroup = dataVset["__parentGroup"] as HTMLOptGroupElement | undefined;
@@ -282,12 +282,12 @@ export class ModelManager<
 
         oldGroupMap.forEach((removedGroup) => {
             isUpdate = false;
-            removedGroup.remove();
+            removedGroup.destroy();
         });
 
         oldOptionMap.forEach((removedOption) => {
             isUpdate = false;
-            removedOption.remove();
+            removedOption.destroy();
         });
 
         this.privModelList = newModels;

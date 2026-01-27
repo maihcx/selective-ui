@@ -38,7 +38,7 @@ export class iStorage {
         textAccessoryDeselect: "Deselect: ",
         animationtime: 200, // millisecond
         delaysearchtime: 200, // millisecond
-        allowHtml: true,
+        allowHtml: false,
         maxSelected: 0,
         labelHalign: "left",
         labelValign: "center",

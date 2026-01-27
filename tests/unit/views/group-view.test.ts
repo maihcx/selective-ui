@@ -17,7 +17,7 @@ describe('GroupView (additional)', () => {
     describe('Rendering – parent append & roles', () => {
         test('should append root view to parent container', () => {
             const view = new GroupView(parent);
-            view.render();
+            view.mount();
 
             const viewEl = view.getView();
             expect(parent.contains(viewEl)).toBe(true);
@@ -25,7 +25,7 @@ describe('GroupView (additional)', () => {
 
         test('should set proper roles on header and items', () => {
             const view = new GroupView(parent);
-            view.render();
+            view.mount();
 
             const header = view.view.tags.GroupHeader;
             const items = view.view.tags.GroupItems;
@@ -38,7 +38,7 @@ describe('GroupView (additional)', () => {
     describe('ARIA linkage', () => {
         test('root aria-labelledby should point to header id', () => {
             const view = new GroupView(parent);
-            view.render();
+            view.mount();
 
             const root = view.getView();
             const header = view.view.tags.GroupHeader;
@@ -49,7 +49,7 @@ describe('GroupView (additional)', () => {
 
         test('ids follow seui-*-group / seui-*-header pattern', () => {
             const view = new GroupView(parent);
-            view.render();
+            view.mount();
 
             const root = view.getView();
             const header = view.view.tags.GroupHeader;
@@ -67,7 +67,7 @@ describe('GroupView (additional)', () => {
     describe('Update lifecycle', () => {
         test('update() should delegate to updateLabel()', () => {
             const view = new GroupView(parent);
-            view.render();
+            view.mount();
 
             const spy = jest.spyOn(view, 'updateLabel');
             view.update();
@@ -77,7 +77,7 @@ describe('GroupView (additional)', () => {
 
         test('updateLabel(null) should not change existing header text', () => {
             const view = new GroupView(parent);
-            view.render();
+            view.mount();
 
             const header = view.view.tags.GroupHeader;
             header.textContent = 'Initial Label';
@@ -91,7 +91,7 @@ describe('GroupView (additional)', () => {
     describe('Collapse State (toggle)', () => {
         test('setCollapsed(false) should remove "collapsed" class and set aria-expanded=true', () => {
             const view = new GroupView(parent);
-            view.render();
+            view.mount();
 
             // Start collapsed then expand
             view.setCollapsed(true);
@@ -108,7 +108,7 @@ describe('GroupView (additional)', () => {
     describe('Visibility (mixed children)', () => {
         test('should show when at least one child is visible among hidden children', () => {
             const view = new GroupView(parent);
-            view.render();
+            view.mount();
 
             const items = view.view.tags.GroupItems;
 
@@ -127,7 +127,7 @@ describe('GroupView (additional)', () => {
 
         test('should hide when all children are hidden (multiple)', () => {
             const view = new GroupView(parent);
-            view.render();
+            view.mount();
 
             const items = view.view.tags.GroupItems;
 
@@ -148,7 +148,7 @@ describe('GroupView (additional)', () => {
     describe('Items Container – identity & type', () => {
         test('getItemsContainer() should return the same element as GroupItems tag', () => {
             const view = new GroupView(parent);
-            view.render();
+            view.mount();
 
             const containerEl = view.getItemsContainer();
             const tagEl = view.view.tags.GroupItems;
@@ -158,7 +158,7 @@ describe('GroupView (additional)', () => {
 
         test('items container should be an HTMLDivElement', () => {
             const view = new GroupView(parent);
-            view.render();
+            view.mount();
 
             const containerEl = view.getItemsContainer();
             expect(containerEl).toBeInstanceOf(HTMLDivElement);

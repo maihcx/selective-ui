@@ -1,3 +1,19 @@
+# 1.2.4 (2026-01-27)
+
+### Fixes
+
+- **ALL** Memory and events are not properly cleaned up due to a lack of clear lifecycle management
+
+### Optimizations
+
+- **Lifecycle** Add a Lifecycle class to tighten the rules for starting and ending the process
+
+- **ALL** Improvements to the Lifecycle-based architectural model
+
+- **ALL** Rewrite the JSDoc to fit the current model
+
+- **CSS** Rearrange the organization of CSS files
+
 # 1.2.3 (2026-01-26)
 
 ### Fixes

@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { Popup } from "../../../src/ts/components/popup";
+import { Popup } from "../../../src/ts/components/popup/popup";
 import { Libs } from "../../../src/ts/utils/libs";
 import { ResizeObserverService } from "../../../src/ts/services/resize-observer";
 import { ModelManager } from "../../../src/ts/core/model-manager";

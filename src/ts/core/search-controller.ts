@@ -1,26 +1,51 @@
-
-import { Popup } from "../components/popup";
+import { Popup } from "../components/popup/popup";
 import { SelectBox } from "../components/selectbox";
 import { GroupModel } from "../models/group-model";
 import { OptionModel } from "../models/option-model";
+import { LifecycleState } from "../types/core/base/lifecycle.type";
 import { MixedItem } from "../types/core/base/mixed-adapter.type";
 import { AjaxConfig, NormalizedAjaxItem, PaginationState, ParseResponseResult } from "../types/core/search-controller.type";
 import { Libs } from "../utils/libs";
+import { Lifecycle } from "./base/lifecycle";
 import { ModelManager } from "./model-manager";
 
-export class SearchController {
+/**
+ * Controller responsible for orchestrating search behavior across the Select UI.
+ *
+ * Responsibilities:
+ * - Manage local (in-memory) filtering and remote (AJAX) searching
+ * - Normalize heterogeneous server responses into a common structure
+ * - Maintain pagination state (page, totals, loading, hasMore)
+ * - Apply remote results back to the underlying <select> element
+ * - Coordinate UI updates via Popup (loading indicator, resize, empty/not-found states)
+ *
+ * Lifecycle:
+ * - Constructed with references to the native <select>, ModelManager, and SelectBox
+ * - `init()` runs immediately via `initialize()`
+ * - Methods `search()`, `loadMore()`, `clear()` are invoked by higher-level components
+ *
+ * @extends Lifecycle
+ */
+export class SearchController extends Lifecycle {
+    /** Backing native <select> element providing context and initial options. */
     private select: HTMLSelectElement;
 
+    /** Model manager providing access to model resources (items, adapter, recycler). */
     private modelManager: ModelManager<MixedItem, any>;
 
+    /** Current AJAX configuration; when absent, local search is used. */
     private ajaxConfig: AjaxConfig | null = null;
 
+    /** Used to cancel in-flight AJAX requests when a new search starts. */
     private abortController: AbortController | null = null;
 
+    /** Popup instance to reflect UI states (loading, empty/not-found), and sizing. */
     private popup: Popup | null = null;
 
+    /** SelectBox handle (used by custom data builders). */
     private selectBox: SelectBox = null;
 
+    /** Current pagination and loading state for remote searches. */
     private paginationState: PaginationState = {
         currentPage: 0,
         totalPages: 1,
@@ -34,29 +59,49 @@ export class SearchController {
      * Initializes the SearchController with a source <select> element and a ModelManager
      * to manage option models and search results.
      *
-     * @param {HTMLSelectElement} selectElement - The native select element that provides context and data source.
-     * @param {ModelManager<MixedItem, any>} modelManager - Manager responsible for models and rendering updates.
-     * @param {SelectBox} selectBox - SelectBox handle.
+     * @param selectElement - The native select element that provides context and data source.
+     * @param modelManager - Manager responsible for models and rendering updates.
+     * @param selectBox - SelectBox handle.
      */
     public constructor(selectElement: HTMLSelectElement, modelManager: ModelManager<MixedItem, any>, selectBox: SelectBox) {
+        super();
+        this.initialize(selectElement, modelManager, selectBox);
+    }
+
+    /**
+     * Internal initializer that captures dependencies and starts the lifecycle.
+     *
+     * @param selectElement - The native select element that provides context and data source.
+     * @param modelManager - Manager responsible for models and rendering updates.
+     * @param selectBox - SelectBox handle.
+     */
+    private initialize(selectElement: HTMLSelectElement, modelManager: ModelManager<MixedItem, any>, selectBox: SelectBox): void {
         this.select = selectElement;
         this.modelManager = modelManager;
         this.selectBox = selectBox;
+
+        this.init();
     }
 
     /**
      * Indicates whether AJAX-based search is configured.
      *
-     * @returns {boolean} - True if AJAX config is present; false otherwise.
+     * @returns True if AJAX config is present; false otherwise.
      */
     public isAjax(): boolean {
         return !!this.ajaxConfig;
     }
 
     /**
-     * Load specific options by their values from server
-     * @param {string|string[]} values - Values to load
-     * @returns {Promise<{success: boolean, items: Array, message?: string}>}
+     * Loads specific options by their values from the server.
+     *
+     * Behavior:
+     * - Uses `ajaxConfig.dataByValues` if provided; otherwise builds a default payload.
+     * - Supports GET/POST according to `ajaxConfig.method` (defaults to GET).
+     * - Normalizes the response via `parseResponse()` and returns normalized items.
+     *
+     * @param values - Value or list of values to load.
+     * @returns Promise resolving with `{ success, items, message? }`.
      */
     async loadByValues(values: string | string[]): Promise<{ success: boolean; items: NormalizedAjaxItem[]; message?: string }> {
         if (!this.ajaxConfig) {
@@ -76,7 +121,9 @@ export class SearchController {
                 payload = {
                     values: valuesArray.join(","),
                     load_by_values: "1",
-                    ...(typeof cfg.data === "function" ? cfg.data.bind(this.selectBox.Selective.find(this.selectBox.container.targetElement))("", 0) : cfg.data ?? {}),
+                    ...(typeof cfg.data === "function"
+                        ? cfg.data.bind(this.selectBox.Selective.find(this.selectBox.container.targetElement))("", 0)
+                        : cfg.data ?? {}),
                 };
             }
 
@@ -100,6 +147,8 @@ export class SearchController {
             const data = await response.json();
             const result = this.parseResponse(data);
 
+            this.update();
+
             return { success: true, items: result.items };
         } catch (error: any) {
             console.error("Load by values error:", error);
@@ -108,9 +157,10 @@ export class SearchController {
     }
 
     /**
-     * Check if values exist in current options
-     * @param {string[]} values - Values to check
-     * @returns {{existing: string[], missing: string[]}}
+     * Checks whether the provided values already exist in the current <select> options.
+     *
+     * @param values - Values to check for presence.
+     * @returns Partitioned result: `{ existing, missing }`.
      */
     public checkMissingValues(values: string[]): { existing: string[]; missing: string[] } {
         const allOptions = Array.from(this.select.options);
@@ -125,7 +175,7 @@ export class SearchController {
     /**
      * Configures AJAX settings used for remote searching and pagination.
      *
-     * @param {object} config - AJAX configuration object (e.g., endpoint, headers, query params).
+     * @param config - AJAX configuration (endpoint, method, data builders, etc.).
      */
     public setAjax(config: AjaxConfig | null): void {
         this.ajaxConfig = config;
@@ -134,7 +184,7 @@ export class SearchController {
     /**
      * Attaches a Popup instance to allow UI updates during search (e.g., loading, resize).
      *
-     * @param {Popup} popupInstance - The popup used to display search results and loading state.
+     * @param popupInstance - The popup used to display search results and loading state.
      */
     public setPopup(popupInstance: Popup): void {
         this.popup = popupInstance;
@@ -142,6 +192,8 @@ export class SearchController {
 
     /**
      * Returns a shallow copy of the current pagination state used for search/infinite scroll.
+     *
+     * @returns Pagination state snapshot.
      */
     public getPaginationState(): PaginationState {
         return { ...this.paginationState };
@@ -164,6 +216,8 @@ export class SearchController {
 
     /**
      * Clears the current keyword and makes all options visible (local reset).
+     *
+     * No network requests are made; operates on the current model set.
      */
     public clear(): void {
         this.paginationState.currentKeyword = "";
@@ -183,14 +237,20 @@ export class SearchController {
 
     /**
      * Performs a search with either AJAX or local filtering depending on configuration.
+     *
+     * @param keyword - The search term to apply.
+     * @param append - For AJAX mode: whether to append results (next page). Defaults to false.
+     * @returns An implementation-specific result object.
      */
     public async search(keyword: string, append: boolean = false): Promise<any> {
-        if (this.ajaxConfig) return this._ajaxSearch(keyword, append);
-        return this._localSearch(keyword);
+        if (this.ajaxConfig) return this.ajaxSearch(keyword, append);
+        return this.localSearch(keyword);
     }
 
     /**
      * Loads the next page for AJAX pagination if enabled and not already loading.
+     *
+     * @returns Result of the paginated AJAX request, or an error when not applicable.
      */
     public async loadMore(): Promise<any> {
         if (!this.ajaxConfig) return { success: false, message: "Ajax not enabled" };
@@ -199,14 +259,17 @@ export class SearchController {
         if (!this.paginationState.hasMore) return { success: false, message: "No more data" };
 
         this.paginationState.currentPage++;
-        return this._ajaxSearch(this.paginationState.currentKeyword, true);
+        return this.ajaxSearch(this.paginationState.currentKeyword, true);
     }
 
     /**
      * Executes a local (in-memory) search by normalizing the keyword (lowercase, non-accent)
-     * and toggling each option's visibility based on text match. Returns summary flags.
+     * and toggling each option's visibility based on text match.
+     *
+     * @param keyword - Keyword to filter against local options.
+     * @returns Summary flags: `{ success, hasResults, isEmpty }`.
      */
-    private async _localSearch(keyword: string): Promise<{ success: boolean; hasResults: boolean; isEmpty: boolean }> {
+    private async localSearch(keyword: string): Promise<{ success: boolean; hasResults: boolean; isEmpty: boolean }> {
         if (this.compareSearchTrigger(keyword)) this.paginationState.currentKeyword = keyword;
 
         const lower = String(keyword ?? "").toLowerCase();
@@ -229,6 +292,8 @@ export class SearchController {
             if (isVisible) hasVisibleItems = true;
         });
 
+        this.update();
+
         return {
             success: true,
             hasResults: hasVisibleItems,
@@ -239,6 +304,9 @@ export class SearchController {
     /**
      * Checks whether the provided keyword differs from the current one,
      * to determine if a new search should be triggered.
+     *
+     * @param keyword - The keyword to compare with the current search term.
+     * @returns True if a new search should be triggered; otherwise false.
      */
     public compareSearchTrigger(keyword: string): boolean {
         return keyword !== this.paginationState.currentKeyword;
@@ -246,8 +314,19 @@ export class SearchController {
 
     /**
      * Executes an AJAX-based search with optional appending.
+     *
+     * Behavior:
+     * - Aborts any in-flight request before starting a new search
+     * - Shows loading in the popup (if available)
+     * - Supports GET/POST with data built from config or function
+     * - Applies normalized results to the <select>, respecting `keepSelected`
+     * - Updates pagination state when server response includes pagination info
+     *
+     * @param keyword - Search keyword.
+     * @param append - Whether to append results (true = next page); defaults to false.
+     * @returns An implementation-specific result object with success and pagination flags.
      */
-    private async _ajaxSearch(keyword: string, append: boolean = false): Promise<any> {
+    private async ajaxSearch(keyword: string, append: boolean = false): Promise<any> {
         const cfg = this.ajaxConfig!;
         if (this.compareSearchTrigger(keyword)) {
             this.resetPagination();
@@ -309,6 +388,8 @@ export class SearchController {
             this.paginationState.isLoading = false;
             this.popup?.hideLoading();
 
+            this.update();
+
             return {
                 success: true,
                 hasResults: result.items.length > 0,
@@ -330,7 +411,20 @@ export class SearchController {
     }
 
     /**
-     * Parses various server response shapes into a normalized structure for options and groups.
+     * Normalizes various server response shapes into a standard structure for options and groups.
+     *
+     * Supported shapes (examples):
+     * - `{ object: [...], page?, totalPages?, hasMore? }`
+     * - `{ data: [...], page?, totalPages?, hasMore? }`
+     * - `{ items: [...], pagination: { page, totalPages, hasMore } }`
+     * - `[...]` (array of items)
+     *
+     * Each item can represent either:
+     * - An option: `{ type: "option", value, text, selected?, data? }`
+     * - A group: `{ type: "optgroup", label, data?, options: [...] }`
+     *
+     * @param data - Server response (any shape).
+     * @returns `{ items, hasPagination, page, totalPages, hasMore }`
      */
     private parseResponse(data: any): ParseResponseResult {
         let items: any[] = [];
@@ -400,6 +494,15 @@ export class SearchController {
 
     /**
      * Applies normalized AJAX results to the underlying <select> element.
+     *
+     * Behavior:
+     * - Optionally preserves existing selections (`keepSelected`)
+     * - Clears existing children unless `append` is true
+     * - Supports adding either normalized items or raw HTMLOption/HTMLOptGroup elements
+     *
+     * @param items - Normalized items (or raw HTMLOption/HTMLOptGroup).
+     * @param keepSelected - Preserve previously selected options.
+     * @param append - Append to existing options instead of replacing.
      */
     public applyAjaxResult(items: NormalizedAjaxItem[], keepSelected: boolean, append: boolean = false): void {
         const select = this.select;
@@ -410,7 +513,7 @@ export class SearchController {
         if (!append) select.innerHTML = "";
 
         items.forEach((item: any) => {
-            // Skip empty item
+            // Skip empty item (defensive guard)
             if ((item["type"] === "option" || !item["type"]) && item["value"] === "" && item["text"] === "") return;
 
             if (item instanceof HTMLOptionElement || item instanceof HTMLOptGroupElement) {
@@ -467,5 +570,27 @@ export class SearchController {
                 select.appendChild(option);
             }
         });
+    }
+
+    /**
+     * Destroys the controller and clears references.
+     *
+     * Notes:
+     * - In-flight requests are not aborted here; consumers should abort if needed before destroy.
+     * - The linked Popup/ModelManager exist outside this controller and are not destroyed here.
+     */
+    public override destroy(): void {
+        if (this.is(LifecycleState.DESTROYED)) {
+            return;
+        }
+
+        this.select = null;
+        this.modelManager = null;
+        this.ajaxConfig = null;
+        this.abortController = null;
+        this.popup = null;
+        this.selectBox = null;
+
+        super.destroy();
     }
 }

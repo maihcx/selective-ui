@@ -1,43 +1,55 @@
+
+import { Lifecycle } from "src/ts/core/base/lifecycle";
 import { MountViewResult } from "../../utils/libs.type";
 
 /**
- * Contract for a UI view created via `mountView`/`mountNode`.
- * Encapsulates the mounted view, its parent, and helper accessors.
+ * Contract definition for a UI View created via `mountView` or `mountNode`.
+ *
+ * A View encapsulates:
+ * - The mounted DOM structure
+ * - The root element
+ * - A strongly-typed map of named child elements
+ * - Lifecycle management hooks
  *
  * @template TTags - A map of tag names to their corresponding HTMLElement instances.
- *                   Example: `{ Root: HTMLDivElement, Button: HTMLButtonElement }`
+ * Example:
+ * ```ts
+ * {
+ *   Root: HTMLDivElement;
+ *   Button: HTMLButtonElement;
+ * }
+ * ```
  */
-export interface ViewContract<TTags extends Record<string, HTMLElement>> {
+export interface ViewContract<TTags extends Record<string, HTMLElement>> extends Lifecycle {
+
     /**
-     * The parent container into which the view is mounted.
-     * Can be null before the view is attached.
+     * The parent DOM element into which the view is mounted.
+     *
+     * This value is:
+     * - `null` before the view is mounted
+     * - Set once the view is attached to the DOM
      */
     parent: HTMLElement | null;
 
     /**
-     * The result returned by mountView/mountNode, including the root element
-     * and the tag map used to retrieve specific nodes.
-     * Can be null if the view has not been mounted yet.
+     * Internal representation of the mounted view returned by `mountView` or `mountNode`.
+     *
+     * Contains:
+     * - The root element of the view
+     * - A strongly-typed tag map for querying child elements
+     *
+     * Will be `null` if the view has not been mounted yet.
      */
     view: MountViewResult<TTags> | null;
 
     /**
-     * Render or re-render the view.
-     * Implementations typically (re)build DOM, bind events, and update state.
-     */
-    render(): void;
-
-    /**
-     * Update the view.
-     * Implementations typically refresh displayed data without a full re-render.
-     */
-    update(): void;
-
-    /**
-     * Get the root HTMLElement for the mounted view.
+     * Returns the root HTMLElement of the mounted view.
      *
-     * @returns The root element produced by mountView/mountNode.
-     * @throws If the view is not initialized.
+     * This is typically the top-level container element
+     * created by `mountView` / `mountNode`.
+     *
+     * @returns The root HTMLElement of the view.
+     * @throws {Error} If the view has not been mounted or initialized.
      */
     getView(): HTMLElement;
 }

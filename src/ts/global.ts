@@ -18,13 +18,13 @@ import "../css/index.css";
 import "../css/components/selectbox.css";
 import "../css/components/placeholder.css";
 import "../css/components/directive.css";
-import "../css/components/empty-state.css";
-import "../css/components/loading-state.css";
-import "../css/components/optgroup.css";
-import "../css/components/popup.css";
+import "../css/components/popup/empty-state.css";
+import "../css/components/popup/loading-state.css";
+import "../css/views/group-view.css";
+import "../css/components/popup/popup.css";
 import "../css/components/searchbox.css";
 import "../css/components/option-handle.css";
-import "../css/components/option.css";
+import "../css/views/option-view.css";
 import "../css/components/accessorybox.css";
 
 import { Selective } from "./utils/selective";

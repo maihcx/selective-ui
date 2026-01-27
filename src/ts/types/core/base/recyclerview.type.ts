@@ -1,3 +1,4 @@
+import { Lifecycle } from "src/ts/core/base/lifecycle";
 import { AdapterContract } from "./adapter.type";
 
 /**
@@ -5,7 +6,7 @@ import { AdapterContract } from "./adapter.type";
  *
  * @template TAdapter - A concrete adapter type that implements AdapterContract.
  */
-export interface RecyclerViewContract<TAdapter extends AdapterContract<any>> {
+export interface RecyclerViewContract<TAdapter extends AdapterContract<any>> extends Lifecycle {
     /**
      * The container element that hosts all item views.
      * Can be null until `setView` is called.
@@ -17,13 +18,6 @@ export interface RecyclerViewContract<TAdapter extends AdapterContract<any>> {
      * Can be null until `setAdapter` is called.
      */
     adapter: TAdapter | null;
-
-    /**
-     * Set or replace the container element used for rendering.
-     *
-     * @param viewElement - The root container element for the recycler view.
-     */
-    setView(viewElement: HTMLElement): void;
 
     /**
      * Attach an adapter and refresh the view accordingly.
