@@ -15,7 +15,7 @@ describe('OptionView', () => {
     describe('Rendering', () => {
         test('should render basic structure', () => {
             const view = new OptionView(parent);
-            view.render();
+            view.mount();
             
             const viewEl = view.getView();
             expect(viewEl).toBeInTheDocument();
@@ -25,7 +25,7 @@ describe('OptionView', () => {
         test('should render with checkbox for multiple', () => {
             const view = new OptionView(parent);
             view.isMultiple = true;
-            view.render();
+            view.mount();
             
             const input = view.view.tags.OptionInput;
             expect(input.type).toBe('checkbox');
@@ -34,7 +34,7 @@ describe('OptionView', () => {
         test('should render with radio for single', () => {
             const view = new OptionView(parent);
             view.isMultiple = false;
-            view.render();
+            view.mount();
             
             const input = view.view.tags.OptionInput;
             expect(input.type).toBe('radio');
@@ -49,7 +49,7 @@ describe('OptionView', () => {
                 imageBorderRadius: '5px',
                 imagePosition: 'left'
             };
-            view.render();
+            view.mount();
             
             expect(view.getView().classList.contains('has-image')).toBe(true);
             expect(view.view.tags.OptionImage).toBeTruthy();
@@ -59,7 +59,7 @@ describe('OptionView', () => {
     describe('Update', () => {
         test('should update view on config change', () => {
             const view = new OptionView(parent);
-            view.render();
+            view.mount();
             
             view.isMultiple = true;
             view.update();
@@ -71,7 +71,7 @@ describe('OptionView', () => {
         test('should add/remove image element', () => {
             const view = new OptionView(parent);
             view.hasImage = false;
-            view.render();
+            view.mount();
             
             expect(view.view.tags.OptionImage).toBeFalsy();
             

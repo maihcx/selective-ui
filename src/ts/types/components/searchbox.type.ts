@@ -2,7 +2,7 @@ import { PlaceHolder } from "src/ts/components/placeholder";
 import { MountViewResult } from "../utils/libs.type";
 import { Directive } from "src/ts/components/directive";
 import { SearchBox } from "src/ts/components/searchbox";
-import { Popup } from "src/ts/components/popup";
+import { Popup } from "src/ts/components/popup/popup";
 import { EffectorInterface } from "../services/effector.type";
 import { AccessoryBox } from "src/ts/components/accessorybox";
 import { SearchController } from "src/ts/core/search-controller";

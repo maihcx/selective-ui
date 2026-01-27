@@ -1,3 +1,4 @@
+import { Lifecycle } from "src/ts/core/base/lifecycle";
 import type { ModelContract } from "./model.type";
 
 /**
@@ -5,7 +6,7 @@ import type { ModelContract } from "./model.type";
  *
  * @template TItem - A model type that implements ModelContract.
  */
-export interface AdapterContract<TItem extends ModelContract<any, any>> {
+export interface AdapterContract<TItem extends ModelContract<any, any>> extends Lifecycle {
     /**
      * List of items managed by the adapter.
      * These items are rendered or updated in the associated container.

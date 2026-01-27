@@ -2,42 +2,77 @@ import { Libs } from "../utils/libs";
 import { MountViewResult } from "../types/utils/libs.type";
 import { NavigateHandler, SearchBoxTags, SearchHandler } from "../types/components/searchbox.type";
 import { SelectiveOptions } from "../types/utils/selective.type";
+import { Lifecycle } from "../core/base/lifecycle";
+import { LifecycleState } from "../types/core/base/lifecycle.type";
 
-export class SearchBox {
+/**
+ * Searchable input component for the Select UI.
+ *
+ * Responsibilities:
+ * - Render a search input field with proper ARIA attributes
+ * - Dispatch typed events for search, navigation, Enter, and Escape
+ * - Support showing/hiding and dynamic placeholder updates
+ *
+ * Lifecycle:
+ * - Constructed with optional options → initialized → `init()`
+ * - Consumers wire callbacks (`onSearch`, `onNavigate`, `onEnter`, `onEsc`)
+ *
+ * @extends Lifecycle
+ */
+export class SearchBox extends Lifecycle {
     /**
      * Creates a searchable input box component with optional configuration
      * and initializes it if options are provided.
      *
-     * @param {object|null} [options=null] - Configuration (e.g., placeholder, accessibility IDs).
+     * @param options - Configuration (e.g., placeholder, accessibility IDs).
      */
     constructor(options: SelectiveOptions | null = null) {
+        super();
         this.options = options;
-        if (options) this.init(options);
+        if (options) this.initialize(options);
     }
 
+    /** Internal reference to the mounted node structure with typed tags. */
     private nodeMounted: MountViewResult<SearchBoxTags> | null = null;
 
+    /** Root container element for the search box component. */
     public node: HTMLDivElement | null = null;
 
+    /** Reference to the input element (`type="search"`). */
     private SearchInput: HTMLInputElement | null = null;
 
+    /** Callback fired on input changes (when not a control key event). */
     public onSearch: SearchHandler | null = null;
 
+    /** Current configuration options (placeholder, IDs, searchable flag, etc.). */
     private options: SelectiveOptions | null = null;
 
+    /** Callback to handle list navigation: +1 for next, -1 for previous. */
     public onNavigate: NavigateHandler | null = null;
 
+    /** Callback fired on Enter. Typically used to confirm a selection. */
     public onEnter: (() => void) | null = null;
     
+    /** Callback fired on Escape. Typically used to dismiss a popup. */
     public onEsc: (() => void) | null = null;
 
     /**
      * Initializes the search box DOM, sets ARIA attributes, and wires keyboard/mouse/input events.
-     * Supports navigation (ArrowUp/ArrowDown/Tab), Enter, and Escape through callbacks.
      *
-     * @param {object} options - Configuration including placeholder and SEID_LIST for aria-controls.
+     * Accessibility:
+     * - `role="searchbox"`
+     * - `aria-controls` references the listbox container by ID
+     * - `aria-autocomplete="list"` indicates list-based suggestions/results
+     *
+     * Keyboard support:
+     * - ArrowDown / Tab → navigate forward
+     * - ArrowUp → navigate backward
+     * - Enter → confirm action
+     * - Escape → cancel/close action
+     *
+     * @param options - Configuration including placeholder and `SEID_LIST` for `aria-controls`.
      */
-    private init(options: SelectiveOptions): void {
+    private initialize(options: SelectiveOptions): void {
         this.nodeMounted = Libs.mountNode({
             SearchBox: {
                 tag: { node: "div", classList: ["selective-ui-searchbox", "hide"] },
@@ -56,7 +91,7 @@ export class SearchBox {
                     },
                 },
             },
-        }) as unknown as MountViewResult<SearchBoxTags>;
+        }) as MountViewResult<SearchBoxTags>;
 
         this.node = this.nodeMounted.view as HTMLDivElement;
         this.SearchInput = this.nodeMounted.tags.SearchInput;
@@ -64,6 +99,7 @@ export class SearchBox {
         let isControlKey = false;
         const inputEl = this.nodeMounted.tags.SearchInput;
 
+        // Prevent parent listeners from intercepting mouse interactions.
         inputEl.addEventListener("mousedown", (e: MouseEvent) => {
             e.stopPropagation();
         });
@@ -72,6 +108,7 @@ export class SearchBox {
             e.stopPropagation();
         });
 
+        // Keyboard handling: navigation, submit, and cancel.
         inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
             isControlKey = false;
 
@@ -96,18 +133,22 @@ export class SearchBox {
                 isControlKey = true;
                 this.onEsc?.();
             }
-            
+
+            // Ensure events don't bubble to container-level listeners.
             e.stopPropagation();
         });
 
+        // Text input changes (ignore control-key initiated sequences).
         inputEl.addEventListener("input", () => {
             if (isControlKey) return;
             this.onSearch?.(inputEl.value, true);
         });
+
+        this.init();
     }
 
     /**
-     * Shows the search box, toggles read-only based on `options.searchable`,
+     * Shows the search box, toggles `readOnly` based on `options.searchable`,
      * and focuses the input when searchable.
      */
     public show(): void {
@@ -124,7 +165,7 @@ export class SearchBox {
     }
 
     /**
-     * Hides the search box by adding the "hide" class.
+     * Hides the search box by adding the `hide` class.
      */
     public hide(): void {
         if (!this.node) return;
@@ -132,9 +173,9 @@ export class SearchBox {
     }
 
     /**
-     * Clears the current search value and optionally triggers the onSearch callback.
+     * Clears the current search value and optionally triggers the `onSearch` callback.
      *
-     * @param {boolean} [isTrigger=true] - Whether to invoke onSearch with an empty string.
+     * @param isTrigger - Whether to invoke `onSearch` with an empty string. Defaults to `true`.
      */
     public clear(isTrigger: boolean = true): void {
         if (!this.nodeMounted) return;
@@ -145,7 +186,7 @@ export class SearchBox {
     /**
      * Updates the input's placeholder text, stripping any HTML for safety.
      *
-     * @param {string} value - The new placeholder text.
+     * @param value - The new placeholder text.
      */
     public setPlaceHolder(value: string): void {
         if (!this.SearchInput) return;
@@ -153,12 +194,37 @@ export class SearchBox {
     }
 
     /**
-     * Sets the active descendant for ARIA to indicate which option is currently highlighted.
+     * Sets the active descendant for ARIA to indicate the currently highlighted option.
      *
-     * @param {string} id - The DOM id of the active option element.
+     * @param id - The DOM id of the active option element.
      */
     public setActiveDescendant(id: string): void {
         if (!this.SearchInput) return;
         this.SearchInput.setAttribute("aria-activedescendant", id);
+    }
+
+    /**
+     * Destroys the search box and releases resources.
+     *
+     * - Removes the root DOM node
+     * - Clears references to DOM and callbacks
+     * - Ends the lifecycle
+     */
+    public override destroy(): void {
+        if (this.is(LifecycleState.DESTROYED)) {
+            return;
+        }
+                
+        this.node?.remove();
+        this.nodeMounted = null;
+        this.node = null;
+        this.SearchInput = null;
+        this.onSearch = null;
+        this.options = null;
+        this.onNavigate = null;
+        this.onEnter = null;
+        this.onEsc = null;
+
+        super.destroy();
     }
 }

@@ -25,12 +25,12 @@ export class ElementAdditionObserver<T extends Element = Element> {
     }
 
     /**
-     * Starts observing the document for additions of elements matching the given tag.
+     * connect observing the document for additions of elements matching the given tag.
      * Detects both direct additions and nested matches within added subtrees.
      *
      * @param {string} tag - The tag name to watch for (e.g., "select", "div").
      */
-    public start(tag: string): void {
+    public connect(tag: string): void {
         if (this.isActive) return;
 
         this.isActive = true;
@@ -43,14 +43,14 @@ export class ElementAdditionObserver<T extends Element = Element> {
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType !== 1) return;
 
-                    const subnode = node as HTMLElement;
+                    const subnode = node as T;
 
                     if (subnode.tagName === upperTag) {
-                        this.handle(subnode as unknown as T);
+                        this.handle(subnode as T);
                     }
 
                     const matches = subnode.querySelectorAll(lowerTag);
-                    matches.forEach((el) => this.handle(el as unknown as T));
+                    matches.forEach((el) => this.handle(el as T));
                 });
             }
         });
@@ -65,7 +65,7 @@ export class ElementAdditionObserver<T extends Element = Element> {
      * Stops observing for element additions and releases internal resources.
      * No-ops if the observer is not active.
      */
-    public stop(): void {
+    public disconnect(): void {
         if (!this.isActive) return;
 
         this.isActive = false;

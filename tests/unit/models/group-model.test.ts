@@ -148,7 +148,7 @@ describe('GroupModel', () => {
             optgroup.label = 'New Label';
 
             expect(() => {
-                model.update(optgroup);
+                model.updateTarget(optgroup);
             }).not.toThrow();
 
             expect(model.label).toBe('New Label');
@@ -167,7 +167,7 @@ describe('GroupModel', () => {
                 setCollapsed
             } as any;
 
-            model.onTargetChanged();
+            model.onUpdate();
 
             expect(updateLabel).toHaveBeenCalledWith(model.label);
             expect(setCollapsed).toHaveBeenCalledWith(model.collapsed);
@@ -177,7 +177,7 @@ describe('GroupModel', () => {
             const model = new GroupModel({}, optgroup);
 
             expect(() => {
-                model.onTargetChanged();
+                model.onUpdate();
             }).not.toThrow();
         });
     });

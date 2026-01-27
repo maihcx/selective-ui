@@ -71,12 +71,12 @@ describe("Model", () => {
             initialTarget.setAttribute("value", "old");
             const model = new Model({}, initialTarget, null);
 
-            const spy = jest.spyOn(model, "onTargetChanged");
+            const spy = jest.spyOn(model, "onUpdate");
 
             const newTarget = document.createElement("option");
             newTarget.setAttribute("value", "new");
 
-            model.update(newTarget);
+            model.updateTarget(newTarget);
 
             expect(model.targetElement).toBe(newTarget);
             expect(spy).toHaveBeenCalledTimes(1);
@@ -86,9 +86,9 @@ describe("Model", () => {
             const target = document.createElement("option");
             const model = new Model({}, target, null);
 
-            const spy = jest.spyOn(model, "onTargetChanged");
+            const spy = jest.spyOn(model, "onUpdate");
 
-            model.update(null);
+            model.updateTarget(null);
 
             expect(model.targetElement).toBeNull();
             expect(spy).toHaveBeenCalledTimes(1);
@@ -99,7 +99,7 @@ describe("Model", () => {
         test("default implementation does not throw", () => {
             const model = new Model({}, null, null);
 
-            expect(() => model.onTargetChanged()).not.toThrow();
+            expect(() => model.onUpdate()).not.toThrow();
         });
 
         test("overridden in subclass is called on update()", () => {
@@ -113,7 +113,7 @@ describe("Model", () => {
             const spy = jest.spyOn(model, "onTargetChanged");
 
             const nextTarget = document.createElement("option");
-            model.update(nextTarget);
+            model.updateTarget(nextTarget);
 
             expect(spy).toHaveBeenCalledTimes(1);
             expect(model.targetElement).toBe(nextTarget);

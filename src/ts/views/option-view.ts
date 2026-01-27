@@ -1,38 +1,76 @@
 
 import { View } from "../core/base/view";
 import { Libs } from "../utils/libs";
-import type { OptionViewTags, OptionViewResult, OptionConfig, OptionConfigPatch } from "../types/views/view.option.type";
+import type {
+    OptionViewTags,
+    OptionViewResult,
+    OptionConfig,
+    OptionConfigPatch
+} from "../types/views/view.option.type";
 
 /**
- * @extends {View<OptionViewTags>}
+ * View implementation for a single selectable option.
+ *
+ * An option may consist of:
+ * - An input element (radio or checkbox)
+ * - An optional image
+ * - A label container
+ *
+ * This view supports reactive configuration changes via a Proxy,
+ * allowing partial DOM updates without fully re-rendering the view.
+ *
+ * @extends View<OptionViewTags>
  */
 export class OptionView extends View<OptionViewTags> {
+
+    /**
+     * Reference to the mounted option view.
+     * Set during `onMount`; null before render.
+     */
     public view: OptionViewResult | null = null;
 
+    /**
+     * Internal configuration state used as the Proxy target.
+     * Should not be mutated directly.
+     */
     private config: OptionConfig | null = null;
 
+    /**
+     * Proxy wrapper around `config`.
+     * Assigning properties on this object triggers incremental
+     * DOM updates once the view has been rendered.
+     */
     private configProxy: OptionConfig | null = null;
-    
+
+    /**
+     * Indicates whether the initial render has been completed.
+     * Partial DOM updates are skipped until this becomes true.
+     */
     private isRendered = false;
 
     /**
-     * Initializes the OptionView with a parent container and sets up the reactive config proxy.
-     * The proxy enables partial DOM updates when config properties change after initial render.
+     * Creates a new OptionView bound to the given parent element.
      *
-     * @param {HTMLElement} parent - The parent element into which this view will be mounted.
+     * Initializes the internal configuration and sets up
+     * a reactive Proxy to track and apply configuration changes.
+     *
+     * @param parent - The container element that will host this option view.
      */
     public constructor(parent: HTMLElement) {
         super(parent);
-        this.setupConfigProxy();
+        this.initialize();
     }
 
     /**
-     * Creates the internal configuration object and wraps it with a Proxy.
-     * The proxy intercepts property assignments and, if the view is rendered,
-     * applies only the necessary DOM changes for the updated property.
-     * No DOM mutations occur before the first render.
+     * Initializes the default configuration object and wraps it in a Proxy.
+     *
+     * The Proxy intercepts property assignments and:
+     * - Updates internal state
+     * - Applies targeted DOM changes when the view is already rendered
+     *
+     * No DOM mutations occur before the initial render.
      */
-    private setupConfigProxy(): void {
+    public initialize(): void {
         const self = this;
 
         this.config = {
@@ -55,6 +93,7 @@ export class OptionView extends View<OptionViewTags> {
 
                 if (oldValue !== value) {
                     target[key] = value as never;
+
                     if (self.isRendered) {
                         self.applyPartialChange(key, value, oldValue);
                     }
@@ -62,12 +101,15 @@ export class OptionView extends View<OptionViewTags> {
                 return true;
             },
         });
+
+        this.init();
     }
 
     /**
-     * Indicates whether the option supports multiple selection (checkbox) instead of single (radio).
+     * Indicates whether the option supports multiple selection.
      *
-     * @returns {boolean} True if multiple selection is enabled; otherwise false.
+     * - `false`: single selection (radio)
+     * - `true`: multiple selection (checkbox)
      */
     public get isMultiple(): boolean {
         return this.config!.isMultiple;
@@ -75,78 +117,95 @@ export class OptionView extends View<OptionViewTags> {
 
     /**
      * Enables or disables multiple selection mode.
-     * When rendered, toggles the root CSS class and switches the input type between 'checkbox' and 'radio'.
      *
-     * @param {boolean} value - True to enable multiple selection; false for single selection.
+     * When rendered:
+     * - Toggles the `multiple` CSS class on the root element
+     * - Switches the input type between `radio` and `checkbox`
      */
     public set isMultiple(value: boolean) {
         (this.configProxy as OptionConfig).isMultiple = !!value;
     }
 
     /**
-     * Indicates whether the option includes an image block alongside the label.
-     *
-     * @returns {boolean} True if an image is displayed; otherwise false.
+     * Indicates whether the option displays an image next to the label.
      */
     public get hasImage(): boolean {
         return this.config!.hasImage;
     }
 
     /**
-     * Shows or hides the image block for the option.
-     * When rendered, toggles related CSS classes and creates/removes the image element accordingly.
+     * Shows or hides the image block.
      *
-     * @param {boolean} value - True to show the image; false to hide it.
+     * When rendered:
+     * - Toggles related CSS classes
+     * - Creates or removes the `<img>` element dynamically
      */
     public set hasImage(value: boolean) {
         (this.configProxy as OptionConfig).hasImage = !!value;
     }
 
     /**
-     * Provides reactive access to the entire option configuration via a Proxy.
-     * Mutating properties on this object will trigger partial DOM updates when rendered.
+     * Provides reactive access to the full option configuration.
      *
-     * @returns {object} The proxied configuration object.
+     * Mutating properties on this object triggers incremental
+     * DOM updates when the view has already been rendered.
      */
     public get optionConfig(): OptionConfig {
         return this.configProxy as OptionConfig;
     }
 
     /**
-     * Applies a set of configuration changes in batch.
-     * Only properties that differ from the current config are updated.
-     * When rendered, each changed property triggers a targeted DOM update via the proxy.
+     * Applies a batch of configuration changes.
+     *
+     * Only properties whose values differ from the current state
+     * are assigned to the Proxy and processed.
+     *
+     * @param config - Partial configuration patch
      */
     public set optionConfig(config: OptionConfigPatch | null) {
         if (!config || !this.configProxy || !this.config) return;
 
         const changes: OptionConfigPatch = {};
 
-        if (config.imageWidth !== undefined && config.imageWidth !== this.config.imageWidth) changes.imageWidth = config.imageWidth;
-        if (config.imageHeight !== undefined && config.imageHeight !== this.config.imageHeight) changes.imageHeight = config.imageHeight;
-        if (config.imageBorderRadius !== undefined && config.imageBorderRadius !== this.config.imageBorderRadius) changes.imageBorderRadius = config.imageBorderRadius;
-        if (config.imagePosition !== undefined && config.imagePosition !== this.config.imagePosition) changes.imagePosition = config.imagePosition;
-        if (config.labelValign !== undefined && config.labelValign !== this.config.labelValign) changes.labelValign = config.labelValign;
-        if (config.labelHalign !== undefined && config.labelHalign !== this.config.labelHalign) changes.labelHalign = config.labelHalign;
+        if (config.imageWidth !== undefined && config.imageWidth !== this.config.imageWidth)
+            changes.imageWidth = config.imageWidth;
 
-        if (Object.keys(changes).length > 0) Object.assign(this.configProxy, changes);
+        if (config.imageHeight !== undefined && config.imageHeight !== this.config.imageHeight)
+            changes.imageHeight = config.imageHeight;
+
+        if (config.imageBorderRadius !== undefined && config.imageBorderRadius !== this.config.imageBorderRadius)
+            changes.imageBorderRadius = config.imageBorderRadius;
+
+        if (config.imagePosition !== undefined && config.imagePosition !== this.config.imagePosition)
+            changes.imagePosition = config.imagePosition;
+
+        if (config.labelValign !== undefined && config.labelValign !== this.config.labelValign)
+            changes.labelValign = config.labelValign;
+
+        if (config.labelHalign !== undefined && config.labelHalign !== this.config.labelHalign)
+            changes.labelHalign = config.labelHalign;
+
+        if (Object.keys(changes).length > 0) {
+            Object.assign(this.configProxy, changes);
+        }
     }
 
     /**
-     * Renders the option view into the parent element.
-     * Builds the DOM structure (input, optional image, label) based on current config,
-     * assigns classes and ARIA attributes, mounts via Libs.mountView, and marks as rendered
-     * to allow future incremental updates through the config proxy.
+     * Performs the initial render of the option view.
+     *
+     * Builds the DOM structure based on the current configuration,
+     * assigns CSS classes and ARIA attributes, mounts the view via
+     * `Libs.mountView`, and enables reactive updates afterward.
      */
-    public render(): void {
-        const viewClass: Array<string> = ["selective-ui-option-view"];
+    public override mount(): void {
+        const viewClass: string[] = ["selective-ui-option-view"];
         const opt_id = Libs.randomString(7);
         const inputID = `option_${opt_id}`;
 
         if (this.config!.isMultiple) viewClass.push("multiple");
+
         if (this.config!.hasImage) {
-            viewClass.push("has-image");
-            viewClass.push(`image-${this.config!.imagePosition}`);
+            viewClass.push("has-image", `image-${this.config!.imagePosition}`);
         }
 
         const childStructure: any = {
@@ -202,11 +261,16 @@ export class OptionView extends View<OptionViewTags> {
 
         this.parent!.appendChild(this.view.view);
         this.isRendered = true;
+
+        super.mount();
     }
 
     /**
-     * Applies a targeted DOM update for a single configuration property change.
-     * Safely updates classes, attributes, styles, and child elements without re-rendering the whole view.
+     * Applies a targeted DOM update for a single configuration change.
+     *
+     * Updates only the affected parts of the view
+     * (classes, attributes, styles, or child nodes)
+     * without triggering a full re-render.
      */
     private applyPartialChange<K extends keyof OptionConfig>(
         prop: K,
@@ -216,7 +280,7 @@ export class OptionView extends View<OptionViewTags> {
         const v = this.view;
         if (!v || !v.view) return;
 
-        const root = v.view as HTMLElement;
+        const root = v.view;
         const input = v.tags?.OptionInput as HTMLInputElement | undefined;
         const label = v.tags?.OptionLabel as HTMLLabelElement | undefined;
 
@@ -224,6 +288,7 @@ export class OptionView extends View<OptionViewTags> {
             case "isMultiple": {
                 const val = !!newValue;
                 root.classList.toggle("multiple", val);
+
                 if (input && input.type !== (val ? "checkbox" : "radio")) {
                     input.type = val ? "checkbox" : "radio";
                 }
@@ -238,20 +303,22 @@ export class OptionView extends View<OptionViewTags> {
                     root.classList.add(`image-${this.config!.imagePosition}`);
                     this.createImage();
                 } else {
-                    root.className = root.className.replace(/image-(top|right|bottom|left)/g, "").trim();
+                    root.className = root.className
+                        .replace(/image-(top|right|bottom|left)/g, "")
+                        .trim();
 
                     const img = v.tags?.OptionImage as HTMLImageElement | null | undefined;
-                    if (img) {
-                        img.remove();
-                        v.tags.OptionImage = null;
-                    }
+                    img?.remove();
+                    v.tags.OptionImage = null;
                 }
                 break;
             }
 
             case "imagePosition": {
                 if (this.config!.hasImage) {
-                    root.className = root.className.replace(/image-(top|right|bottom|left)/g, "").trim();
+                    root.className = root.className
+                        .replace(/image-(top|right|bottom|left)/g, "")
+                        .trim();
                     root.classList.add(`image-${String(newValue)}`);
                 }
                 break;
@@ -264,11 +331,10 @@ export class OptionView extends View<OptionViewTags> {
                 if (img) {
                     const styleProp =
                         prop === "imageWidth" ? "width" :
-                            prop === "imageHeight" ? "height" :
-                                "borderRadius";
+                        prop === "imageHeight" ? "height" :
+                        "borderRadius";
 
-                    const val = String(newValue);
-                    if (img.style[styleProp] !== val) img.style[styleProp] = val;
+                    img.style[styleProp] = String(newValue);
                 }
                 break;
             }
@@ -276,9 +342,9 @@ export class OptionView extends View<OptionViewTags> {
             case "labelValign":
             case "labelHalign": {
                 if (label) {
-                    const newClass =
-                        `align-vertical-${this.config!.labelValign} align-horizontal-${this.config!.labelHalign}`;
-                    if (label.className !== newClass) label.className = newClass;
+                    label.className =
+                        `align-vertical-${this.config!.labelValign} ` +
+                        `align-horizontal-${this.config!.labelHalign}`;
                 }
                 break;
             }
@@ -289,19 +355,19 @@ export class OptionView extends View<OptionViewTags> {
     }
 
     /**
-     * Creates the <img> element for the option on demand and inserts it into the DOM.
-     * Skips creation if the view or root is missing, or if an image already exists.
-     * The image receives configured styles (width, height, borderRadius) and is placed
-     * before the label if present; otherwise appended to the root. Updates `v.tags.OptionImage`.
+     * Creates and inserts the `<img>` element for the option on demand.
+     *
+     * The image is styled using the current configuration and is inserted
+     * before the label when possible. If an image already exists, no action
+     * is taken.
      */
     private createImage(): void {
         const v = this.view;
         if (!v || !v.view) return;
 
-        const existing = v.tags?.OptionImage as HTMLImageElement | null | undefined;
-        if (existing) return;
+        if (v.tags?.OptionImage) return;
 
-        const root = v.view as HTMLElement;
+        const root = v.view;
         const label = v.tags?.OptionLabel as HTMLLabelElement | undefined;
 
         const image = document.createElement("img");
@@ -310,8 +376,11 @@ export class OptionView extends View<OptionViewTags> {
         image.style.height = this.config!.imageHeight;
         image.style.borderRadius = this.config!.imageBorderRadius;
 
-        if (label && label.parentElement) root.insertBefore(image, label);
-        else root.appendChild(image);
+        if (label?.parentElement) {
+            root.insertBefore(image, label);
+        } else {
+            root.appendChild(image);
+        }
 
         v.tags.OptionImage = image;
     }
