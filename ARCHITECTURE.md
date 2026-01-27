@@ -122,7 +122,7 @@ This enables rendering of **tens of thousands of items** with stable performance
 All components follow an explicit lifecycle:
 
 ```quotes
-init → update → destroy
+init → mount → update → destroy
 ```
 
 There is no hidden lifecycle or magic cleanup.
