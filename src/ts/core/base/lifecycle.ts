@@ -22,7 +22,7 @@ export class Lifecycle {
      * - Avoid duplicate registrations
      * - Preserve insertion order for deterministic execution
      */
-    private hooks: Map<LifecycleHookName, Set<Function>> = new Map();
+    private hooks: Map<LifecycleHookName, Set<(ctx: LifecycleHookContext) => void>> = new Map();
 
     /**
      * Constructs the lifecycle manager and pre-registers hook containers.
@@ -42,7 +42,7 @@ export class Lifecycle {
      * @param fn - The callback to execute when the hook is emitted
      * @returns `this` for chaining
      */
-    on(hook: LifecycleHookName, fn: () => void): this {
+    on(hook: LifecycleHookName, fn: (ctx: LifecycleHookContext) => void): this {
         this.hooks.get(hook)!.add(fn);
         return this;
     }
@@ -54,7 +54,7 @@ export class Lifecycle {
      * @param fn - The callback to remove
      * @returns `this` for chaining
      */
-    off(hook: LifecycleHookName, fn: () => void): this {
+    off(hook: LifecycleHookName, fn: (ctx: LifecycleHookContext) => void): this {
         this.hooks.get(hook)!.delete(fn);
         return this;
     }

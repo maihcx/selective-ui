@@ -10,8 +10,6 @@ export class SelectObserver {
 
     private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    private lastSnapshot: SelectSnapshot | null = null;
-
     private readonly _DEBOUNCE_DELAY = 50;
 
     /**
@@ -23,10 +21,9 @@ export class SelectObserver {
      */
     constructor(select: HTMLSelectElement) {
         this.select = select;
-        this.lastSnapshot = this.createSnapshot();
 
         this.observer = new MutationObserver(() => {
-            if (this.debounceTimer) clearTimeout(this.debounceTimer);
+            clearTimeout(this.debounceTimer!);
             this.debounceTimer = setTimeout(() => {
                 this.handleChange();
             }, this._DEBOUNCE_DELAY);
@@ -34,42 +31,10 @@ export class SelectObserver {
     }
 
     /**
-     * Creates a snapshot of the current state of the <select> element's options.
-     * The snapshot includes option count, values, texts, and selected states for comparison.
-     *
-     * @returns {SelectSnapshot} A snapshot of the options state.
-     */
-    private createSnapshot(): SelectSnapshot {
-        const options = Array.from(this.select.options);
-        return {
-            length: options.length,
-            values: options.map((opt) => opt.value).join(","),
-            texts: options.map((opt) => opt.text).join(","),
-            selected: options.map((opt) => String(opt.selected)).join(","),
-        };
-    }
-
-    /**
-     * Determines if there has been a real change in the <select> element's options or attributes.
-     * Compares the new snapshot with the previous one and updates the stored snapshot if different.
-     *
-     * @returns {boolean} True if a real change occurred, otherwise false.
-     */
-    private hasRealChange(): boolean {
-        const newSnapshot = this.createSnapshot();
-        const changed = JSON.stringify(newSnapshot) !== JSON.stringify(this.lastSnapshot);
-
-        if (changed) this.lastSnapshot = newSnapshot;
-
-        return changed;
-    }
-
-    /**
      * Handles detected changes after debouncing.
      * If a real change is found, invokes the onChanged() hook with the current <select> element.
      */
     private handleChange(): void {
-        if (!this.hasRealChange()) return;
         this.onChanged(this.select);
     }
 

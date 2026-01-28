@@ -150,7 +150,7 @@ class Fenwick extends Lifecycle {
  * @template TItem - Model type for list items.
  * @template TAdapter - Adapter managing item views.
  *
- * @extends RecyclerView
+ * @extends {RecyclerView<TItem, TAdapter>}
  */
 export class VirtualRecyclerView<
     TItem extends ModelContract<any, any>,

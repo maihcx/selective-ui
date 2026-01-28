@@ -25,8 +25,6 @@ export class ModelManager<
 
     private privRecyclerViewHandle: RecyclerViewContract<TAdapter> | null = null;
 
-    private lastFingerprint: string | null = null;
-
     private options: SelectiveOptions = null;
 
     private oldPosition = 0;
@@ -56,52 +54,6 @@ export class ModelManager<
      */
     public setupRecyclerView(recyclerView: new (...args: any[]) => RecyclerViewContract<TAdapter>): void {
         this.privRecyclerView = recyclerView;
-    }
-
-    /**
-     * Checks whether the provided model data differs from the last recorded fingerprint.
-     * Computes a new fingerprint and compares it to the previous one; if different,
-     * updates the stored fingerprint and returns true, otherwise returns false.
-     *
-     * @param {Array<HTMLOptionElement|HTMLOptGroupElement>} modelData - The current model data (options/optgroups).
-     * @returns {boolean} True if there are real changes; false otherwise.
-     */
-    private hasRealChanges(modelData: Array<HTMLOptionElement | HTMLOptGroupElement>): boolean {
-        const newFingerprint = this.createFingerprint(modelData);
-        const hasChanges = newFingerprint !== this.lastFingerprint;
-
-        if (hasChanges) this.lastFingerprint = newFingerprint;
-
-        return hasChanges;
-    }
-
-    /**
-     * Produces a stable string fingerprint for the given model data.
-     * For <optgroup>, includes the label and a pipe-joined hash of its child options
-     * (value:text:selected). For plain <option>, includes its value, text, and selected state.
-     * The entire list is joined by '\n\n' to form the final fingerprint.
-     *
-     * @param {Array<HTMLOptionElement|HTMLOptGroupElement>} modelData - The current model data to fingerprint.
-     * @returns {string} A deterministic fingerprint representing the structure and selection state.
-     */
-    private createFingerprint(modelData: Array<HTMLOptionElement | HTMLOptGroupElement>): string {
-        return modelData
-            .map((item) => {
-                if (item.tagName === "OPTGROUP") {
-                    const group = item as HTMLOptGroupElement;
-                    const optionsHash = Array.from(group.children)
-                        .map((opt) => {
-                            const o = opt as HTMLOptionElement;
-                            return `${o.value}:${o.text}:${o.selected}`;
-                        })
-                        .join("\n");
-                    return `G:${group.label}:${optionsHash}`;
-                } else {
-                    const oItem = item as HTMLOptionElement;
-                    return `O:${oItem.value}:${oItem.text}:${oItem.selected}`;
-                }
-            })
-            .join("\n\n");
     }
 
     /**
@@ -145,7 +97,6 @@ export class ModelManager<
      * @param {Array<HTMLOptGroupElement|HTMLOptionElement>} modelData - New source elements to rebuild models from.
      */
     public async replace(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): Promise<void> {
-        this.lastFingerprint = null;
         this.createModelResources(modelData);
 
         if (this.privAdapterHandle) {
@@ -191,8 +142,6 @@ export class ModelManager<
      * removes stale views, and notifies adapter and listeners about updates.
      */
     public update(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): void {
-        if (!this.hasRealChanges(modelData)) return;
-
         const oldModels = this.privModelList;
         const newModels: Array<GroupModel | OptionModel> = [];
 

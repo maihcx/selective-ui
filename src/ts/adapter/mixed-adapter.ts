@@ -24,7 +24,7 @@ import { LifecycleState } from "../types/core/base/lifecycle.type";
  * - On item changes: rebuild the flat structure and notify observers
  * - Delegates selection updates via the underlying `OptionModel` event hooks
  *
- * @extends Adapter
+ * @extends {Adapter<MixedItem, GroupView | OptionView>}
  */
 export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     /** Whether the adapter operates in multi-selection mode. */

@@ -9,28 +9,51 @@ import { SelectiveOptions } from "../types/utils/selective.type";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
 
 /**
- * @extends {Model<HTMLOptGroupElement, GroupViewTags, GroupView>}
+ * Model representing an `<optgroup>` with a label and a list of option items.
+ *
+ * Responsibilities:
+ * - Mirror and synchronize state with the underlying `<optgroup>` element
+ *   (label, collapsed state from dataset)
+ * - Manage child `OptionModel` items and their back-reference to the group
+ * - Expose derived data (selected/visible items, values)
+ * - Notify listeners when the collapsed state changes
+ *
+ * Lifecycle:
+ * - On `init()`: reads initial label/collapsed state from the target element
+ * - On `update()`: syncs view (label + collapsed)
+ * - On `destroy()`: destroys child items and clears references
+ *
+ * @extends {Model<HTMLOptGroupElement, GroupViewTags, GroupView, SelectiveOptions>}
  */
 export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupView, SelectiveOptions> {
+    /** Group label (mirrors `<optgroup>.label`). */
     public label = "";
 
+    /** Child option items belonging to this group. */
     public items: OptionModel[] = [];
 
+    /** Whether this group is collapsed (may be read from dataset). */
     public collapsed = false;
 
+    /** Registered listeners for collapsed-state changes. */
     private privOnCollapsedChanged: Array<(evtToken: IEventCallback, model: GroupModel, collapsed: boolean) => void> = [];
 
     /**
-     * Initializes a group model with options and an optional <optgroup> target.
-     * Reads the label and collapsed state from the target element's attributes/dataset.
+     * Creates a group model from config and an optional `<optgroup>` element.
      *
-     * @param {SelectiveOptions} options - Configuration for the model.
-     * @param {HTMLOptGroupElement} [targetElement] - The source <optgroup> element.
+     * Reads the initial label and collapsed state from the element (if provided).
+     *
+     * @param options - Configuration for the model.
+     * @param targetElement - Optional source `<optgroup>` element.
      */
     public constructor(options: SelectiveOptions, targetElement?: HTMLOptGroupElement) {
         super(options, targetElement ?? null, null);
     }
     
+    /**
+     * Initializes the model by reading the label and collapsed state
+     * from the underlying `<optgroup>` (when available), then mounts.
+     */
     public override init() {
         if (this.targetElement) {
             this.label = this.targetElement.label;
@@ -42,45 +65,38 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
     }
 
     /**
-     * Returns the array of values from all option items within the group.
-     *
-     * @type {string[]}
+     * Returns the list of values for all option items within the group.
      */
     public get value(): string[] {
         return this.items.map((item) => item.value);
     }
 
     /**
-     * Returns the list of option items currently selected within the group.
-     *
-     * @type {OptionModel[]}
+     * Returns the subset of option items that are currently selected.
      */
     public get selectedItems(): OptionModel[] {
         return this.items.filter((item) => item.selected);
     }
 
     /**
-     * Returns the list of option items currently visible within the group.
-     *
-     * @type {OptionModel[]}
+     * Returns the subset of option items that are currently visible.
      */
     public get visibleItems(): OptionModel[] {
         return this.items.filter((item) => item.visible);
     }
 
     /**
-     * Indicates whether the group has at least one visible option item.
-     *
-     * @type {boolean}
+     * Indicates whether there is at least one visible option in the group.
      */
     public get hasVisibleItems(): boolean {
         return this.visibleItems.length > 0;
     }
 
     /**
-     * Updates the group's label from the new target element and propagates the change to the view.
+     * Updates the group's label from a new target element and propagates
+     * the change to the view, then emits lifecycle update.
      *
-     * @param {HTMLOptGroupElement} targetElement - The updated <optgroup> element.
+     * @param targetElement - The updated `<optgroup>` element.
      */
     public updateTarget(targetElement: HTMLOptGroupElement): void {
         this.label = targetElement.label;
@@ -89,8 +105,11 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
     }
 
     /**
-     * Hook invoked when the target element reference changes.
-     * Updates the view's label and collapsed state to keep UI in sync.
+     * Lifecycle update hook.
+     *
+     * Keeps the view in sync with the current model state:
+     * - Updates header label
+     * - Applies the collapsed state
      */
     public override update(): void {
         if (this.view) {
@@ -100,6 +119,13 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
         super.update();
     }
 
+    /**
+     * Destroys the group model and releases resources.
+     *
+     * - Destroys all child option models
+     * - Clears the items array
+     * - Ends the lifecycle
+     */
     public override destroy(): void {
         if (this.is(LifecycleState.DESTROYED)) {
             return;
@@ -114,16 +140,17 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
     }
 
     /**
-     * Registers a callback to be invoked when the group's collapsed state changes.
+     * Subscribes a listener to changes in the group's collapsed state.
      *
-     * @param {(evtToken: IEventCallback, model: GroupModel, collapsed: boolean) => void} callback - Listener for collapse changes.
+     * @param callback - Listener invoked with `(evtToken, model, collapsed)`.
      */
     public onCollapsedChanged(callback: (evtToken: IEventCallback, model: GroupModel, collapsed: boolean) => void): void {
         this.privOnCollapsedChanged.push(callback);
     }
 
     /**
-     * Toggles the group's collapsed state, updates the view, and notifies registered listeners.
+     * Toggles the group's collapsed state, updates the view,
+     * and notifies registered listeners.
      */
     public toggleCollapse(): void {
         this.collapsed = !this.collapsed;
@@ -133,9 +160,9 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
     }
 
     /**
-     * Adds an option item to this group and sets its back-reference to the group.
+     * Adds an option item to the group and sets its back-reference.
      *
-     * @param {OptionModel} optionModel - The option to add.
+     * @param optionModel - Option to add.
      */
     public addItem(optionModel: OptionModel): void {
         this.items.push(optionModel);
@@ -143,9 +170,9 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
     }
 
     /**
-     * Removes an option item from this group and clears its group reference.
+     * Removes an option item from the group and clears its back-reference.
      *
-     * @param {OptionModel} optionModel - The option to remove.
+     * @param optionModel - Option to remove.
      */
     public removeItem(optionModel: OptionModel): void {
         const index = this.items.indexOf(optionModel);
