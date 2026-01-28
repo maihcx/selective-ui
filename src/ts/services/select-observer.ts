@@ -1,5 +1,3 @@
-import { SelectSnapshot } from "../types/services/select-observer.type";
-
 /**
  * @class
  */
@@ -14,7 +12,7 @@ export class SelectObserver {
 
     /**
      * Initializes the SelectObserver for a given <select> element.
-     * Captures the initial snapshot, sets up a MutationObserver.
+     * Sets up a MutationObserver.
      * Changes are debounced to prevent excessive calls.
      *
      * @param {HTMLSelectElement} select - The <select> element to observe.
