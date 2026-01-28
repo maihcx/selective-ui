@@ -352,6 +352,9 @@ export class SelectBox extends Lifecycle {
 
         // AJAX setup (if provided)
         if (options.ajax) {
+            if (options.ajax?.keepSelected == undefined) {
+                options.ajax.keepSelected = options.keepSelected;
+            }
             searchController.setAjax(options.ajax);
         }
     }
@@ -785,6 +788,9 @@ export class SelectBox extends Lifecycle {
             },
 
             ajax(_evtToken: IEventCallback, obj: AjaxConfig) {
+                if (obj.keepSelected == undefined) {
+                    obj.keepSelected = superThis.options.keepSelected;
+                }
                 container.searchController.setAjax(obj);
             },
 
