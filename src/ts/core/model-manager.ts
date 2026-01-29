@@ -1,6 +1,7 @@
 
 import { GroupModel } from "../models/group-model";
 import { OptionModel } from "../models/option-model";
+import { MixedItem } from "../types/core/base/mixed-adapter.type";
 import { ModelContract } from "../types/core/base/model.type";
 import { RecyclerViewContract } from "../types/core/base/recyclerview.type";
 import { ViewContract } from "../types/core/base/view.type";
@@ -281,7 +282,7 @@ export class ModelManager<
      * adapter instance, and recycler view instance.
      */
     public getResources(): {
-        modelList: Array<GroupModel | OptionModel>;
+        modelList: Array<MixedItem>;
         adapter: TAdapter;
         recyclerView: RecyclerViewContract<TAdapter>;
     } {

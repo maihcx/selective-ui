@@ -861,7 +861,7 @@ export class SelectBox extends Lifecycle {
         const { modelList } = this.optionModelManager.getResources();
         const flatOptions: OptionModel[] = [];
 
-        for (const m of modelList as MixedItem[]) {
+        for (const m of modelList) {
             if (m instanceof OptionModel) {
                 flatOptions.push(m);
             } else if (m instanceof GroupModel) {
