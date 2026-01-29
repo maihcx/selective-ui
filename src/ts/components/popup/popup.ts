@@ -484,7 +484,6 @@ export class Popup extends Lifecycle {
         this.emptyState.destroy();
         this.loadingState.destroy();
         this.optionHandle.destroy();
-        this.recyclerView.destroy();
 
         try {
             this.resizeObser?.disconnect();

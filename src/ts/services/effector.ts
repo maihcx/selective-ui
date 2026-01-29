@@ -1,35 +1,101 @@
-import type { CollapseConfig, DimensionObject, EffectorInterface, ExpandConfig, ResizeConfig, SwipeConfig } from "../types/services/effector.type";
+import type {
+    CollapseConfig,
+    DimensionObject,
+    EffectorInterface,
+    ExpandConfig,
+    ResizeConfig,
+    SwipeConfig,
+} from "../types/services/effector.type";
 
 /**
- * @returns {EffectorInterface}
+ * Creates an {@link EffectorInterface} bound to a target element (optional).
+ *
+ * This is a small DOM utility that encapsulates common expand/collapse/resize/swipe animations
+ * by applying inline styles + CSS transitions and coordinating them with `requestAnimationFrame`
+ * and `setTimeout`.
+ *
+ * ### Responsibility
+ * - Provide a chainable animation controller for a single HTMLElement.
+ * - Coordinate transition setup and teardown using timeouts (not `transitionend` events).
+ * - Expose an `isAnimating` flag for coarse-grained state checks.
+ *
+ * ### Binding contract
+ * - If `query` is provided, it is resolved immediately via {@link EffectorImpl.setElement}.
+ * - If `query` is omitted or null, the returned effector must be bound later via `setElement`
+ *   before animation methods can take effect (they will otherwise no-op).
+ *
+ * @param query - CSS selector or element to control. When `null`, the effector is unbound.
+ * @returns An effector instance implementing {@link EffectorInterface}.
  */
 export function Effector(query?: string | HTMLElement | null): EffectorInterface {
     return new EffectorImpl(query ?? null);
 }
 
+/**
+ * Internal implementation of {@link EffectorInterface}.
+ *
+ * This class performs DOM mutations (inline styles + class toggles) to animate a target element.
+ * It is intentionally imperative and does not manage layout or state outside of animation concerns.
+ *
+ * ### Timing model
+ * - Uses `requestAnimationFrame` to ensure initial styles are applied before starting transitions.
+ * - Uses `setTimeout(duration)` to finalize state and call `onComplete`.
+ *   (i.e., completion is time-based, not event-based.)
+ *
+ * @implements EffectorInterface
+ * @internal
+ */
 class EffectorImpl implements EffectorInterface {
+    /**
+     * Target element controlled by this effector.
+     *
+     * Note: This is assigned via {@link setElement}. If unset, animation methods are no-ops.
+     */
     public element!: HTMLElement;
 
+    /**
+     * Timeout used to finalize expand/collapse/swipe animations.
+     * Cleared by {@link cancel}.
+     */
     private timeOut: ReturnType<typeof setTimeout> | null = null;
+
+    /**
+     * Timeout used to clear transitions after resize in non-animated scenarios.
+     * Cleared by {@link cancel}.
+     */
     private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    /**
+     * Internal animation flag set while a timed animation is in-flight.
+     *
+     * Exposed via {@link isAnimating}. Reset by {@link cancel} and when animations complete.
+     */
     private _isAnimating = false;
 
     /**
-     * Provides an effector utility that controls animations and resizing for a target element.
-     * Supports setting the element by selector or node, canceling in-flight animations/timers,
-     * and exposes methods (expand, collapse, resize) via the returned object instance.
+     * Creates an effector instance optionally bound to an element.
      *
-     * @param {string|HTMLElement|null} [query] - A CSS selector or the target element to control.
+     * ### Side effects
+     * - When a `query` is provided, immediately resolves/binds the element via {@link setElement}.
+     *
+     * @param query - CSS selector or element to control. When `null`, instance starts unbound.
      */
     public constructor(query: string | HTMLElement | null = null) {
         if (query) this.setElement(query);
     }
 
     /**
-     * Sets the target element to be controlled by the effector.
-     * Accepts either a CSS selector or a direct HTMLElement reference.
+     * Binds the effector to a target element.
      *
-     * @param {string|HTMLElement} query - The element or selector to bind.
+     * Resolution behavior:
+     * - When `query` is a string, uses `document.querySelector`.
+     * - When `query` is an element, uses it directly.
+     *
+     * Notes:
+     * - If a selector does not resolve to an {@link HTMLElement}, binding is skipped and the
+     *   effector remains unchanged.
+     *
+     * @param query - CSS selector or the HTMLElement to bind.
      */
     public setElement(query: string | HTMLElement): void {
         if (typeof query === "string") {
@@ -41,10 +107,15 @@ class EffectorImpl implements EffectorInterface {
     }
 
     /**
-     * Cancels any pending timeouts or resize triggers and resets the animation state.
-     * Use this to stop ongoing expand/collapse/resize animations immediately.
+     * Cancels any pending animation/resize timers and resets the animation state.
      *
-     * @returns {this} - The effector instance for chaining.
+     * This is the primary "escape hatch" to stop in-flight transitions scheduled by this effector.
+     *
+     * ### Behavior
+     * - Clears internal timeouts (`timeOut`, `resizeTimeout`) if present.
+     * - Resets {@link _isAnimating} to `false`.
+     *
+     * @returns The current instance (chainable).
      */
     public cancel(): this {
         if (this.timeOut) {
@@ -60,9 +131,19 @@ class EffectorImpl implements EffectorInterface {
     }
 
     /**
-     * Get hidden dimensions
-     * @param {string} display
-     * @returns {{width: number, height: number, scrollHeight: number}}
+     * Measures dimensions of a (potentially hidden) element by temporarily applying "measuring styles".
+     *
+     * This helper is used to compute width/height/scrollHeight without leaving the element visible.
+     *
+     * ### Side effects
+     * - Temporarily mutates inline styles (`display`, `visibility`, `position`, `height`, `width`).
+     * - Restores the original inline styles before returning.
+     *
+     * No-ops:
+     * - If the target {@link element} is not bound, returns `{ width: 0, height: 0, scrollHeight: 0 }`.
+     *
+     * @param display - The display style to use for measurement (defaults to `"flex"`).
+     * @returns A dimension snapshot including `scrollHeight` adjusted for vertical borders.
      */
     public getHiddenDimensions(display: "flex" | string = "flex"): DimensionObject {
         // Guard: element may not be set yet.
@@ -102,9 +183,24 @@ class EffectorImpl implements EffectorInterface {
     }
 
     /**
-     * Expand animation (open popup)
-     * @param {Object} config
-     * @returns {this}
+     * Runs an "expand/open" transition.
+     *
+     * The element is first placed into an initial collapsed state (`height: 0`, `opacity: 0`)
+     * and then transitioned to its target geometry.
+     *
+     * ### Side effects
+     * - Mutates inline styles (`display`, `width`, `left`, `top`, `maxHeight`, `height`, `opacity`, `overflow`, `transition`).
+     * - Toggles position classes (`position-top` / `position-bottom`) based on config.
+     *
+     * ### Completion model
+     * - Uses `setTimeout(duration)` to finalize (`transition: none`) and invoke `onComplete`.
+     * - Does not listen for `transitionend`.
+     *
+     * No-ops:
+     * - If {@link element} is not bound, returns immediately.
+     *
+     * @param config - Expand animation parameters and completion callback.
+     * @returns The current instance (chainable).
      */
     public expand(config: ExpandConfig): this {
         if (!this.element) return this;
@@ -163,9 +259,22 @@ class EffectorImpl implements EffectorInterface {
     }
 
     /**
-     * Collapse animation (close popup)
-     * @param {Object} config
-     * @returns {this}
+     * Runs a "collapse/close" transition.
+     *
+     * The element is transitioned to `height: 0` and `opacity: 0`, then hidden via `display: none`.
+     *
+     * ### Side effects
+     * - Mutates inline styles (`height`, `top`, `opacity`, `overflow`, `transition`, then `display`).
+     * - Reads current geometry via `offsetHeight` / `offsetTop` and scrollability via `scrollHeight`.
+     *
+     * ### Completion model
+     * - Uses `setTimeout(duration)` to finalize and invoke `onComplete`.
+     *
+     * No-ops:
+     * - If {@link element} is not bound, returns immediately.
+     *
+     * @param config - Collapse animation parameters and completion callback.
+     * @returns The current instance (chainable).
      */
     public collapse(config: CollapseConfig): this {
         if (!this.element) return this;
@@ -206,9 +315,19 @@ class EffectorImpl implements EffectorInterface {
     }
 
     /**
-     * show Swipe animation (close element)
-     * @param {Object} config
-     * @returns {this}
+     * Runs a horizontal "swipe-in" animation (reveals element by expanding width).
+     *
+     * The element is measured using {@link getHiddenDimensions} and then transitioned from `width: 0`
+     * to the measured width.
+     *
+     * ### Side effects
+     * - Mutates inline styles (`display`, `width`, `overflow`, `transition`).
+     *
+     * No-ops:
+     * - If {@link element} is not bound, returns immediately.
+     *
+     * @param config - Swipe parameters (`duration`, `display`) and completion callback.
+     * @returns The current instance (chainable).
      */
     public showSwipeWidth(config: SwipeConfig): this {
         if (!this.element) return this;
@@ -251,9 +370,19 @@ class EffectorImpl implements EffectorInterface {
     }
 
     /**
-     * hide Swipe animation (close element)
-     * @param {Object} config
-     * @returns {this}
+     * Runs a horizontal "swipe-out" animation (hides element by collapsing width).
+     *
+     * The element is measured using {@link getHiddenDimensions} and then transitioned from
+     * the measured width down to `width: 0`.
+     *
+     * ### Side effects
+     * - Mutates inline styles (`width`, `overflow`, `transition`, and clears `display` on completion).
+     *
+     * No-ops:
+     * - If {@link element} is not bound, returns immediately.
+     *
+     * @param config - Swipe parameters (`duration`) and completion callback.
+     * @returns The current instance (chainable).
      */
     public hideSwipeWidth(config: SwipeConfig): this {
         if (!this.element) return this;
@@ -294,9 +423,24 @@ class EffectorImpl implements EffectorInterface {
     }
 
     /**
-     * Resize animation (when content changes)
-     * @param {Object} config
-     * @returns {this}
+     * Runs a resize/reposition update for an already-visible element.
+     *
+     * Intended for "content changed" scenarios (e.g., list height changes, position flips).
+     *
+     * ### Behavior
+     * - Updates size/position-related inline styles (width/left/top/maxHeight/height/overflowY).
+     * - Optionally animates the transition (based on `animate` and heuristic diffs).
+     * - When position flips (top ↔ bottom), a more explicit transition may be applied.
+     *
+     * ### Completion model
+     * - Uses timeouts to clear the `transition` style and call `onComplete`.
+     * - Does not listen for `transitionend`.
+     *
+     * No-ops:
+     * - If {@link element} is not bound, returns immediately.
+     *
+     * @param config - Resize parameters including geometry, animation flags, and completion callback.
+     * @returns The current instance (chainable).
      */
     public resize(config: ResizeConfig): this {
         if (!this.element) return this;
@@ -366,8 +510,13 @@ class EffectorImpl implements EffectorInterface {
     }
 
     /**
-     * Check if currently animating
-     * @returns {boolean}
+     * Indicates whether this effector currently considers itself in an active animation window.
+     *
+     * Notes:
+     * - This flag is time-based and is cleared when internal timeouts complete or when {@link cancel} is called.
+     * - It does not guarantee that the browser is still transitioning (no `transitionend` tracking).
+     *
+     * @returns `true` while an animation is in-flight; otherwise `false`.
      */
     public get isAnimating(): boolean {
         return this._isAnimating;

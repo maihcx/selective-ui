@@ -10,42 +10,67 @@ import { Lifecycle } from "./base/lifecycle";
 import { ModelManager } from "./model-manager";
 
 /**
- * Controller responsible for orchestrating search behavior across the Select UI.
+ * Search orchestration layer for Selective's Select UI.
  *
- * Responsibilities:
- * - Manage local (in-memory) filtering and remote (AJAX) searching
- * - Normalize heterogeneous server responses into a common structure
- * - Maintain pagination state (page, totals, loading, hasMore)
- * - Apply remote results back to the underlying <select> element
- * - Coordinate UI updates via Popup (loading indicator, resize, empty/not-found states)
+ * This controller bridges **user-driven search input** (keyword changes / infinite scroll)
+ * to either:
+ * - **Local filtering**: toggling model visibility flags in-memory, or
+ * - **Remote search (AJAX)**: fetching, normalizing, and applying results back into the backing
+ *   native `<select>` element.
  *
- * Lifecycle:
- * - Constructed with references to the native <select>, ModelManager, and SelectBox
- * - `init()` runs immediately via `initialize()`
- * - Methods `search()`, `loadMore()`, `clear()` are invoked by higher-level components
+ * ### Responsibilities
+ * - Choose search strategy (local vs AJAX) based on {@link AjaxConfig}.
+ * - Normalize heterogeneous server response shapes into {@link NormalizedAjaxItem} via {@link parseResponse}.
+ * - Track pagination state (page counters, `hasMore`, `isLoading`, current keyword).
+ * - Apply remote results into the `<select>` (DOM mutation) and keep selection when requested.
+ * - Coordinate transient UI states via {@link Popup} (loading indicator).
+ *
+ * ### Lifecycle (Strict FSM)
+ * - Constructed with references to the native `<select>`, a {@link ModelManager}, and {@link SelectBox}.
+ * - Calls {@link Lifecycle.init} immediately during construction (via `initialize()`).
+ * - Does **not** mount DOM by itself; it is invoked by higher-level components.
+ * - {@link destroy} clears references; further calls should be treated as **no-ops** by consumers.
+ *
+ * ### Side effects
+ * - Local search: mutates `OptionModel.visible` flags (model-layer side effects).
+ * - AJAX apply: mutates `<select>` children (`innerHTML`, `appendChild`, dataset, selected state).
+ * - UI: calls `popup.showLoading()` / `popup.hideLoading()` when a popup is attached.
  *
  * @extends Lifecycle
+ * @see {@link ModelManager}
+ * @see {@link AjaxConfig}
+ * @see {@link Popup}
  */
 export class SearchController extends Lifecycle {
-    /** Backing native <select> element providing context and initial options. */
+    /** Backing native `<select>` element providing context and the authoritative option DOM. */
     private select: HTMLSelectElement;
 
-    /** Model manager providing access to model resources (items, adapter, recycler). */
+    /** Model manager providing access to current model resources (items, adapter, recycler). */
     private modelManager: ModelManager<MixedItem, any>;
 
-    /** Current AJAX configuration; when absent, local search is used. */
+    /**
+     * AJAX configuration; when `null`, {@link search} falls back to local filtering.
+     * @see {@link setAjax}
+     */
     private ajaxConfig: AjaxConfig | null = null;
 
-    /** Used to cancel in-flight AJAX requests when a new search starts. */
+    /** Abort handle used to cancel an in-flight AJAX request when a newer request starts. */
     private abortController: AbortController | null = null;
 
-    /** Popup instance to reflect UI states (loading, empty/not-found), and sizing. */
+    /** Optional popup handle used for showing/hiding loading UI during remote operations. */
     private popup: Popup | null = null;
 
-    /** SelectBox handle (used by custom data builders). */
+    /**
+     * SelectBox handle used by custom data builder functions that require Selective context.
+     * NOTE: This is a reference; the controller does not own/destroy the SelectBox.
+     */
     private selectBox: SelectBox = null;
 
-    /** Current pagination and loading state for remote searches. */
+    /**
+     * Remote pagination and loading state.
+     * - `currentKeyword` is the last keyword used to compute pagination identity.
+     * - `isPaginationEnabled` is inferred from server response shape.
+     */
     private paginationState: PaginationState = {
         currentPage: 0,
         totalPages: 1,
@@ -56,12 +81,12 @@ export class SearchController extends Lifecycle {
     };
 
     /**
-     * Initializes the SearchController with a source <select> element and a ModelManager
-     * to manage option models and search results.
+     * Creates a SearchController bound to a native `<select>` and an existing {@link ModelManager}.
+     * Immediately transitions lifecycle `NEW → INITIALIZED` via {@link Lifecycle.init}.
      *
-     * @param selectElement - The native select element that provides context and data source.
-     * @param modelManager - Manager responsible for models and rendering updates.
-     * @param selectBox - SelectBox handle.
+     * @param {HTMLSelectElement} selectElement - Native select element acting as the authoritative data source/target.
+     * @param {ModelManager<MixedItem, any>} modelManager - Manager responsible for model resources and rendering refresh.
+     * @param {SelectBox} selectBox - SelectBox handle used by configured AJAX data builders.
      */
     public constructor(selectElement: HTMLSelectElement, modelManager: ModelManager<MixedItem, any>, selectBox: SelectBox) {
         super();
@@ -69,11 +94,13 @@ export class SearchController extends Lifecycle {
     }
 
     /**
-     * Internal initializer that captures dependencies and starts the lifecycle.
+     * Captures dependencies and starts the controller lifecycle.
+     * Intended to be called only from the constructor.
      *
-     * @param selectElement - The native select element that provides context and data source.
-     * @param modelManager - Manager responsible for models and rendering updates.
-     * @param selectBox - SelectBox handle.
+     * @param {HTMLSelectElement} selectElement - Native select element.
+     * @param {ModelManager<MixedItem, any>} modelManager - Model manager.
+     * @param {SelectBox} selectBox - SelectBox handle.
+     * @returns {void}
      */
     private initialize(selectElement: HTMLSelectElement, modelManager: ModelManager<MixedItem, any>, selectBox: SelectBox): void {
         this.select = selectElement;
@@ -84,24 +111,31 @@ export class SearchController extends Lifecycle {
     }
 
     /**
-     * Indicates whether AJAX-based search is configured.
+     * Indicates whether remote (AJAX) search is configured.
      *
-     * @returns True if AJAX config is present; false otherwise.
+     * @returns {boolean} `true` when {@link AjaxConfig} is present; otherwise `false`.
      */
     public isAjax(): boolean {
         return !!this.ajaxConfig;
     }
 
     /**
-     * Loads specific options by their values from the server.
+     * Loads specific option rows by their values from the server (AJAX-only).
      *
-     * Behavior:
-     * - Uses `ajaxConfig.dataByValues` if provided; otherwise builds a default payload.
+     * ### Behavior
+     * - Uses `ajaxConfig.dataByValues(values[])` when provided; otherwise builds a default payload:
+     *   `{ values: "...", load_by_values: "1", ...ajaxConfig.data }`.
      * - Supports GET/POST according to `ajaxConfig.method` (defaults to GET).
-     * - Normalizes the response via `parseResponse()` and returns normalized items.
+     * - Normalizes the response via {@link parseResponse}.
+     * - Calls {@link Lifecycle.update} to mark an internal update.
      *
-     * @param values - Value or list of values to load.
-     * @returns Promise resolving with `{ success, items, message? }`.
+     * @param {string | string[]} values - One value or a list of values to fetch.
+     * @returns {Promise<{ success: boolean; items: NormalizedAjaxItem[]; message?: string }>}
+     * Resolves with normalized items on success.
+     *
+     * @remarks
+     * - When AJAX is not configured, resolves with `{ success: false, ... }`.
+     * - This method does not mutate the `<select>`; it only returns normalized items.
      */
     async loadByValues(values: string | string[]): Promise<{ success: boolean; items: NormalizedAjaxItem[]; message?: string }> {
         if (!this.ajaxConfig) {
@@ -157,10 +191,11 @@ export class SearchController extends Lifecycle {
     }
 
     /**
-     * Checks whether the provided values already exist in the current <select> options.
+     * Partitions the given values into those already present in the current `<select>` options
+     * and those missing.
      *
-     * @param values - Values to check for presence.
-     * @returns Partitioned result: `{ existing, missing }`.
+     * @param {string[]} values - Values to check.
+     * @returns {{ existing: string[]; missing: string[] }} Partitioned result.
      */
     public checkMissingValues(values: string[]): { existing: string[]; missing: string[] } {
         const allOptions = Array.from(this.select.options);
@@ -174,26 +209,30 @@ export class SearchController extends Lifecycle {
 
     /**
      * Configures AJAX settings used for remote searching and pagination.
+     * Setting `null` disables AJAX mode and causes {@link search} to use local filtering.
      *
-     * @param config - AJAX configuration (endpoint, method, data builders, etc.).
+     * @param {AjaxConfig | null} config - AJAX configuration (endpoint, method, data builders, keepSelected, ...).
+     * @returns {void}
      */
     public setAjax(config: AjaxConfig | null): void {
         this.ajaxConfig = config;
     }
 
     /**
-     * Attaches a Popup instance to allow UI updates during search (e.g., loading, resize).
+     * Attaches a popup instance so the controller can reflect transient UI states
+     * during remote operations (e.g., loading indicator).
      *
-     * @param popupInstance - The popup used to display search results and loading state.
+     * @param {Popup} popupInstance - Popup used to show results and loading state.
+     * @returns {void}
      */
     public setPopup(popupInstance: Popup): void {
         this.popup = popupInstance;
     }
 
     /**
-     * Returns a shallow copy of the current pagination state used for search/infinite scroll.
+     * Returns a shallow snapshot of the current pagination state.
      *
-     * @returns Pagination state snapshot.
+     * @returns {PaginationState} State snapshot (defensive copy).
      */
     public getPaginationState(): PaginationState {
         return { ...this.paginationState };
@@ -201,7 +240,9 @@ export class SearchController extends Lifecycle {
 
     /**
      * Resets pagination counters while preserving whether pagination is enabled.
-     * Clears page, totals, loading flags, and current keyword.
+     * Clears page/totals/loading flags and the current keyword.
+     *
+     * @returns {void}
      */
     public resetPagination(): void {
         this.paginationState = {
@@ -215,9 +256,13 @@ export class SearchController extends Lifecycle {
     }
 
     /**
-     * Clears the current keyword and makes all options visible (local reset).
+     * Clears the current keyword and restores visibility for all option models (local reset).
      *
-     * No network requests are made; operates on the current model set.
+     * ### Notes
+     * - No network requests are made.
+     * - This mutates `OptionModel.visible` for the current model set exposed by {@link ModelManager#getResources}.
+     *
+     * @returns {void}
      */
     public clear(): void {
         this.paginationState.currentKeyword = "";
@@ -236,11 +281,13 @@ export class SearchController extends Lifecycle {
     }
 
     /**
-     * Performs a search with either AJAX or local filtering depending on configuration.
+     * Performs a search using the configured strategy.
+     * - If {@link AjaxConfig} is present, executes {@link ajaxSearch}.
+     * - Otherwise performs local filtering via {@link localSearch}.
      *
-     * @param keyword - The search term to apply.
-     * @param append - For AJAX mode: whether to append results (next page). Defaults to false.
-     * @returns An implementation-specific result object.
+     * @param {string} keyword - Search term.
+     * @param {boolean} [append=false] - AJAX mode only: append results (next page) instead of replacing.
+     * @returns {Promise<any>} Implementation-specific result object from the underlying strategy.
      */
     public async search(keyword: string, append: boolean = false): Promise<any> {
         if (this.ajaxConfig) return this.ajaxSearch(keyword, append);
@@ -248,9 +295,14 @@ export class SearchController extends Lifecycle {
     }
 
     /**
-     * Loads the next page for AJAX pagination if enabled and not already loading.
+     * Loads the next page in AJAX mode when pagination is enabled and available.
      *
-     * @returns Result of the paginated AJAX request, or an error when not applicable.
+     * ### Guards (no-ops with error result)
+     * - AJAX must be configured.
+     * - Must not already be loading.
+     * - Pagination must be enabled and `hasMore` must be true.
+     *
+     * @returns {Promise<any>} Result of the paginated request, or an error object when not applicable.
      */
     public async loadMore(): Promise<any> {
         if (!this.ajaxConfig) return { success: false, message: "Ajax not enabled" };
@@ -263,11 +315,19 @@ export class SearchController extends Lifecycle {
     }
 
     /**
-     * Executes a local (in-memory) search by normalizing the keyword (lowercase, non-accent)
-     * and toggling each option's visibility based on text match.
+     * Executes an in-memory search by normalizing the keyword and toggling each option's visibility.
      *
-     * @param keyword - Keyword to filter against local options.
-     * @returns Summary flags: `{ success, hasResults, isEmpty }`.
+     * ### Matching
+     * - Keyword is lowercased and de-accented via {@link Libs.string2normalize}.
+     * - Each option uses `OptionModel.textToFind` for matching.
+     *
+     * ### Side effects
+     * - Mutates `OptionModel.visible`.
+     * - Calls {@link Lifecycle.update}.
+     *
+     * @param {string} keyword - Keyword to filter against local options.
+     * @returns {Promise<{ success: boolean; hasResults: boolean; isEmpty: boolean }>}
+     * Summary result for UI consumers.
      */
     private async localSearch(keyword: string): Promise<{ success: boolean; hasResults: boolean; isEmpty: boolean }> {
         if (this.compareSearchTrigger(keyword)) this.paginationState.currentKeyword = keyword;
@@ -302,29 +362,31 @@ export class SearchController extends Lifecycle {
     }
 
     /**
-     * Checks whether the provided keyword differs from the current one,
-     * to determine if a new search should be triggered.
+     * Determines whether the given keyword differs from the currently tracked keyword.
+     * Used to decide whether a new search "session" should reset pagination.
      *
-     * @param keyword - The keyword to compare with the current search term.
-     * @returns True if a new search should be triggered; otherwise false.
+     * @param {string} keyword - Candidate keyword.
+     * @returns {boolean} `true` if keyword differs from `paginationState.currentKeyword`.
      */
     public compareSearchTrigger(keyword: string): boolean {
         return keyword !== this.paginationState.currentKeyword;
     }
 
     /**
-     * Executes an AJAX-based search with optional appending.
+     * Executes an AJAX-based search with optional appending (pagination).
      *
-     * Behavior:
-     * - Aborts any in-flight request before starting a new search
-     * - Shows loading in the popup (if available)
-     * - Supports GET/POST with data built from config or function
-     * - Applies normalized results to the <select>, respecting `keepSelected`
-     * - Updates pagination state when server response includes pagination info
+     * ### Behavior
+     * - If keyword changed (see {@link compareSearchTrigger}), pagination is reset and `append` is forced to `false`.
+     * - Aborts any in-flight request and starts a new one via {@link AbortController}.
+     * - Shows/hides loading UI on the attached {@link Popup} if present.
+     * - Supports GET/POST based on {@link AjaxConfig.method}; payload is built from {@link AjaxConfig.data}.
+     * - Normalizes server response via {@link parseResponse}.
+     * - Applies items to the underlying `<select>` via {@link applyAjaxResult}.
+     * - Updates pagination state when pagination info is present in the response.
      *
-     * @param keyword - Search keyword.
-     * @param append - Whether to append results (true = next page); defaults to false.
-     * @returns An implementation-specific result object with success and pagination flags.
+     * @param {string} keyword - Search keyword.
+     * @param {boolean} [append=false] - Whether to append results (true = next page).
+     * @returns {Promise<any>} Implementation-specific result object with pagination flags.
      */
     private async ajaxSearch(keyword: string, append: boolean = false): Promise<any> {
         const cfg = this.ajaxConfig!;
@@ -411,20 +473,21 @@ export class SearchController extends Lifecycle {
     }
 
     /**
-     * Normalizes various server response shapes into a standard structure for options and groups.
+     * Normalizes various server response shapes into a consistent {@link ParseResponseResult}.
      *
-     * Supported shapes (examples):
-     * - `{ object: [...], page?, totalPages?, hasMore? }`
-     * - `{ data: [...], page?, totalPages?, hasMore? }`
-     * - `{ items: [...], pagination: { page, totalPages, hasMore } }`
+     * ### Supported response shapes
+     * - `{ object: [...], page?, totalPages?/total_page?, hasMore? }`
+     * - `{ data: [...], page?, totalPages?/total_page?, hasMore? }`
+     * - `{ items: [...], pagination: { page, totalPages?/total_page?, hasMore? } }`
      * - `[...]` (array of items)
      *
-     * Each item can represent either:
-     * - An option: `{ type: "option", value, text, selected?, data? }`
-     * - A group: `{ type: "optgroup", label, data?, options: [...] }`
+     * ### Item normalization rules
+     * - Raw DOM nodes (`HTMLOptionElement` / `HTMLOptGroupElement`) are passed through as-is.
+     * - Group-like objects are recognized by `type === "optgroup"` or heuristic fields (`isGroup`, `group`, `label`).
+     * - Option-like objects are mapped to `{ type: "option", value, text, selected?, data? }`.
      *
-     * @param data - Server response (any shape).
-     * @returns `{ items, hasPagination, page, totalPages, hasMore }`
+     * @param {any} data - Server response (unknown shape).
+     * @returns {ParseResponseResult} Normalized items with pagination metadata.
      */
     private parseResponse(data: any): ParseResponseResult {
         let items: any[] = [];
@@ -493,16 +556,22 @@ export class SearchController extends Lifecycle {
     }
 
     /**
-     * Applies normalized AJAX results to the underlying <select> element.
+     * Applies normalized AJAX results to the backing `<select>` element.
      *
-     * Behavior:
-     * - Optionally preserves existing selections (`keepSelected`)
-     * - Clears existing children unless `append` is true
-     * - Supports adding either normalized items or raw HTMLOption/HTMLOptGroup elements
+     * ### Behavior
+     * - Optionally preserves existing selection values (`keepSelected`).
+     * - Clears existing options when `append === false`.
+     * - Accepts either normalized items or raw DOM nodes (`HTMLOptionElement` / `HTMLOptGroupElement`).
+     * - Populates `dataset` for `data` payload fields on generated nodes.
      *
-     * @param items - Normalized items (or raw HTMLOption/HTMLOptGroup).
-     * @param keepSelected - Preserve previously selected options.
-     * @param append - Append to existing options instead of replacing.
+     * ### DOM side effects
+     * - Mutates `<select>`: `innerHTML` (when replacing) and `appendChild` (when adding).
+     * - Mutates selection state via `option.selected`.
+     *
+     * @param {NormalizedAjaxItem[]} items - Normalized items (or raw DOM nodes).
+     * @param {boolean} keepSelected - Whether to preserve previously selected options by value.
+     * @param {boolean} [append=false] - Append to existing options instead of replacing.
+     * @returns {void}
      */
     public applyAjaxResult(items: NormalizedAjaxItem[], keepSelected: boolean, append: boolean = false): void {
         const select = this.select;
@@ -574,10 +643,14 @@ export class SearchController extends Lifecycle {
 
     /**
      * Destroys the controller and clears references.
+     * Idempotent: returns early if already in {@link LifecycleState.DESTROYED}.
      *
-     * Notes:
-     * - In-flight requests are not aborted here; consumers should abort if needed before destroy.
-     * - The linked Popup/ModelManager exist outside this controller and are not destroyed here.
+     * ### Notes
+     * - This controller does not own/destroy the linked {@link Popup}, {@link ModelManager}, or {@link SelectBox}.
+     * - In-flight requests are not explicitly aborted here; consumers may abort earlier by triggering a new search,
+     *   or handle cancellation externally.
+     *
+     * @returns {void}
      */
     public override destroy(): void {
         if (this.is(LifecycleState.DESTROYED)) {

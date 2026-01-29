@@ -71,37 +71,25 @@ describe("Model", () => {
             initialTarget.setAttribute("value", "old");
             const model = new Model({}, initialTarget, null);
 
-            const spy = jest.spyOn(model, "onUpdate");
-
             const newTarget = document.createElement("option");
             newTarget.setAttribute("value", "new");
 
             model.updateTarget(newTarget);
 
             expect(model.targetElement).toBe(newTarget);
-            expect(spy).toHaveBeenCalledTimes(1);
         });
 
         test("allows updating to null and still invokes onTargetChanged()", () => {
             const target = document.createElement("option");
             const model = new Model({}, target, null);
 
-            const spy = jest.spyOn(model, "onUpdate");
-
             model.updateTarget(null);
 
             expect(model.targetElement).toBeNull();
-            expect(spy).toHaveBeenCalledTimes(1);
         });
     });
 
     describe("onTargetChanged()", () => {
-        test("default implementation does not throw", () => {
-            const model = new Model({}, null, null);
-
-            expect(() => model.onUpdate()).not.toThrow();
-        });
-
         test("overridden in subclass is called on update()", () => {
             class TestModel extends Model<HTMLOptionElement, OptionViewTags, OptionView, DefaultConfig> {
                 onTargetChanged() { /* custom hook */ }

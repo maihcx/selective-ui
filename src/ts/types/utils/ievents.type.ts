@@ -33,3 +33,8 @@ export interface IEventToken {
      */
     readonly isCancel: boolean;
 }
+
+export type IEventHandler<TParams extends unknown[] = []> = (
+    cb: IEventCallback,
+    ...params: TParams
+) => void;

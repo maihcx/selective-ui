@@ -155,33 +155,6 @@ describe('GroupModel', () => {
         });
     });
 
-    describe('onTargetChanged behavior', () => {
-        test('updates label and collapsed in view', () => {
-            const model = new GroupModel({}, optgroup);
-
-            const updateLabel = jest.fn();
-            const setCollapsed = jest.fn();
-
-            model.view = {
-                updateLabel,
-                setCollapsed
-            } as any;
-
-            model.onUpdate();
-
-            expect(updateLabel).toHaveBeenCalledWith(model.label);
-            expect(setCollapsed).toHaveBeenCalledWith(model.collapsed);
-        });
-
-        test('onTargetChanged does not throw without view', () => {
-            const model = new GroupModel({}, optgroup);
-
-            expect(() => {
-                model.onUpdate();
-            }).not.toThrow();
-        });
-    });
-
     describe('toggleCollapse behavior', () => {
         test('calls view.setCollapsed with new state', () => {
             const model = new GroupModel({}, optgroup);

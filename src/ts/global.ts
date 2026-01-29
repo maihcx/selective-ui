@@ -179,5 +179,5 @@ export function rebind(query: string, options: SelectiveOptions = {}): void {
  * fx.show();
  */
 export function effector(element: string | HTMLElement): EffectorInterface {
-    return globalThis.GLOBAL_SEUI.effector(element) as unknown as EffectorInterface;
+    return globalThis.GLOBAL_SEUI.effector(element) as EffectorInterface;
 }

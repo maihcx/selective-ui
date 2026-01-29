@@ -6,25 +6,58 @@ import { Lifecycle } from "../core/base/lifecycle";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
 
 /**
- * Searchable input component for the Select UI.
+ * SearchBox
  *
- * Responsibilities:
- * - Render a search input field with proper ARIA attributes
- * - Dispatch typed events for search, navigation, Enter, and Escape
- * - Support showing/hiding and dynamic placeholder updates
+ * DOM-driven, headless-friendly search input used by the Select UI to filter and
+ * navigate option lists. This component owns a small DOM subtree and exposes
+ * callback hooks for the host/controller layer to implement filtering, highlight,
+ * and commit/cancel behaviors.
  *
- * Lifecycle:
- * - Constructed with optional options → initialized → `init()`
- * - Consumers wire callbacks (`onSearch`, `onNavigate`, `onEnter`, `onEsc`)
+ * ### Responsibility
+ * - Render a `<input type="search">` wrapped by a container element.
+ * - Apply ARIA attributes used by the surrounding listbox/popup integration.
+ * - Convert DOM events into typed callbacks:
+ *   - text input changes → {@link onSearch}
+ *   - keyboard navigation (ArrowUp/ArrowDown/Tab) → {@link onNavigate}
+ *   - commit (Enter) → {@link onEnter}
+ *   - cancel (Escape) → {@link onEsc}
+ * - Provide imperative UI helpers:
+ *   - {@link show}/{@link hide} (visibility + focus/readOnly behavior)
+ *   - {@link clear} (reset query and optionally trigger the search hook)
+ *   - {@link setPlaceHolder} (safe placeholder update)
+ *   - {@link setActiveDescendant} (ARIA highlight binding)
+ *
+ * ### Lifecycle (Strict FSM)
+ * - Constructed in `NEW`.
+ * - If options are provided, {@link initialize} creates DOM and calls `init()`
+ *   → transitions to `INITIALIZED`.
+ * - This class does not override `update()`: runtime changes are performed via
+ *   its imperative methods (e.g., {@link show}, {@link clear}, {@link setPlaceHolder}).
+ * - {@link destroy} is terminal: removes DOM references and ends lifecycle.
+ *   Subsequent calls become no-ops once {@link LifecycleState.DESTROYED}.
+ *
+ * ### Event Model / Ownership
+ * - This component does **not** own filtering logic or selection state.
+ * - All "meaningful actions" are emitted outward through callbacks (external events).
+ * - It also performs event containment (`stopPropagation`) to avoid parent-level
+ *   handlers (e.g., popup/list container) from intercepting interactions.
+ *
+ * ### a11y / DOM Side Effects
+ * - Writes ARIA attributes such as `aria-controls`, `aria-autocomplete`, and
+ *   `aria-activedescendant` onto the input element.
+ * - Intercepts keyboard events and may call `preventDefault()` for navigation keys.
  *
  * @extends Lifecycle
  */
 export class SearchBox extends Lifecycle {
     /**
-     * Creates a searchable input box component with optional configuration
-     * and initializes it if options are provided.
+     * Creates a new {@link SearchBox}.
      *
-     * @param options - Configuration (e.g., placeholder, accessibility IDs).
+     * If `options` is provided, initialization is performed immediately (DOM is created
+     * and `init()` is called). If `options` is `null`, the instance stays in `NEW` until
+     * initialized elsewhere.
+     *
+     * @param options - Configuration such as placeholder, accessibility IDs, and flags.
      */
     constructor(options: SelectiveOptions | null = null) {
         super();
@@ -32,45 +65,115 @@ export class SearchBox extends Lifecycle {
         if (options) this.initialize(options);
     }
 
-    /** Internal reference to the mounted node structure with typed tags. */
+    /**
+     * The mount result returned by {@link Libs.mountNode}.
+     *
+     * Provides typed access to created DOM tags (e.g., `SearchInput`) and the root view.
+     * `null` before initialization and after destruction.
+     *
+     * @internal
+     */
     private nodeMounted: MountViewResult<SearchBoxTags> | null = null;
 
-    /** Root container element for the search box component. */
+    /**
+     * Root container node of this component.
+     *
+     * Created during {@link initialize} and removed during {@link destroy}.
+     * Visibility is controlled by adding/removing the `hide` class.
+     */
     public node: HTMLDivElement | null = null;
 
-    /** Reference to the input element (`type="search"`). */
+    /**
+     * The `<input type="search">` element used to capture user queries.
+     *
+     * Cached for imperative operations (focus, placeholder updates, ARIA updates).
+     * `null` before initialization and after destruction.
+     *
+     * @internal
+     */
     private SearchInput: HTMLInputElement | null = null;
 
-    /** Callback fired on input changes (when not a control key event). */
+    /**
+     * External "search changed" hook.
+     *
+     * Invoked when the user edits text (via the `input` event) and the edit is not
+     * part of a handled control-key sequence (e.g., ArrowUp/Down/Tab/Enter/Escape).
+     *
+     * Ownership:
+     * - Implementations typically filter adapter/model state and refresh the list.
+     */
     public onSearch: SearchHandler | null = null;
 
-    /** Current configuration options (placeholder, IDs, searchable flag, etc.). */
+    /**
+     * Options snapshot used for behavior toggles and attributes.
+     *
+     * Key fields typically consumed here:
+     * - `placeholder`: initial placeholder string
+     * - `searchable`: toggles readOnly + focus behavior on {@link show}
+     * - `SEID_LIST`: used as `aria-controls` value to bind to listbox container
+     *
+     * Cleared during {@link destroy}.
+     *
+     * @internal
+     */
     private options: SelectiveOptions | null = null;
 
-    /** Callback to handle list navigation: +1 for next, -1 for previous. */
+    /**
+     * External navigation hook for list traversal.
+     *
+     * Called with:
+     * - `+1` for forward (ArrowDown / Tab)
+     * - `-1` for backward (ArrowUp)
+     *
+     * Typical consumers update highlight/active option in Adapter/RecyclerView.
+     */
     public onNavigate: NavigateHandler | null = null;
 
-    /** Callback fired on Enter. Typically used to confirm a selection. */
+    /**
+     * External "commit" hook (Enter key).
+     *
+     * Typical consumers confirm selection of the highlighted option or submit the current state.
+     */
     public onEnter: (() => void) | null = null;
     
-    /** Callback fired on Escape. Typically used to dismiss a popup. */
+    /**
+     * External "cancel" hook (Escape key).
+     *
+     * Typical consumers close the popup, clear highlight, or reset interaction mode.
+     */
     public onEsc: (() => void) | null = null;
 
     /**
-     * Initializes the search box DOM, sets ARIA attributes, and wires keyboard/mouse/input events.
+     * Initializes DOM, ARIA attributes, and interaction listeners.
      *
-     * Accessibility:
-     * - `role="searchbox"`
-     * - `aria-controls` references the listbox container by ID
-     * - `aria-autocomplete="list"` indicates list-based suggestions/results
+     * DOM structure (conceptually):
+     * - Root: `div.selective-ui-searchbox.hide`
+     * - Child: `input[type="search"].selective-ui-searchbox-input`
      *
-     * Keyboard support:
-     * - ArrowDown / Tab → navigate forward
-     * - ArrowUp → navigate backward
-     * - Enter → confirm action
-     * - Escape → cancel/close action
+     * Accessibility attributes set on the input:
+     * - `role="searchbox"`: announces search field semantics
+     * - `aria-controls=options.SEID_LIST`: points to the list container (listbox)
+     * - `aria-autocomplete="list"`: indicates suggestion results are list-driven
      *
-     * @param options - Configuration including placeholder and `SEID_LIST` for `aria-controls`.
+     * Interaction model:
+     * - Mouse down/up: stops propagation to prevent container/popup listeners from interfering.
+     * - Keydown:
+     *   - ArrowDown / Tab → emits {@link onNavigate}(+1)
+     *   - ArrowUp → emits {@link onNavigate}(-1)
+     *   - Enter → emits {@link onEnter}()
+     *   - Escape → emits {@link onEsc}()
+     *   Control keys are treated as "internal control events" and do not produce {@link onSearch}
+     *   via the `input` listener (guarded by `isControlKey`).
+     * - Input:
+     *   - Emits {@link onSearch}(value, true) for text edits that are not control-key sequences.
+     *
+     * Side effects:
+     * - Creates DOM nodes via {@link Libs.mountNode}.
+     * - Attaches event listeners to the input element.
+     * - Transitions lifecycle via `init()` at the end.
+     *
+     * @param options - Configuration including placeholder and listbox id used by `aria-controls`.
+     * @internal
      */
     private initialize(options: SelectiveOptions): void {
         this.nodeMounted = Libs.mountNode({
@@ -99,7 +202,7 @@ export class SearchBox extends Lifecycle {
         let isControlKey = false;
         const inputEl = this.nodeMounted.tags.SearchInput;
 
-        // Prevent parent listeners from intercepting mouse interactions.
+        // Prevent parent listeners (e.g., popup container) from intercepting mouse interactions.
         inputEl.addEventListener("mousedown", (e: MouseEvent) => {
             e.stopPropagation();
         });
@@ -108,7 +211,8 @@ export class SearchBox extends Lifecycle {
             e.stopPropagation();
         });
 
-        // Keyboard handling: navigation, submit, and cancel.
+        // Keyboard handling: navigation, commit, and cancel.
+        // Control-key sequences are tracked to avoid emitting onSearch from the subsequent input event.
         inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
             isControlKey = false;
 
@@ -138,7 +242,7 @@ export class SearchBox extends Lifecycle {
             e.stopPropagation();
         });
 
-        // Text input changes (ignore control-key initiated sequences).
+        // Text edits (ignore those attributable to control-key flows).
         inputEl.addEventListener("input", () => {
             if (isControlKey) return;
             this.onSearch?.(inputEl.value, true);
@@ -148,8 +252,18 @@ export class SearchBox extends Lifecycle {
     }
 
     /**
-     * Shows the search box, toggles `readOnly` based on `options.searchable`,
-     * and focuses the input when searchable.
+     * Shows the search box and prepares the input for interaction.
+     *
+     * Behavior:
+     * - Removes the `hide` class from the root node.
+     * - Toggles `readOnly` according to `options.searchable`.
+     * - When searchable, schedules a focus on the next animation frame.
+     *
+     * No-ops if not initialized (missing {@link node}, {@link SearchInput}, or {@link options}).
+     *
+     * DOM side effects:
+     * - May change focus.
+     * - Mutates `readOnly` on the input element.
      */
     public show(): void {
         if (!this.node || !this.SearchInput || !this.options) return;
@@ -165,7 +279,9 @@ export class SearchBox extends Lifecycle {
     }
 
     /**
-     * Hides the search box by adding the `hide` class.
+     * Hides the search box by adding the `hide` class to the root node.
+     *
+     * No-ops if {@link node} is `null`.
      */
     public hide(): void {
         if (!this.node) return;
@@ -173,9 +289,15 @@ export class SearchBox extends Lifecycle {
     }
 
     /**
-     * Clears the current search value and optionally triggers the `onSearch` callback.
+     * Clears the current query and optionally notifies the host via {@link onSearch}.
      *
-     * @param isTrigger - Whether to invoke `onSearch` with an empty string. Defaults to `true`.
+     * This method always resets the input's value to an empty string.
+     * The `isTrigger` flag is forwarded to {@link onSearch} and can be used by the host
+     * to differentiate external (programmatic) clearing from user-driven changes.
+     *
+     * No-ops if the component has not been initialized ({@link nodeMounted} is `null`).
+     *
+     * @param isTrigger - Whether to invoke {@link onSearch} with an empty string. Defaults to `true`.
      */
     public clear(isTrigger: boolean = true): void {
         if (!this.nodeMounted) return;
@@ -184,9 +306,14 @@ export class SearchBox extends Lifecycle {
     }
 
     /**
-     * Updates the input's placeholder text, stripping any HTML for safety.
+     * Updates the input's placeholder text.
      *
-     * @param value - The new placeholder text.
+     * Safety:
+     * - HTML is stripped via {@link Libs.stripHtml} to avoid rendering markup in an attribute.
+     *
+     * No-ops if {@link SearchInput} is `null`.
+     *
+     * @param value - New placeholder text (may contain markup, which will be stripped).
      */
     public setPlaceHolder(value: string): void {
         if (!this.SearchInput) return;
@@ -194,9 +321,15 @@ export class SearchBox extends Lifecycle {
     }
 
     /**
-     * Sets the active descendant for ARIA to indicate the currently highlighted option.
+     * Sets `aria-activedescendant` to reflect the currently highlighted option in the list.
      *
-     * @param id - The DOM id of the active option element.
+     * This is typically used in conjunction with keyboard navigation to keep assistive
+     * technologies informed about the active/highlighted item without moving DOM focus away
+     * from the search input.
+     *
+     * No-ops if {@link SearchInput} is `null`.
+     *
+     * @param id - DOM id of the active option element.
      */
     public setActiveDescendant(id: string): void {
         if (!this.SearchInput) return;
@@ -204,11 +337,17 @@ export class SearchBox extends Lifecycle {
     }
 
     /**
-     * Destroys the search box and releases resources.
+     * Disposes DOM resources and terminates the lifecycle.
      *
-     * - Removes the root DOM node
-     * - Clears references to DOM and callbacks
-     * - Ends the lifecycle
+     * Strict FSM / idempotency:
+     * - If already {@link LifecycleState.DESTROYED}, returns immediately.
+     *
+     * Side effects:
+     * - Removes the root DOM node from the document (if present).
+     * - Clears references to DOM nodes and callbacks to enable garbage collection.
+     * - Delegates to `super.destroy()` to finalize lifecycle transition.
+     *
+     * @override
      */
     public override destroy(): void {
         if (this.is(LifecycleState.DESTROYED)) {

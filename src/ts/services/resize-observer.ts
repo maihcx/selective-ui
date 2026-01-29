@@ -1,22 +1,103 @@
 import { ElementMetrics } from "../types/services/resize-observer.type";
 
 /**
- * @class
+ * ResizeObserverService
+ *
+ * Lightweight DOM observation service that consolidates multiple layout-change signals
+ * into a single `onChanged(metrics)` hook.
+ *
+ * This is a headless utility (no rendering). It binds to one DOM element at a time,
+ * derives a normalized {@link ElementMetrics} snapshot, and emits it to consumers.
+ *
+ * ### Responsibility
+ * - Observe one bound DOM element for layout-affecting changes.
+ * - Normalize native signals into a consistent metrics payload:
+ *   - `ResizeObserver` → element box size changes
+ *   - `MutationObserver` (attributes: `style`, `class`) → style-driven layout changes
+ *   - `window` scroll/resize → viewport/layout shifts
+ *   - `visualViewport` scroll/resize (when available) → zoom/keyboard/viewport changes
+ * - Compute and emit metrics:
+ *   - geometry from `getBoundingClientRect()`
+ *   - padding/border/margin from `getComputedStyle()` (when available)
+ *
+ * ### Lifecycle behavior (service-level)
+ * - `constructor()` initializes internal state and binds a stable handler reference.
+ * - `connect(element)` attaches observers/listeners and starts emitting metric updates.
+ * - `trigger()` forces an immediate metric snapshot emission.
+ * - `disconnect()` detaches observers/listeners, clears references, and disables further emissions.
+ *
+ * ### Internal vs external signals
+ * - **Internal signals**: `ResizeObserver` and `MutationObserver` callbacks.
+ * - **External signals**: `window` / `visualViewport` scroll/resize events.
+ * All signals funnel through the same internal handler and produce the same {@link ElementMetrics}.
+ *
+ * ### No-op / fallback behavior
+ * - If the bound element is missing or not measurable, a zeroed {@link ElementMetrics} object is emitted.
+ * - `disconnect()` is tolerant to being called when not connected.
+ *
+ * ### Idempotency notes
+ * - `disconnect()` is effectively idempotent (safe to call multiple times).
+ * - `connect()` is **not** idempotent: repeated calls without `disconnect()` will add duplicate
+ *   observers/listeners and may result in amplified callbacks.
+ *
+ * ### DOM / environment side effects
+ * - Adds/removes global listeners on `window` and optionally `window.visualViewport`.
+ * - Creates and disconnects `ResizeObserver` and `MutationObserver` instances.
+ * - Does not mutate the observed element; only reads layout/style information.
+ *
+ * @see {@link ElementMetrics}
  */
 export class ResizeObserverService {
+    /**
+     * Initialization flag set by the constructor.
+     *
+     * @remarks
+     * This flag indicates the instance has been constructed and its internal handler bound.
+     * It does **not** indicate that observers are currently attached (see {@link connect}).
+     */
     public isInit = false;
 
+    /**
+     * The currently bound DOM element being observed.
+     *
+     * @remarks
+     * Set by {@link connect} and cleared by {@link disconnect}.
+     */
     public element: Element | null = null;
 
+    /**
+     * Underlying `ResizeObserver` instance.
+     *
+     * @remarks
+     * Allocated on {@link connect}. Disconnected and nulled on {@link disconnect}.
+     */
     private resizeObserver: ResizeObserver | null = null;
 
+    /**
+     * Underlying `MutationObserver` instance watching `style` and `class` attribute changes.
+     *
+     * @remarks
+     * Allocated on {@link connect}. Disconnected and nulled on {@link disconnect}.
+     */
     private mutationObserver: MutationObserver | null = null;
 
+    /**
+     * Stable, `this`-bound handler shared by observers and global event listeners.
+     *
+     * @remarks
+     * A stable reference is required so `removeEventListener` can reliably detach listeners.
+     */
     private boundUpdateChanged: () => void;
 
     /**
-     * Initializes the service and binds the internal update handler to `this`.
-     * Sets the service to an initialized state.
+     * Creates the service and binds internal handlers.
+     *
+     * ### Behavior
+     * - Sets {@link isInit} to `true`.
+     * - Binds {@link updateChanged} to a stable function reference stored in {@link boundUpdateChanged}.
+     *
+     * @remarks
+     * This constructor does not attach any DOM observers; observation begins at {@link connect}.
      */
     public constructor() {
         this.isInit = true;
@@ -24,17 +105,31 @@ export class ResizeObserverService {
     }
 
     /**
-     * Callback invoked when the observed element's metrics change.
-     * Override to react to size/position/style updates.
+     * Hook invoked whenever the service emits a new metrics snapshot.
      *
-     * @param {ElementMetrics} metrics - Calculated box metrics (size, position, padding, border, margin).
+     * ### Contract
+     * - Receives a fully shaped {@link ElementMetrics} object.
+     * - Numeric values are parsed to numbers (CSS pixels).
+     * - When no measurable element is bound, values are zeroed.
+     *
+     * @param metrics - Snapshot of geometry and box edges (padding/border/margin).
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public onChanged(metrics: ElementMetrics): void { }
 
     /**
-     * Computes the current metrics of the bound element (bounding rect + computed styles)
-     * and forwards them to `onChanged(metrics)`.
+     * Computes metrics for the current {@link element} and forwards them to {@link onChanged}.
+     *
+     * ### Computation
+     * - `getBoundingClientRect()` → `width`, `height`, `top`, `left`
+     * - `getComputedStyle()` (if available) → padding, border widths, margins
+     *
+     * ### Fallback behavior
+     * - If `element` is null/invalid or lacks `getBoundingClientRect`, emits a zeroed metrics object.
+     * - If `window.getComputedStyle` is unavailable, padding/border/margin values default to `0`.
+     *
+     * @remarks
+     * This method is the single funnel for all observation signals (internal + external).
      */
     private updateChanged(): void {
         const el = this.element as HTMLElement | null;
@@ -91,18 +186,32 @@ export class ResizeObserverService {
     }
 
     /**
-     * Manually triggers a metrics computation and notification via `onChanged`.
+     * Manually emits a metrics snapshot for the current element.
+     *
+     * ### No-op / fallback behavior
+     * - If not connected or element is not measurable, a zeroed metrics object is emitted.
      */
     public trigger(): void {
         this.updateChanged();
     }
 
     /**
-     * Starts observing the provided element for resize and style/class mutations,
-     * and listens to window/visualViewport scroll/resize to detect layout changes.
+     * Attaches observers and listeners to begin emitting metric updates for the given element.
      *
-     * @param {Element} element - The element to observe; must be a valid DOM Element.
-     * @throws {Error} If `element` is not an instance of Element.
+     * ### Observed signals
+     * - `ResizeObserver` on the element
+     * - `MutationObserver` on the element (attributes: `style`, `class`)
+     * - `window`:
+     *   - `scroll` (capture phase) to detect scroll-driven layout shifts
+     *   - `resize` to detect viewport size changes
+     * - `window.visualViewport` (when available):
+     *   - `resize` and `scroll` for mobile zoom / virtual keyboard adjustments
+     *
+     * @param element - DOM element to observe. Must be an `Element`.
+     * @throws {Error} If `element` is not an instance of `Element`.
+     *
+     * @remarks
+     * Not idempotent. Call {@link disconnect} before calling `connect()` again to avoid duplicates.
      */
     public connect(element: Element): void {
         if (!(element instanceof Element)) {
@@ -130,8 +239,16 @@ export class ResizeObserverService {
     }
 
     /**
-     * Stops all observations and event listeners, resets the change handler,
-     * and releases internal observer resources.
+     * Detaches all observers and listeners, clears internal references, and disables emissions.
+     *
+     * ### Behavior
+     * - Disconnects `ResizeObserver` and `MutationObserver` (if present).
+     * - Removes `window` / `visualViewport` listeners.
+     * - Resets {@link onChanged} to a no-op to prevent callbacks after teardown.
+     * - Clears {@link element} and releases observer instances for GC.
+     *
+     * ### Idempotency
+     * - Safe to call multiple times (platform APIs tolerate redundant disconnect/removals).
      */
     public disconnect(): void {
         this.resizeObserver?.disconnect();

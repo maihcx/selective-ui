@@ -3,31 +3,50 @@ import { LifecycleState } from "../types/core/base/lifecycle.type";
 import { Libs } from "../utils/libs";
 
 /**
- * Base directive class representing a lightweight UI control.
+ * Minimal directive primitive for small interactive UI controls.
  *
- * A Directive is a small interactive UI element that:
- * - Owns a single root HTMLElement
- * - Participates in the standard lifecycle (`init → mount → destroy`)
- * - Encapsulates behavior rather than complex rendering logic
+ * A **Directive** is a lightweight, DOM-driven control that:
+ * - Owns a single root {@link HTMLElement} ({@link node})
+ * - Participates in the core lifecycle FSM via {@link Lifecycle}
+ * - Encapsulates behavior (state toggles / event wiring) rather than complex rendering
  *
- * This particular implementation acts as a toggle control
- * (e.g., to open/close a dropdown).
+ * This implementation models a generic “toggle” affordance (commonly used to open/close a dropdown),
+ * leaving styling and actual open/close mechanics to higher-level components.
+ *
+ * ### Lifecycle (Strict-ish FSM)
+ * - Construction calls {@link init} immediately.
+ * - {@link init} creates the DOM node, transitions `NEW → INITIALIZED`, then calls {@link mount}
+ *   (resulting in `MOUNTED`).
+ * - {@link destroy} removes the node and transitions to `DESTROYED` (idempotent guard).
+ *
+ * ### Idempotency / No-ops
+ * - {@link setDropdown} is purely a DOM class toggle and is safe to call repeatedly.
+ * - {@link destroy} is idempotent once in {@link LifecycleState.DESTROYED}.
+ *
+ * ### Accessibility / DOM side effects
+ * - The root node is created with `role="button"` and an `aria-label`.
+ * - Visual state is represented by toggling a CSS class (`"drop-down"`).
  *
  * @extends Lifecycle
+ * @see {@link LifecycleState}
  */
 export class Directive extends Lifecycle {
-
     /**
-     * Root DOM node of the directive.
-     * Created during initialization and removed on destroy.
+     * Root DOM node for this directive.
+     *
+     * - Created during {@link init}.
+     * - Must be appended/positioned by the owning container.
+     * - Removed from DOM during {@link destroy}.
      */
     node: HTMLElement;
 
     /**
-     * Creates a new Directive instance and immediately initializes it.
+     * Creates a new Directive and immediately initializes it.
      *
-     * The lifecycle is automatically started:
-     * constructor → init → mount
+     * Lifecycle progression:
+     * `constructor()` → {@link init} → {@link mount}
+     *
+     * @returns {void}
      */
     constructor() {
         super();
@@ -35,13 +54,15 @@ export class Directive extends Lifecycle {
     }
 
     /**
-     * Initializes the directive's DOM structure.
+     * Initializes the directive's DOM structure and advances lifecycle state.
      *
-     * Creates a clickable element that behaves like a button
-     * and applies appropriate ARIA attributes for accessibility.
+     * Side effects:
+     * - Creates a single clickable root element via {@link Libs.nodeCreator}.
+     * - Applies `role="button"` and `aria-label` for accessibility.
+     * - Transitions `NEW → INITIALIZED → MOUNTED` by calling `super.init()` then {@link mount}.
      *
-     * Automatically transitions the lifecycle from:
-     * NEW → INITIALIZED → MOUNTED
+     * @returns {void}
+     * @override
      */
     public override init(): void {
         // Libs.nodeCreator returns Element, but this node
@@ -58,21 +79,29 @@ export class Directive extends Lifecycle {
     }
 
     /**
-     * Updates the visual dropdown state of the directive.
+     * Updates the directive's visual "dropdown open" state.
      *
-     * Toggles the `drop-down` CSS class on the root node,
-     * allowing presentation logic to be handled purely via styles.
+     * Implementation:
+     * - Toggles the `"drop-down"` CSS class on {@link node}.
+     * - Presentation is expected to be handled purely via CSS.
      *
-     * @param value - True to indicate dropdown is open; false otherwise.
+     * @param {boolean} value - `true` to indicate dropdown is open; `false` otherwise.
+     * @returns {void}
      */
     public setDropdown(value: boolean): void {
         this.node.classList.toggle("drop-down", !!value);
     }
 
     /**
-     * Destroys the directive and cleans up DOM resources.
+     * Destroys the directive and releases DOM resources.
      *
-     * Removes the root node from the DOM and ends the lifecycle.
+     * Behavior:
+     * - Idempotent: returns early if already in {@link LifecycleState.DESTROYED}.
+     * - Removes {@link node} from the DOM.
+     * - Clears references and completes teardown via `super.destroy()`.
+     *
+     * @returns {void}
+     * @override
      */
     public override destroy(): void {
         if (this.is(LifecycleState.DESTROYED)) {

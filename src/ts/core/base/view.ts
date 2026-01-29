@@ -4,40 +4,66 @@ import { Lifecycle } from "./lifecycle";
 import { LifecycleState } from "src/ts/types/core/base/lifecycle.type";
 
 /**
- * Base View class that anchors a mounted DOM structure into a parent container.
+ * Base View primitive that anchors a mounted DOM structure into a parent container.
  *
- * Responsibilities:
- * - Hold a reference to the parent container (`parent`)
- * - Store the mounted structure (`view`) returned by a mounting helper
- * - Provide a safe getter for the root element (`getView()`)
- * - Participate in the standard lifecycle (`init` → `mount` → `update` → `destroy`)
+ * This class is the **View** part of the library's Model/View separation:
+ * - A View is responsible for owning/manipulating DOM nodes and exposing typed handles (`tags`)
+ *   for efficient updates.
+ * - A View is typically created/managed by an Adapter/RecyclerView layer and assigned back to a Model.
  *
- * Typical usage:
- * - Subclasses set `this.view` inside `onMount()` using a mounting utility
- * - Then call `this.parent!.appendChild(this.view.view)`
+ * ### Responsibility
+ * - Hold a reference to the host container (`parent`) where the view's root element is attached.
+ * - Store the mounted structure (`view`) produced by a mount utility (root element + typed tag map).
+ * - Provide a safe root accessor ({@link getView}) for downstream code (e.g., scrolling, a11y, styling).
  *
- * @template TTags - A map of tag names to their corresponding HTMLElement instances.
+ * ### Lifecycle (Strict FSM)
+ * - Constructor calls {@link Lifecycle.init} immediately (`NEW → INITIALIZED`).
+ * - Mounting is performed by subclasses / infrastructure:
+ *   - populate {@link view} (usually during a subclass mount hook),
+ *   - append `view.view` to {@link parent},
+ *   - then transition to `MOUNTED` via {@link Lifecycle.mount} (typically done by the base/framework).
+ * - {@link destroy} transitions to `DESTROYED` and removes the root element from the DOM.
+ *
+ * ### Idempotency / No-ops
+ * - {@link destroy} is idempotent once in {@link LifecycleState.DESTROYED}.
+ * - {@link getView} throws if the view is not yet mounted (i.e., {@link view} is unset).
+ *
+ * ### DOM side effects / Ownership
+ * - Owns the root element produced by the mount helper and removes it on {@link destroy}.
+ * - Does not automatically append the root node; external orchestrators (Adapter/RecyclerView) control attachment.
+ *
+ * @template TTags - Map of tag names to their corresponding HTMLElement instances.
  * @implements {ViewContract<TTags>}
+ * @extends Lifecycle
+ * @see {@link MountViewResult}
+ * @see {@link ViewContract}
+ * @see {@link LifecycleState}
  */
 export class View<TTags extends Record<string, HTMLElement>> extends Lifecycle implements ViewContract<TTags> {
-
-    /** The parent DOM element into which this view is rendered. */
+    /**
+     * Host container element into which this view's root element is rendered/attached.
+     *
+     * This reference is captured at construction time and cleared on {@link destroy}.
+     */
     public parent: HTMLElement | null = null;
 
     /**
-     * Mounted result containing:
+     * Mounted view result containing:
      * - `view`: the root element of this view
-     * - `tags`: a strongly-typed map of child elements
+     * - `tags`: a strongly-typed map of child elements for fast access
+     *
+     * This is expected to be assigned by subclasses (or a mount helper) before {@link getView} is called.
      */
     public view: MountViewResult<TTags> | null = null;
 
     /**
-     * Creates a View bound to the specified parent container.
+     * Creates a View bound to the specified parent container and initializes lifecycle state.
      *
-     * Note: Subclasses should assign `this.view` during `onMount()` before
-     * attempting to access `getView()` or manipulate the root element.
+     * Notes:
+     * - This base constructor **does not** perform DOM mounting or attachment.
+     * - Subclasses typically assign {@link view} during their mount step, then append `view.view` to {@link parent}.
      *
-     * @param parent - The parent element into which this view will render.
+     * @param {HTMLElement} parent - Host element into which this view will render.
      */
     public constructor(parent: HTMLElement) {
         super();
@@ -48,8 +74,8 @@ export class View<TTags extends Record<string, HTMLElement>> extends Lifecycle i
     /**
      * Returns the root HTMLElement of the mounted view.
      *
-     * @returns The root element produced by the mounting helper.
-     * @throws {Error} If the view has not been mounted or `this.view` is not set.
+     * @returns {HTMLElement} The root element produced by the mounting helper.
+     * @throws {Error} If {@link view} is not set or the view has not been mounted yet.
      */
     public getView(): HTMLElement {
         if (!this.view?.view) {
@@ -61,9 +87,14 @@ export class View<TTags extends Record<string, HTMLElement>> extends Lifecycle i
     /**
      * Destroys the view and releases DOM references.
      *
-     * - Removes the root element from the DOM (if present)
-     * - Clears references to `parent` and `view`
-     * - Ends the lifecycle via `super.destroy()`
+     * Behavior:
+     * - Idempotent: returns early if already in {@link LifecycleState.DESTROYED}.
+     * - Removes the root element from the DOM (if present).
+     * - Clears references to {@link parent} and {@link view}.
+     * - Completes teardown by calling {@link Lifecycle.destroy}.
+     *
+     * @returns {void}
+     * @override
      */
     public override destroy(): void {
         if (this.is(LifecycleState.DESTROYED)) {
