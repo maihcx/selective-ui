@@ -473,9 +473,7 @@ export class Selective extends Lifecycle {
         const wasObserving = !!this.EAObserver;
         if (wasObserving) this.EAObserver?.disconnect();
 
-        try {
-            bindMap.self?.deInit?.();
-        } catch (_) {}
+        bindMap.self?.deInit?.();
 
         const wrapper: HTMLElement | null =
             (bindMap.container?.element as HTMLElement | undefined) ??

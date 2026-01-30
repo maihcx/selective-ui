@@ -471,10 +471,8 @@ export class Popup extends Lifecycle {
             return;
         }
 
-        if (this.hideLoadHandle) {
-            clearTimeout(this.hideLoadHandle);
-            this.hideLoadHandle = null;
-        }
+        clearTimeout(this.hideLoadHandle!);
+        this.hideLoadHandle = null;
 
         if (this.node && this.scrollListener) {
             this.node.removeEventListener("scroll", this.scrollListener);
@@ -484,16 +482,11 @@ export class Popup extends Lifecycle {
         this.emptyState.destroy();
         this.loadingState.destroy();
         this.optionHandle.destroy();
-
-        try {
-            this.resizeObser?.disconnect();
-        } catch (_) {}
-        this.resizeObser = null;
-
-        try {
-            this.effSvc?.setElement?.(null);
-        } catch (_) {}
-        this.effSvc = null;
+        this.resizeObser?.disconnect?.();
+        this.effSvc?.setElement?.(null);
+        this.modelManager?.skipEvent?.(false);
+        this.recyclerView?.clear?.();
+        this.node?.remove?.();
 
         if (this.node) {
             try {
@@ -504,30 +497,20 @@ export class Popup extends Lifecycle {
                 this.node.remove();
             }
         }
+        
         this.node = null;
         this.optionsContainer = null;
-
-        try {
-            this.modelManager?.skipEvent?.(false);
-
-            this.recyclerView?.clear?.();
-            this.recyclerView = null;
-
-            this.optionAdapter = null;
-
-            // Original behavior kept intentionally.
-            this.node.remove();
-        } catch (_) {}
-
         this.modelManager = null;
         this.optionHandle = null;
         this.emptyState = null;
         this.loadingState = null;
-
         this.parent = null;
         this.options = null;
-
         this.isCreated = false;
+        this.effSvc = null;
+        this.resizeObser = null;
+        this.recyclerView = null;
+        this.optionAdapter = null;
 
         super.destroy();
     }
