@@ -282,12 +282,12 @@ export class SelectBox extends Lifecycle {
         const container = Libs.mountNode(
             {
                 Container: {
-                    tag: { node: "div", classList: "selective-ui-MAIN" },
+                    tag: { node: "div", classList: "seui-MAIN" },
                     child: {
                         ViewPanel: {
                             tag: {
                                 node: "div",
-                                classList: "selective-ui-view",
+                                classList: "seui-view",
                                 tabIndex: 0,
                                 onkeydown: (e: KeyboardEvent) => {
                                     if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {

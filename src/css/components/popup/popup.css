@@ -1,4 +1,4 @@
-.selective-ui-popup, .selective-ui-popup * {
+.seui-popup, .seui-popup * {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
@@ -6,7 +6,7 @@
     line-height: normal;
 }
 
-.selective-ui-popup {
+.seui-popup {
     display: none;
     position: fixed;
     z-index: 9999;
@@ -26,7 +26,7 @@
     transition: none;
 }
 
-.selective-ui-options-container {
+.seui-options-container {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -35,11 +35,11 @@
     touch-action: pan-y;
 }
 
-.selective-ui-options-container.hide {
+.seui-options-container.hide {
     display: none;
 }
 
-.selective-ui-options-container .selective-ui-virtual-items {
+.seui-options-container .seui-virtual-items {
     display: flex;
     flex-direction: column;
     width: 100%;

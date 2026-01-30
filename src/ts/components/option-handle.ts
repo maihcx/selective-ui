@@ -108,9 +108,9 @@ export class OptionHandle extends Lifecycle {
      * Initializes DOM and binds event handlers.
      *
      * DOM structure (conceptually):
-     * - Root: `div.selective-ui-option-handle.hide`
-     * - Child: `a.selective-ui-option-handle-item` ("Select all")
-     * - Child: `a.selective-ui-option-handle-item` ("Deselect all")
+     * - Root: `div.seui-option-handle.hide`
+     * - Child: `a.seui-option-handle-item` ("Select all")
+     * - Child: `a.seui-option-handle-item` ("Deselect all")
      *
      * Click handlers:
      * - "Select all" → dispatches {@link actionOnSelectAll} via {@link iEvents.callFunctions}
@@ -126,12 +126,12 @@ export class OptionHandle extends Lifecycle {
     private initialize(options: SelectiveOptions): void {
         this.nodeMounted = Libs.mountNode({
             OptionHandle: {
-                tag: { node: "div", classList: ["selective-ui-option-handle", "hide"] },
+                tag: { node: "div", classList: ["seui-option-handle", "hide"] },
                 child: {
                     SelectAll: {
                         tag: {
                             node: "a",
-                            classList: "selective-ui-option-handle-item",
+                            classList: "seui-option-handle-item",
                             textContent: options.textSelectAll,
                             onclick: () => {
                                 iEvents.callFunctions(this.actionOnSelectAll);
@@ -141,7 +141,7 @@ export class OptionHandle extends Lifecycle {
                     DeSelectAll: {
                         tag: {
                             node: "a",
-                            classList: "selective-ui-option-handle-item",
+                            classList: "seui-option-handle-item",
                             textContent: options.textDeselectAll,
                             onclick: () => {
                                 iEvents.callFunctions(this.actionOnDeSelectAll);

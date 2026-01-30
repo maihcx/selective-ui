@@ -26,7 +26,7 @@ describe("EmptyState", () => {
 
         expect(es.node).toBeInstanceOf(HTMLDivElement);
         expect(es.options).toBe(options);
-        expect(es.node?.classList.contains("selective-ui-empty-state")).toBe(true);
+        expect(es.node?.classList.contains("seui-empty-state")).toBe(true);
         expect(es.node?.classList.contains("hide")).toBe(true);
         expect(es.node?.getAttribute("role")).toBe("status");
         expect(es.node?.getAttribute("aria-live")).toBe("polite");

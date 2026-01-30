@@ -134,7 +134,7 @@ export class Popup extends Lifecycle {
                 PopupContainer: {
                     tag: {
                         node: "div",
-                        classList: "selective-ui-popup",
+                        classList: "seui-popup",
                         style: { maxHeight: options.panelHeight },
                     },
                     child: {
@@ -143,7 +143,7 @@ export class Popup extends Lifecycle {
                             tag: {
                                 id: options.SEID_LIST,
                                 node: "div",
-                                classList: "selective-ui-options-container",
+                                classList: "seui-options-container",
                                 role: "listbox",
                             },
                         },

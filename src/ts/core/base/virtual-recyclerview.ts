@@ -188,9 +188,9 @@ export class VirtualRecyclerView<
         this.viewElement.replaceChildren();
 
         const nodeMounted = Libs.mountNode({
-            PadTop:   { tag: { node: "div", classList: "selective-ui-virtual-pad-top" } },
-            ItemsHost:{ tag: { node: "div", classList: "selective-ui-virtual-items" } },
-            PadBottom:{ tag: { node: "div", classList: "selective-ui-virtual-pad-bottom" } },
+            PadTop:   { tag: { node: "div", classList: "seui-virtual-pad-top" } },
+            ItemsHost:{ tag: { node: "div", classList: "seui-virtual-items" } },
+            PadBottom:{ tag: { node: "div", classList: "seui-virtual-pad-bottom" } },
         }, this.viewElement) as VirtualRecyclerViewTags;
 
         this.PadTop = nodeMounted.PadTop;
@@ -198,7 +198,7 @@ export class VirtualRecyclerView<
         this.PadBottom = nodeMounted.PadBottom;
 
         this.scrollEl = this.opts.scrollEl
-            ?? (this.viewElement.closest(".selective-ui-popup") as HTMLElement)
+            ?? (this.viewElement.closest(".seui-popup") as HTMLElement)
             ?? (this.viewElement.parentElement as HTMLElement);
 
         if (!this.scrollEl) throw new Error("VirtualRecyclerView: scrollEl not found");
@@ -557,7 +557,7 @@ export class VirtualRecyclerView<
         const now = performance.now();
         if (now - this.stickyCacheTick < 16) return this.stickyCacheVal;
 
-        const sticky = this.scrollEl.querySelector(".selective-ui-option-handle:not(.hide)") as HTMLElement | null;
+        const sticky = this.scrollEl.querySelector(".seui-option-handle:not(.hide)") as HTMLElement | null;
         this.stickyCacheVal = sticky?.offsetHeight ?? 0;
         this.stickyCacheTick = now;
         return this.stickyCacheVal;

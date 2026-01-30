@@ -147,8 +147,8 @@ export class SearchBox extends Lifecycle {
      * Initializes DOM, ARIA attributes, and interaction listeners.
      *
      * DOM structure (conceptually):
-     * - Root: `div.selective-ui-searchbox.hide`
-     * - Child: `input[type="search"].selective-ui-searchbox-input`
+     * - Root: `div.seui-searchbox.hide`
+     * - Child: `input[type="search"].seui-searchbox-input`
      *
      * Accessibility attributes set on the input:
      * - `role="searchbox"`: announces search field semantics
@@ -178,14 +178,14 @@ export class SearchBox extends Lifecycle {
     private initialize(options: SelectiveOptions): void {
         this.nodeMounted = Libs.mountNode({
             SearchBox: {
-                tag: { node: "div", classList: ["selective-ui-searchbox", "hide"] },
+                tag: { node: "div", classList: ["seui-searchbox", "hide"] },
                 child: {
                     SearchInput: {
                         tag: {
                             id: Libs.randomString(),
                             node: "input",
                             type: "search",
-                            classList: ["selective-ui-searchbox-input"],
+                            classList: ["seui-searchbox-input"],
                             placeholder: options.placeholder,
                             role: "searchbox",
                             ariaControls: options.SEID_LIST,
