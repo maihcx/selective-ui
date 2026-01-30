@@ -129,19 +129,19 @@ export class iEvents {
      * Dispatches a native DOM {@link Event} on the provided target.
      *
      * ### Side effects
-     * - Creates a new `Event(eventSTR, opts)` and synchronously dispatches it via `dispatchEvent`.
+     * - Creates a new `Event(eventType, opts)` and synchronously dispatches it via `dispatchEvent`.
      *
      * @param element - Dispatch target (`HTMLElement`, `Window`, or `Document`).
-     * @param eventSTR - Event type string (e.g., `"change"`, `"input"`, `"scroll"`).
+     * @param eventType - Event type string (e.g., `"change"`, `"input"`, `"scroll"`).
      * @param opts - Standard {@link EventInit} options (defaults to `{ bubbles: true, cancelable: true }`).
      * @returns The created and dispatched {@link Event} instance.
      */
     public static trigger(
         element: HTMLElement | Window | Document,
-        eventSTR: string,
+        eventType: string,
         opts: EventInit = { bubbles: true, cancelable: true }
     ): Event {
-        const evt = new Event(eventSTR, opts);
+        const evt = new Event(eventType, opts);
         element.dispatchEvent(evt);
         return evt;
     }
