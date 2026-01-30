@@ -1,3 +1,4 @@
+
 import { Libs } from "../utils/libs";
 import { Refresher } from "../services/refresher";
 import { PlaceHolder } from "./placeholder";
@@ -28,43 +29,148 @@ import { Selective } from "../utils/selective";
 import { VirtualRecyclerView } from "../core/base/virtual-recyclerview";
 
 /**
- * @class
+ * SelectBox
+ *
+ * Root coordinator component that enhances a native `<select>` element into the library's
+ * DOM-driven Select UI. `SelectBox` composes and wires together the major runtime pieces:
+ *
+ * - **View layer**: {@link PlaceHolder}, {@link Directive}, {@link SearchBox}, {@link Popup}, {@link AccessoryBox}
+ * - **Model layer**: {@link ModelManager} with {@link MixedAdapter} resources (groups/options/navigation/visibility)
+ * - **Rendering layer**: {@link RecyclerView} or {@link VirtualRecyclerView} (virtual scroll)
+ * - **Controllers / services**: {@link SearchController}, {@link Effector}, {@link Refresher}
+ * - **Observers**: {@link SelectObserver} and {@link DatasetObserver} for keeping DOM/source-of-truth in sync
+ *
+ * ### Architecture / Relationships
+ * - The native `<select>` remains the canonical form element and is moved into the SelectBox DOM wrapper.
+ * - `ModelManager` owns adapter + recyclerview instances and exposes a resource model list.
+ * - `Popup` hosts the list UI (adapter ↔ recycler/view) and emits adapter property changes.
+ * - `SearchBox` emits external events (search/navigation/enter/esc), which drive adapter navigation and search.
+ *
+ * ### Lifecycle (Strict FSM)
+ * This class uses explicit state guards (`this.state !== ...`) to enforce a strict sequence:
+ * - `NEW` → {@link init} (creates subcomponents and runtime wiring) → `INITIALIZED`
+ * - {@link mount} (inserts wrapper and relocates `<select>` in DOM) → `MOUNTED`
+ * - {@link update} (resize / reactive refresh) → `UPDATED`
+ * - {@link destroy} (disconnect observers, destroy children, remove DOM) → `DESTROYED`
+ *
+ * Each lifecycle entry point is designed to be **idempotent/no-op** when called from an
+ * unexpected state.
+ *
+ * ### External vs Internal Events (Selection)
+ * Selection changes can be routed through two different adapter property channels:
+ * - `"selected"`: treated as **external** selection (user-triggered) → calls `change(..., true)`
+ * - `"selected_internal"`: treated as **internal** selection (non-trigger) → calls `change(..., false)`
+ *
+ * This separation allows the framework to distinguish “notify observers / emit events”
+ * from “silent state sync” (e.g., restoring selection, programmatic updates).
+ *
+ * ### DOM / a11y Side Effects
+ * - Creates a focusable `ViewPanel` and applies listbox-related ARIA attributes on open/close
+ *   (`aria-expanded`, `aria-controls`, `aria-haspopup`, `aria-labelledby`, `aria-multiselectable`).
+ * - Stops `mousedown` propagation on the view panel to avoid outer click handlers capturing interaction.
+ *
+ * @extends Lifecycle
  */
 export class SelectBox extends Lifecycle {
+    /**
+     * Runtime container holding:
+     * - `view/tags` from {@link Libs.mountNode}
+     * - composed child components (placeholder, searchbox, popup, etc.)
+     * - runtime services/controllers and observers
+     *
+     * Declared as a `Partial` because it is progressively populated during {@link init}.
+     */
     public container: Partial<ContainerRuntime> = {};
 
+    /**
+     * Snapshot of the previous selection value used for rollback in `beforeChange` cancellation
+     * and max-selection enforcement.
+     *
+     * @internal
+     */
     private oldValue: unknown = null;
 
+    /**
+     * Root wrapper DOM node for the enhanced UI.
+     *
+     * Created during {@link init} via {@link Libs.mountNode}, inserted into the DOM during {@link mount},
+     * and removed during {@link destroy}.
+     */
     private node: HTMLDivElement | null = null;
 
+    /**
+     * Parsed configuration (bound from the `<select>` element via binder map).
+     *
+     * Provides feature flags (multiple/disabled/readonly/visible/virtualScroll/ajax/autoclose…),
+     * a11y ids (e.g. `SEID_LIST`, `SEID_HOLDER`) and user callbacks under `options.on`.
+     *
+     * @internal
+     */
     private options: SelectiveOptions | null = null;
 
+    /**
+     * Manager that owns model resources and bridges the Adapter ↔ RecyclerView pipeline.
+     *
+     * The configured adapter is {@link MixedAdapter}. The recyclerview implementation is chosen
+     * based on `options.virtualScroll` (standard {@link RecyclerView} vs {@link VirtualRecyclerView}).
+     *
+     * @internal
+     */
     private optionModelManager: ModelManager<MixedItem, MixedAdapter> | null = null;
 
+    /**
+     * Whether the popup/list UI is currently open.
+     *
+     * This is authoritative for the action API (`getAction().isOpen`) and open/close guards.
+     *
+     * @internal
+     */
     private isOpen = false;
 
+    /**
+     * Tracks whether an initial AJAX load has been performed at least once.
+     * Used to avoid redundant initial fetches on open.
+     *
+     * @internal
+     */
     private hasLoadedOnce = false;
 
+    /**
+     * Tracks whether the instance is in "pre-search" mode (a search is about to happen).
+     * Used as a hint to perform AJAX refresh on open.
+     *
+     * @internal
+     */
     private isBeforeSearch = false;
 
-    /** Selective context (global helper) */
+    /**
+     * Selective context (global helper / registry).
+     *
+     * Used to locate the instance wrapper via `Selective.find(...)` and to close other open instances.
+     */
     public Selective: Selective | null = null;
 
     /**
-     * Initializes a SelectBox instance and, if a source <select> and Selective context are provided,
-     * immediately calls init() to set up the enhanced UI and behavior.
+     * Creates a {@link SelectBox} bound to a native `<select>` element.
      *
-     * @param {HTMLSelectElement|null} [select=null] - The native select element to enhance.
-     * @param {any|null} [Selective=null] - The Selective framework/context used for configuration and services.
+     * When both `select` and `Selective` are provided, the instance initializes immediately
+     * (bind options from dataset/binder map and enters the lifecycle via {@link init}).
+     *
+     * @param select - The native select element to enhance.
+     * @param Selective - The Selective framework context used for registry/services.
      */
-    public constructor(select: HTMLSelectElement | null = null, Selective: any | null = null) {
+    public constructor(select: HTMLSelectElement, Selective: Selective) {
         super();
         if (select && Selective) this.initialize(select, Selective);
     }
 
     /**
-     * Gets or sets the disabled state of the SelectBox.
-     * When set, updates CSS class and ARIA attributes to reflect the disabled state.
+     * Disabled state mirror for both runtime behavior and DOM/a11y representation.
+     *
+     * Side effects when set:
+     * - Updates `options.disabled`
+     * - Toggles `.disabled` on the root wrapper
+     * - Sets `aria-disabled` on wrapper and view panel
      */
     public get isDisabled(): boolean {
         return !!this.options?.disabled;
@@ -78,8 +184,11 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Gets or sets the read-only state of the SelectBox.
-     * When set, toggles the "readonly" CSS class to prevent user interaction.
+     * Read-only state mirror.
+     *
+     * Side effects when set:
+     * - Updates `options.readonly`
+     * - Toggles `.readonly` on the root wrapper to prevent user interaction in UI layer
      */
     public get isReadOnly(): boolean {
         return !!this.options?.readonly;
@@ -91,8 +200,11 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Gets or sets the visibility state of the SelectBox.
-     * When set, toggles the "invisible" CSS class to show or hide the component.
+     * Visibility state mirror.
+     *
+     * Side effects when set:
+     * - Updates `options.visible`
+     * - Toggles `.invisible` class on the root wrapper
      */
     public get isVisible(): boolean {
         return !!this.options?.visible;
@@ -104,9 +216,16 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Wrapper method to initialize with select element
+     * Binds configuration and Selective context, then enters lifecycle initialization.
+     *
+     * Sources configuration from the select element binder map:
+     * - {@link Libs.getBinderMap} → {@link BinderMap.options} → {@link SelectiveOptions}
+     *
+     * @param select - Native select element being enhanced.
+     * @param Selective - Selective runtime context.
+     * @internal
      */
-    private initialize(select: HTMLSelectElement, Selective: any): void {
+    private initialize(select: HTMLSelectElement, Selective: Selective): void {
         const bindedMap = Libs.getBinderMap(select) as BinderMap;
         this.options = bindedMap.options as SelectiveOptions;
         this.Selective = Selective;
@@ -115,7 +234,29 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Override lifecycle init - Creates all components and DOM structure
+     * Lifecycle: `init` (composition / wiring stage).
+     *
+     * Strict FSM:
+     * - No-ops unless `state === NEW`.
+     *
+     * Responsibilities:
+     * - Instantiate view subcomponents (placeholder/directive/searchbox/accessory/popup).
+     * - Create and mount the container DOM structure (but does not insert into document yet).
+     * - Configure {@link ModelManager} with {@link MixedAdapter} and a RecyclerView implementation
+     *   ({@link VirtualRecyclerView} when `options.virtualScroll`).
+     * - Create initial model resources by parsing the source `<select>`.
+     * - Wire controller/service flows:
+     *   - search events → {@link SearchController} → adapter updates → popup resize/highlight resets
+     *   - adapter selection changes → action API {@link SelectBoxAction.change} with trigger rules
+     * - Connect observers for two-way synchronization:
+     *   - {@link SelectObserver} for option changes in `<select>`
+     *   - {@link DatasetObserver} for runtime flags (disabled/readonly/visible) from dataset
+     *
+     * DOM/a11y:
+     * - Ensures placeholder node has an id for `aria-labelledby` usage.
+     * - Adds a keydown handler on `ViewPanel` to open on Enter/Space/ArrowDown.
+     *
+     * @param select - Native select element used as source of truth for options/value.
      */
     public init(select?: HTMLSelectElement): void {
         if (this.state !== LifecycleState.NEW) return;
@@ -165,7 +306,7 @@ export class SelectBox extends Lifecycle {
                 },
             },
             null
-        ) as unknown as ContainerRuntime;
+        ) as ContainerRuntime;
 
         this.container = container;
         this.node = container.view as HTMLDivElement;
@@ -190,9 +331,9 @@ export class SelectBox extends Lifecycle {
         }
         optionModelManager.createModelResources(Libs.parseSelectToArray(select));
 
-        optionModelManager.onUpdated = () => {
+        optionModelManager.on("onUpdate", () => {
             container.popup?.triggerResize?.();
-        };
+        });
 
         this.optionModelManager = optionModelManager;
 
@@ -226,7 +367,17 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Override lifecycle mount - Mounts component into DOM
+     * Lifecycle: `mount` (DOM insertion stage).
+     *
+     * Strict FSM:
+     * - No-ops unless `state === INITIALIZED`.
+     *
+     * DOM operations:
+     * - Inserts the SelectBox wrapper before the original `<select>`.
+     * - Moves the `<select>` inside the wrapper (before `ViewPanel`) to preserve form behavior.
+     * - Adds a `mousedown` handler to `ViewPanel` to contain interactions and prevent outer handlers.
+     * - Applies initial sizing (`Refresher.resizeBox`) and marks the select as initialized (`.init`).
+     * - Applies an initial "mask" refresh via `change(null, false)` without emitting external triggers.
      */
     public mount(): void {
         if (this.state !== LifecycleState.INITIALIZED) return;
@@ -255,7 +406,18 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Override lifecycle update - Called when data/state changes
+     * Lifecycle: `update` (reactive refresh stage).
+     *
+     * Strict FSM:
+     * - No-ops unless `state === MOUNTED`.
+     *
+     * Behavior:
+     * - Triggers popup resize recalculation to keep layout consistent with content changes
+     *   (e.g. filtering results, collapses/expands, accessory changes).
+     *
+     * Note:
+     * - Actual data mutations are driven by adapter/model updates and action API methods,
+     *   not by this method directly.
      */
     public update(): void {
         if (this.state !== LifecycleState.MOUNTED) return;
@@ -267,7 +429,24 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Setup event handlers (extracted from init for clarity)
+     * Wires event handlers between UI components, controller, and adapter.
+     *
+     * Key flows:
+     * - SearchBox input → SearchController.search/clear → Popup resize + adapter highlight reset
+     * - SearchBox navigation/enter/esc → MixedAdapter.navigate/selectHighlighted + close + focus restore
+     * - Adapter highlight changes → SearchBox `aria-activedescendant`
+     * - Adapter collapsed changes → Popup resize
+     *
+     * Trigger semantics:
+     * - The `isTrigger` boolean from SearchBox is used to distinguish user-driven vs programmatic clears.
+     * - AJAX searches optionally show/hide loading UI and respect `delaysearchtime`.
+     *
+     * @param select - The enhanced native select element.
+     * @param container - The assembled runtime container.
+     * @param options - Bound configuration flags and callbacks.
+     * @param searchController - Controller responsible for local/AJAX searches and pagination.
+     * @param searchbox - Search input component emitting search/navigation intents.
+     * @internal
      */
     private setupEventHandlers(
         select: HTMLSelectElement,
@@ -352,12 +531,28 @@ export class SelectBox extends Lifecycle {
 
         // AJAX setup (if provided)
         if (options.ajax) {
+            if (options.ajax?.keepSelected == undefined) {
+                options.ajax.keepSelected = options.keepSelected;
+            }
             searchController.setAjax(options.ajax);
         }
     }
 
     /**
-     * Setup observers (extracted from init for clarity)
+     * Connects and wires observers that synchronize the enhanced UI with the source `<select>`
+     * element and its dataset-based runtime flags.
+     *
+     * - {@link SelectObserver}:
+     *   - On change, re-parses the select into resources and refreshes the selection mask.
+     * - {@link DatasetObserver}:
+     *   - On change, mirrors dataset flags into runtime properties:
+     *     `disabled` / `readonly` / `visible`
+     *
+     * @param selectObserver - Observer tracking select option/value mutations.
+     * @param datasetObserver - Observer tracking dataset attribute changes.
+     * @param select - The enhanced native select element.
+     * @param optionModelManager - Model manager to update from parsed select.
+     * @internal
      */
     private setupObservers(
         selectObserver: SelectObserver,
@@ -367,7 +562,7 @@ export class SelectBox extends Lifecycle {
     ): void {
         selectObserver.connect();
         selectObserver.onChanged = (sel) => {
-            optionModelManager.update(Libs.parseSelectToArray(sel));
+            optionModelManager.updateModel(Libs.parseSelectToArray(sel));
             this.getAction()?.refreshMask();
         };
 
@@ -386,7 +581,10 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Disconnects observers associated with the SelectBox instance.
+     * Disconnects observers associated with this instance.
+     *
+     * This is used during {@link destroy} to ensure external DOM observers are stopped,
+     * preventing memory leaks and unintended background updates.
      */
     public deInit(): void {
         const c: any = this.container ?? {};
@@ -397,7 +595,18 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Override lifecycle destroy - Complete cleanup
+     * Lifecycle: `destroy` (teardown stage).
+     *
+     * Strict FSM / idempotency:
+     * - No-ops when already in {@link LifecycleState.DESTROYED}.
+     *
+     * Responsibilities:
+     * - Disconnect observers.
+     * - Destroy composed child components/controllers.
+     * - Remove wrapper DOM from the document.
+     * - Clear references to enable garbage collection.
+     *
+     * @override
      */
     public override destroy(): void {
         if (this.is(LifecycleState.DESTROYED)) {
@@ -415,6 +624,7 @@ export class SelectBox extends Lifecycle {
         container.accessorybox.destroy();
         container.placeholder.destroy();
         container.searchbox.destroy();
+        this.optionModelManager.destroy();
 
         // Remove from DOM
         this.node?.remove();
@@ -435,7 +645,33 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Returns an action API for controlling the SelectBox instance.
+     * Builds and returns an imperative action API for controlling this SelectBox instance.
+     *
+     * The returned object is a "facade" used by external consumers (and internal wiring) to:
+     * - read/write selection values (`value`, `valueArray`, `setValue`, `selectAll`, `deSelectAll`)
+     * - control popup visibility (`open`, `close`, `toggle`)
+     * - refresh mask/placeholder (`refreshMask`)
+     * - attach event callbacks (`on`)
+     * - configure AJAX (`ajax`, `loadAjax`)
+     *
+     * ### Triggering contract (external vs internal)
+     * Many methods accept a `trigger`/`canTrigger` boolean which controls whether:
+     * - `beforeChange` / `change` callbacks are invoked via {@link iEvents.callEvent}
+     * - native DOM `"change"` is fired on the underlying select
+     *
+     * This mirrors the library convention of distinguishing user-visible change events from
+     * internal/non-trigger state synchronization.
+     *
+     * ### Side effects
+     * - Mutates `OptionModel.selectedNonTrigger` flags to update selection.
+     * - Writes to the native select value for single-select mode.
+     * - Updates UI mask and accessory box, and requests popup resizing where needed.
+     * - Applies a11y attributes to `ViewPanel` on open/close.
+     *
+     * No-ops:
+     * - Returns `null` when the binder map is missing for the current target element.
+     *
+     * @returns An action facade for controlling this instance, or `null` if not bound.
      */
     public getAction(): SelectBoxAction | null {
         const container = this.container;
@@ -785,6 +1021,9 @@ export class SelectBox extends Lifecycle {
             },
 
             ajax(_evtToken: IEventCallback, obj: AjaxConfig) {
+                if (obj.keepSelected == undefined) {
+                    obj.keepSelected = superThis.options.keepSelected;
+                }
                 container.searchController.setAjax(obj);
             },
 
@@ -822,7 +1061,29 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Creates a property on the given object with custom getter and setter behavior.
+     * Defines a mirrored facade property on an arbitrary object.
+     *
+     * This helper is used when building the {@link SelectBoxAction} facade to expose
+     * `disabled` / `readonly` / `visible` as ergonomic properties while keeping them
+     * synchronized with the underlying {@link SelectBox} runtime state.
+     *
+     * ### Behavior
+     * - Getter proxies the current runtime value from `this[privateProp]`.
+     * - Setter coerces the incoming value to boolean and writes it to `this[privateProp]`.
+     * - Additionally reflects the value onto `targetElement.dataset[prop]` when available,
+     *   allowing external dataset observers (and DOM tooling) to observe state changes.
+     *
+     * ### Side effects
+     * - Mutates the action facade object via `Object.defineProperty`.
+     * - Mutates DOM dataset on the underlying `<select>` element (if present).
+     *
+     * No-ops:
+     * - Dataset reflection is skipped when `container.targetElement.dataset` is unavailable.
+     *
+     * @param obj - The facade object to define the property on.
+     * @param prop - The public facade property name (`disabled` | `readonly` | `visible`).
+     * @param privateProp - The backing SelectBox property name (`isDisabled` | `isReadOnly` | `isVisible`).
+     * @internal
      */
     private createSymProp(
         obj: Record<string, any>,
@@ -847,7 +1108,25 @@ export class SelectBox extends Lifecycle {
     }
 
     /**
-     * Flattens and returns all option models from the current resources.
+     * Returns a flat list of {@link OptionModel} items from current model resources.
+     *
+     * The underlying resource list may contain a mix of:
+     * - {@link OptionModel} (standalone options)
+     * - {@link GroupModel} (group headers with nested `items`)
+     *
+     * This method flattens the structure into a single array of options, optionally
+     * filtered by the *current* selection state.
+     *
+     * ### Filtering
+     * - When `isSelected` is `true` or `false`, filters by `OptionModel.selected`.
+     * - When `isSelected` is `null`, returns all available options.
+     *
+     * No-ops:
+     * - Returns an empty array if the {@link optionModelManager} is not available.
+     *
+     * @param isSelected - Optional selection filter (`true` | `false` | `null`). Defaults to `null`.
+     * @returns A flat array of option models (possibly filtered).
+     * @internal
      */
     private getModelOption(isSelected: boolean | null = null): OptionModel[] {
         if (!this.optionModelManager) return [];
@@ -855,7 +1134,7 @@ export class SelectBox extends Lifecycle {
         const { modelList } = this.optionModelManager.getResources();
         const flatOptions: OptionModel[] = [];
 
-        for (const m of modelList as MixedItem[]) {
+        for (const m of modelList) {
             if (m instanceof OptionModel) {
                 flatOptions.push(m);
             } else if (m instanceof GroupModel) {

@@ -6,58 +6,98 @@ import { iEvents } from "../utils/ievents";
 import { Libs } from "../utils/libs";
 
 /**
- * UI control that exposes "Select All" / "Deselect All" actions
- * for multiple-selection lists.
+ * OptionHandle
  *
- * Responsibilities:
- * - Renders two action controls (links/buttons)
- * - Shows/hides itself based on configuration flags
- * - Allows registration of callbacks for both actions
- * - Participates in the standard `Lifecycle`
+ * Headless-friendly, DOM-driven UI control that exposes bulk selection actions
+ * ("Select all" / "Deselect all") for multiple-selection experiences.
  *
- * Visibility rule:
- * - Visible only when `options.multiple` and `options.selectall` are truthy.
+ * ### Responsibility
+ * - Creates and owns a small DOM subtree (root + two action elements).
+ * - Exposes registration APIs for action callbacks (`onSelectAll`, `onDeSelectAll`).
+ * - Reflects feature flags from {@link SelectiveOptions} by showing/hiding itself.
+ * - Participates in the library {@link Lifecycle} finite-state machine (FSM).
+ *
+ * ### Lifecycle (Strict FSM)
+ * - Constructed in `NEW`.
+ * - {@link initialize} builds DOM and calls `init()` → transitions to `INITIALIZED`.
+ * - {@link update} is safe to call repeatedly; it re-evaluates visibility and then
+ *   delegates to `super.update()` (idempotent once in `UPDATED`).
+ * - {@link destroy} is a terminal transition; subsequent calls are no-ops.
+ *
+ * ### Event / Callback Flow
+ * - User interaction is handled via DOM `onclick` handlers bound during initialization.
+ * - On click, this component dispatches callbacks through {@link iEvents.callFunctions}.
+ * - This class does not own selection state; it only emits intent via callbacks.
+ *
+ * ### Visibility Contract
+ * Visible only when BOTH flags are enabled:
+ * - `options.multiple` truthy (after {@link Libs.string2Boolean} coercion)
+ * - `options.selectall` truthy (after {@link Libs.string2Boolean} coercion)
+ *
+ * ### DOM / a11y Notes
+ * - Uses `<a>` elements as action triggers. This is a DOM-side effect and may have
+ *   accessibility implications depending on `href`, keyboard handling, and ARIA.
  *
  * @extends Lifecycle
  */
 export class OptionHandle extends Lifecycle {
-
     /**
-     * Internal reference to the mounted node structure returned by `Libs.mountNode`.
-     * Used to access typed tags if needed. Null before initialization.
+     * Result returned by {@link Libs.mountNode}.
+     *
+     * Stores the mounted view structure so the component can keep a stable reference
+     * to its created DOM nodes. `null` before {@link initialize}.
+     *
+     * @internal
      */
     private nodeMounted: MountViewResult<any> | null = null;
 
     /**
-     * Root DOM element of the option handle component.
-     * Created during initialization and removed on destroy.
+     * Root element of this control.
+     *
+     * Created during {@link initialize}. This node is used by {@link show}/{@link hide}
+     * and removed during {@link destroy}.
      */
     public node: HTMLDivElement | null = null;
 
     /**
-     * Configuration options controlling labels and feature flags.
-     * (e.g., textSelectAll, textDeselectAll, multiple, selectall)
+     * Configuration snapshot used for:
+     * - labels (`textSelectAll`, `textDeselectAll`)
+     * - feature flags (`multiple`, `selectall`)
+     *
+     * Treated as read-only after initialization; cleared on {@link destroy}.
+     *
+     * @internal
      */
     private options: SelectiveOptions | null = null;
 
     /**
-     * Registered callbacks executed when "Select All" is activated.
+     * Callback list invoked when the "Select all" control is activated.
+     *
+     * Callbacks are invoked via {@link iEvents.callFunctions}. This component does not
+     * interpret arguments; it delegates invocation semantics to the dispatcher helper.
+     *
+     * @internal
      */
     private actionOnSelectAll: Array<(...args: unknown[]) => unknown> = [];
 
     /**
-     * Registered callbacks executed when "Deselect All" is activated.
+     * Callback list invoked when the "Deselect all" control is activated.
+     *
+     * Callbacks are invoked via {@link iEvents.callFunctions}. This component does not
+     * interpret arguments; it delegates invocation semantics to the dispatcher helper.
+     *
+     * @internal
      */
     private actionOnDeSelectAll: Array<(...args: unknown[]) => unknown> = [];
 
     /**
-     * Creates a new OptionHandle control.
+     * Creates an {@link OptionHandle}.
      *
-     * If `options` are provided, the component is initialized immediately and
-     * enters the lifecycle (init). Otherwise, call a custom initializer later
-     * to set it up.
+     * If `options` is provided, the instance immediately performs {@link initialize}
+     * and enters the {@link Lifecycle} (calls `init()` internally).
+     * If `options` is `null`, the instance stays in `NEW` until initialized elsewhere.
      *
-     * @param options - Configuration with texts and feature flags.
+     * @param options - Feature flags and labels for the two actions.
      */
     public constructor(options: SelectiveOptions | null = null) {
         super();
@@ -65,16 +105,23 @@ export class OptionHandle extends Lifecycle {
     }
 
     /**
-     * Initializes the option handle UI.
+     * Initializes DOM and binds event handlers.
      *
-     * Builds the DOM:
-     * - Root: `.selective-ui-option-handle.hide`
-     * - Children: "Select All" and "Deselect All" controls
+     * DOM structure (conceptually):
+     * - Root: `div.selective-ui-option-handle.hide`
+     * - Child: `a.selective-ui-option-handle-item` ("Select all")
+     * - Child: `a.selective-ui-option-handle-item` ("Deselect all")
      *
-     * Wires their click handlers to invoke registered callbacks
-     * via the `iEvents.callFunctions` helper.
+     * Click handlers:
+     * - "Select all" → dispatches {@link actionOnSelectAll} via {@link iEvents.callFunctions}
+     * - "Deselect all" → dispatches {@link actionOnDeSelectAll} via {@link iEvents.callFunctions}
+     *
+     * Side effects:
+     * - Creates DOM nodes (via {@link Libs.mountNode})
+     * - Transitions lifecycle by calling `init()` at the end
      *
      * @param options - Configuration providing labels and feature flags.
+     * @internal
      */
     private initialize(options: SelectiveOptions): void {
         this.nodeMounted = Libs.mountNode({
@@ -112,14 +159,16 @@ export class OptionHandle extends Lifecycle {
     }
 
     /**
-     * Returns whether the handle should be available (and thus visible)
-     * based on current configuration flags.
+     * Computes whether this control is enabled/available under current configuration.
      *
-     * Availability requires:
-     * - `multiple` is truthy
-     * - `selectall` is truthy
+     * This method performs a boolean coercion using {@link Libs.string2Boolean} to
+     * support string-like flags in {@link SelectiveOptions}.
      *
-     * @returns True if both features are enabled; otherwise false.
+     * No-ops:
+     * - Returns `false` when {@link options} has not been set.
+     *
+     * @returns `true` when both `multiple` and `selectall` are enabled; otherwise `false`.
+     * @internal
      */
     private available(): boolean {
         if (!this.options) return false;
@@ -127,12 +176,17 @@ export class OptionHandle extends Lifecycle {
     }
 
     /**
-     * Refreshes the visibility based on `available()` and emits the update lifecycle.
+     * Re-evaluates visibility and advances the lifecycle update step.
      *
-     * - Shows the handle when available
-     * - Hides it otherwise
+     * Behavior:
+     * - If {@link node} exists, toggles the `hide` class based on {@link available}.
+     * - Always delegates to `super.update()` to participate in the FSM transition.
      *
-     * Note: `super.update()` transitions lifecycle to `UPDATED` (idempotent after first call).
+     * Idempotency:
+     * - Repeated calls remain safe; DOM class toggling is stable and the underlying
+     *   {@link Lifecycle} update is expected to be idempotent after the first transition.
+     *
+     * @override
      */
     public override update(): void {
         if (this.node) {
@@ -147,9 +201,9 @@ export class OptionHandle extends Lifecycle {
     }
 
     /**
-     * Makes the option handle visible.
+     * Shows the control by removing the `hide` CSS class on the root node.
      *
-     * Removes the `hide` class from the root node.
+     * No-ops when {@link node} is `null`.
      */
     public show(): void {
         if (!this.node) return;
@@ -157,9 +211,9 @@ export class OptionHandle extends Lifecycle {
     }
 
     /**
-     * Hides the option handle.
+     * Hides the control by adding the `hide` CSS class on the root node.
      *
-     * Adds the `hide` class to the root node.
+     * No-ops when {@link node} is `null`.
      */
     public hide(): void {
         if (!this.node) return;
@@ -167,12 +221,15 @@ export class OptionHandle extends Lifecycle {
     }
 
     /**
-     * Registers a callback for the "Select All" action.
+     * Registers a callback for the external "Select all" intent.
      *
-     * The callback will be invoked with the arguments provided
-     * by the action dispatcher (if any).
+     * Notes:
+     * - This is an "external event" hook: it notifies the host/controller layer that a
+     *   bulk action was requested. This component does not mutate selection state itself.
+     * - Callbacks are executed by {@link iEvents.callFunctions} when the corresponding
+     *   DOM control is activated.
      *
-     * @param action - Function to execute when "Select All" is triggered.
+     * @param action - Callback invoked on activation; ignored when not a function.
      */
     public onSelectAll(action: ((...args: unknown[]) => unknown) | null = null): void {
         if (typeof action === "function") {
@@ -181,12 +238,15 @@ export class OptionHandle extends Lifecycle {
     }
 
     /**
-     * Registers a callback for the "Deselect All" action.
+     * Registers a callback for the external "Deselect all" intent.
      *
-     * The callback will be invoked with the arguments provided
-     * by the action dispatcher (if any).
+     * Notes:
+     * - This is an "external event" hook: it notifies the host/controller layer that a
+     *   bulk deselection was requested. This component does not mutate selection state itself.
+     * - Callbacks are executed by {@link iEvents.callFunctions} when the corresponding
+     *   DOM control is activated.
      *
-     * @param action - Function to execute when "Deselect All" is triggered.
+     * @param action - Callback invoked on activation; ignored when not a function.
      */
     public onDeSelectAll(action: ((...args: unknown[]) => unknown) | null = null): void {
         if (typeof action === "function") {
@@ -195,10 +255,17 @@ export class OptionHandle extends Lifecycle {
     }
 
     /**
-     * Destroys the option handle component.
+     * Tears down DOM resources and terminates the lifecycle.
      *
-     * Removes the DOM node, clears stored options,
-     * and terminates the lifecycle.
+     * Strict FSM / idempotency:
+     * - If already in {@link LifecycleState.DESTROYED}, this method returns immediately.
+     *
+     * Side effects:
+     * - Removes the root DOM node from the document (if present).
+     * - Clears references to options and callback lists to allow GC.
+     * - Delegates to `super.destroy()` to finalize the lifecycle transition.
+     *
+     * @override
      */
     public override destroy(): void {
         if (this.is(LifecycleState.DESTROYED)) {

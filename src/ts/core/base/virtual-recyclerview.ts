@@ -5,159 +5,63 @@ import { Libs } from "src/ts/utils/libs";
 import { VirtualOptions, VirtualRecyclerViewTags } from "src/ts/types/core/base/virtual-recyclerview.type";
 import { Lifecycle } from "./lifecycle";
 import { LifecycleState } from "src/ts/types/core/base/lifecycle.type";
+import { Fenwick } from "./fenwick";
 
 /**
- * Fenwick tree (Binary Indexed Tree) for efficient prefix-sum queries.
+ * Virtualized RecyclerView with windowing and dynamic-height support.
  *
- * - Internally uses **1-based indexing** for all BIT operations.
- * - Supports **O(log n)** updates and prefix/range queries.
- * - Useful for cumulative height calculations in virtualized lists.
+ * This recycler only keeps the **visible window** mounted in the DOM, plus an overscan buffer,
+ * while simulating the full scroll height using top/bottom padding elements.
  *
- * @extends Lifecycle
- */
-class Fenwick extends Lifecycle {
-    /** Internal BIT array. Index 0 is unused; valid range: [1..stackNum]. */
-    private bit: number[] = [];
-
-    /** Number of elements managed by the tree (logical size). */
-    private stackNum = 0;
-
-    /**
-     * Creates a Fenwick tree and initializes it with the provided size (optional).
-     *
-     * @param stackNum - Initial number of elements (all values start at 0). Defaults to 0.
-     */
-    constructor(stackNum = 0) {
-        super();
-        this.initialize(stackNum);
-    }
-    
-    /**
-     * Initializes lifecycle and resets the tree to the given size.
-     *
-     * @param stackNum - Number of elements to allocate (values cleared to 0).
-     */
-    public initialize(stackNum: number): void {
-        this.init();
-        this.reset(stackNum); 
-    }
-
-    /**
-     * Resets the tree to a new size and clears all values to 0.
-     *
-     * @param stackNum - New number of elements (valid 1-based indexes: 1..stackNum).
-     */
-    public reset(stackNum: number): void {
-        this.stackNum = stackNum;
-        this.bit = new Array(stackNum + 1).fill(0);
-    }
-
-    /**
-     * Adds `delta` to the element at **1-based** index `i`.
-     *
-     * Complexity: **O(log n)**
-     *
-     * @param i - 1-based index of the element to update (1..stackNum).
-     * @param delta - Value to add (can be negative).
-     */
-    public add(i: number, delta: number): void {
-        for (let x = i; x <= this.stackNum; x += x & -x) this.bit[x] += delta;
-    }
-
-    /**
-     * Returns the prefix sum for the range **[1..i]** (inclusive).
-     *
-     * Complexity: **O(log n)**
-     *
-     * @param i - 1-based index up to which the sum is calculated.
-     * @returns The cumulative sum from 1 to i.
-     */
-    public sum(i: number): number {
-        let s = 0;
-        for (let x = i; x > 0; x -= x & -x) s += this.bit[x];
-        return s;
-    }
-
-    /**
-     * Returns the sum in the range **[l..r]** (1-based, inclusive).
-     *
-     * Complexity: **O(log n)**
-     *
-     * @param l - Left index (inclusive).
-     * @param r - Right index (inclusive).
-     * @returns The sum in [l..r], or 0 if r < l.
-     */
-    public rangeSum(l: number, r: number): number {
-        return r < l ? 0 : this.sum(r) - this.sum(l - 1);
-    }
-
-    /**
-     * Builds the tree from a **0-based** array in **O(n log n)**.
-     *
-     * Each element `arr[i]` is added to index `i + 1`.
-     *
-     * @param arr - Source values (0-based).
-     */
-    public buildFrom(arr: number[]) {
-        this.reset(arr.length);
-        arr.forEach((val, i) => this.add(i + 1, val));
-    }
-
-    /**
-     * Finds the largest index `idx` such that `prefixSum(idx) <= target`.
-     *
-     * This is a classic Fenwick-tree lower-bound over prefix sums.
-     * It effectively returns the **count of items** that fit within the target
-     * cumulative value (e.g., number of items whose total height <= target).
-     *
-     * Complexity: **O(log n)**
-     *
-     * @param target - Target prefix sum.
-     * @returns The largest index satisfying the condition (in range 0..stackNum).
-     *          Returns 0 if the first element already exceeds `target`.
-     */
-    public lowerBoundPrefix(target: number): number {
-        let idx = 0, bitMask = 1;
-        while (bitMask << 1 <= this.stackNum) bitMask <<= 1;
-
-        let cur = 0;
-        for (let step = bitMask; step !== 0; step >>= 1) {
-            const next = idx + step;
-            if (next <= this.stackNum && cur + this.bit[next] <= target) {
-                idx = next;
-                cur += this.bit[next];
-            }
-        }
-        return idx;
-    }
-}
-
-/**
- * Virtual RecyclerView with efficient windowing and dynamic-height support.
+ * ### Responsibility
+ * - Maintain a viewport window `[start..end]` over adapter items and mount/unmount DOM accordingly.
+ * - Support **variable row heights** using measured outer heights (including vertical margins).
+ * - Provide stable scrolling under height changes via an **anchor correction** strategy.
+ * - Integrate with item visibility (filtering): invisible items are treated as height `0` and are not mounted.
  *
- * Only renders items visible in the viewport plus an overscan buffer, using
- * top/bottom padding elements to simulate full scroll height. Supports variable
- * item heights with **adaptive estimation** and maintains scroll position during
- * height changes using an **anchor item** technique.
+ * ### Virtualization strategy
+ * - **Prefix sums** over heights are maintained in a {@link Fenwick} tree:
+ *   - `offsetTopOf(i)` → prefix sum for heights before item `i`
+ *   - `findFirstVisibleIndex(scrollTop)` → lower-bound over prefix sums (then forward-scan to visible)
+ * - **Overscan** is expressed in item multiples and converted to pixels using the current estimate:
+ *   `overscanPx = overscan * estimate`.
+ * - **Adaptive estimate** can be enabled to use the running average of measured items as the estimate.
  *
- * Key features:
- * - Virtual windowing with configurable `overscan`
- * - Dynamic heights with `ResizeObserver`-based measurement
- * - Adaptive height estimation (average of measured items)
- * - Efficient prefix sums via Fenwick tree (1-based) for O(log n) math
- * - Stable scroll position during re-measure via anchor correction
+ * ### Dynamic heights (measurement)
+ * - When enabled, visible items are measured using `getBoundingClientRect()` + computed margins.
+ * - A {@link ResizeObserver} observes the host container and schedules re-measurement on the next animation frame.
+ * - Height updates are applied incrementally to the Fenwick tree in **O(log n)** per item.
+ *
+ * ### Anchor correction (scroll stability)
+ * - An "anchor index" (first visible item) is derived from the current scroll position.
+ * - After re-render and potential height changes, scrollTop is adjusted so the anchor remains visually stable,
+ *   preventing "jumping" during measurement-driven reflows.
+ *
+ * ### Lifecycle / idempotency
+ * - Mounted scaffold elements are created when an adapter is set via {@link setAdapter}.
+ * - `refresh()` is safe to call repeatedly; it rebuilds internal structures and schedules a window update.
+ * - `destroy()` is idempotent once in {@link LifecycleState.DESTROYED} and removes scaffold DOM nodes.
+ *
+ * ### DOM side effects
+ * - Mutates DOM under `viewElement` by creating three nodes:
+ *   - `PadTop`, `ItemsHost`, `PadBottom`
+ * - Mounts/unmounts item nodes inside `ItemsHost`
+ * - Attaches/removes a scroll listener on the resolved scroll container
+ * - Uses `scrollIntoView`/scrollTop assignments when asked to bring an item into view
  *
  * @template TItem - Model type for list items.
- * @template TAdapter - Adapter managing item views.
+ * @template TAdapter - Adapter providing view holders and binding logic.
  *
- * @extends RecyclerView
+ * @extends {RecyclerView<TItem, TAdapter>}
+ * @see {@link VirtualOptions}
+ * @see {@link RecyclerView}
  */
 export class VirtualRecyclerView<
     TItem extends ModelContract<any, any>,
     TAdapter extends AdapterContract<TItem>
 > extends RecyclerView<TItem, TAdapter> {
     /**
-     * Virtualization settings.
+     * Virtualization settings (materialized to `Required<VirtualOptions>`).
      *
      * - `scrollEl`           : External scroll container (if omitted, inferred from DOM)
      * - `estimateItemHeight` : Initial/fallback item height in pixels
@@ -184,25 +88,31 @@ export class VirtualRecyclerView<
 
     /** Cache of measured heights per item index (undefined when not measured). */
     private heightCache: Array<number | undefined> = [];
-    /** Fenwick tree storing current height values (0 for invisible items). */
+    /**
+     * Fenwick tree storing current height values (in pixels).
+     * Invisible items are encoded as height 0.
+     */
     private fenwick = new Fenwick(0);
-    /** Map of currently created (mounted) DOM elements keyed by item index. */
+    /**
+     * Map of currently mounted DOM elements keyed by item index.
+     * Used to avoid re-creating nodes and to manage ordering within the host.
+     */
     private created = new Map<number, HTMLElement>();
 
     /** Whether an initial height probe has been performed. */
     private firstMeasured = false;
-    /** Current window bounds (inclusive) in flat item-space. */
+    /** Current window bounds (inclusive) in item index space. */
     private start = 0;
     /** Current window end (inclusive). -1 means not initialized. */
     private end = -1;
-    /** Observer used to detect height changes of visible items. */
+    /** Observer used to detect resize events that may change item heights. */
     private resizeObs?: ResizeObserver;
 
     /** Pending animation frame ids for window and measurement. */
     private rafId: number | null = null;
     private measureRaf: number | null = null;
 
-    /** Re-entrancy/suspension flags. */
+    /** Re-entrancy/suspension flags used to prevent feedback loops. */
     private updating = false;
     private suppressResize = false;
     private lastRenderCount = 0;
@@ -210,20 +120,26 @@ export class VirtualRecyclerView<
     private boundOnScroll?: () => void;
     private resumeResizeAfter = false;
 
-    /** Small cache for sticky header height (16ms TTL). */
+    /** Small cache for sticky header height (≈16ms TTL) to limit layout reads. */
     private stickyCacheTick = 0;
     private stickyCacheVal = 0;
 
-    /** Stats for adaptive estimator. */
+    /** Stats for adaptive estimator (sum of measured heights / count of measured items). */
     private measuredSum = 0;
     private measuredCount = 0;
 
-    /** Epsilon threshold for height-change significance. */
+    /** Epsilon threshold for height-change significance (px). */
     private static readonly EPS = 0.5;
-    /** Attribute stored on each element indicating its item index. */
+    /** Attribute stored on each mounted element indicating its item index. */
     private static readonly ATTR_INDEX = "data-vindex";
 
-    /** Creates a virtual recycler view with an optional root element. */
+    /**
+     * Creates a virtual recycler view.
+     *
+     * Note: The virtualization scaffold is built when an adapter is set via {@link setAdapter}.
+     *
+     * @param {HTMLDivElement | null} [viewElement=null] - Optional root container for the recycler view.
+     */
     constructor(viewElement: HTMLDivElement | null = null) {
         super(viewElement);
     }
@@ -231,26 +147,37 @@ export class VirtualRecyclerView<
     /**
      * Updates virtualization settings (overscan, estimates, dynamic heights, etc.).
      *
-     * @param opts - Partial configuration to merge with current options.
+     * This only updates internal configuration; consumers should call {@link refresh}
+     * to apply changes immediately if needed.
+     *
+     * @param {Partial<VirtualOptions>} opts - Partial configuration merged into current options.
+     * @returns {void}
      */
-    public configure(opts: Partial<VirtualOptions>) {
+    public configure(opts: Partial<VirtualOptions>): void {
         this.opts = { ...this.opts, ...opts } as Required<VirtualOptions>;
     }
 
     /**
      * Binds an adapter and initializes the virtualization scaffold.
      *
-     * Flow:
-     * 1) Dispose previous adapter/listeners if any
-     * 2) Call `super.setAdapter(adapter)` to wire lifecycle
-     * 3) Build the pad elements (top, host, bottom)
-     * 4) Resolve `scrollEl` (from config or DOM)
-     * 5) Attach scroll listener, refresh and attach resize observer
-     * 6) Subscribe to adapter visibility changes to force a refresh
+     * ### Flow
+     * 1) Dispose previous listeners/observers if an adapter was already attached
+     * 2) Call `super.setAdapter(adapter)` to wire base recycler state
+     * 3) Build the scaffold elements (PadTop, ItemsHost, PadBottom)
+     * 4) Resolve `scrollEl` (configured `opts.scrollEl` → nearest popup → parentElement)
+     * 5) Attach scroll listener, perform initial refresh, attach resize observer
+     * 6) Subscribe to adapter visibility updates (if supported) to hard-refresh windowing state
      *
-     * @param adapter - The adapter managing models and item views.
+     * DOM side effects:
+     * - Clears `viewElement` children and replaces with scaffold nodes.
+     * - Attaches a `scroll` listener to `scrollEl` (`passive: true`).
+     *
+     * @param {TAdapter} adapter - Adapter that provides items and view binding.
+     * @returns {void}
+     * @throws {Error} If no scroll container can be resolved.
+     * @override
      */
-    public override setAdapter(adapter: TAdapter) {
+    public override setAdapter(adapter: TAdapter): void {
         if (this.adapter) this.dispose();
 
         super.setAdapter(adapter);
@@ -270,8 +197,8 @@ export class VirtualRecyclerView<
         this.ItemsHost = nodeMounted.ItemsHost;
         this.PadBottom = nodeMounted.PadBottom;
 
-        this.scrollEl = this.opts.scrollEl 
-            ?? (this.viewElement.closest(".selective-ui-popup") as HTMLElement) 
+        this.scrollEl = this.opts.scrollEl
+            ?? (this.viewElement.closest(".selective-ui-popup") as HTMLElement)
             ?? (this.viewElement.parentElement as HTMLElement);
 
         if (!this.scrollEl) throw new Error("VirtualRecyclerView: scrollEl not found");
@@ -285,13 +212,19 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Pauses scroll/resize processing to prevent updates during batch operations.
-     * Cancels pending frames and disconnects observers.
+     * Suspends scroll/resize processing to prevent window updates during batch operations.
+     *
+     * Behavior:
+     * - Cancels any scheduled animation frames.
+     * - Detaches the scroll listener (if attached).
+     * - Disconnects ResizeObserver and remembers to restore it on {@link resume}.
+     *
+     * @returns {void}
      */
-    public suspend() {
+    public suspend(): void {
         this.suspended = true;
         this.cancelFrames();
-        
+
         if (this.scrollEl && this.boundOnScroll) {
             this.scrollEl.removeEventListener("scroll", this.boundOnScroll);
         }
@@ -303,10 +236,16 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Resumes scroll/resize processing after suspension.
-     * Re-attaches listeners and schedules a window update.
+     * Resumes processing after {@link suspend}.
+     *
+     * Behavior:
+     * - Re-attaches the scroll listener (if available).
+     * - Restores ResizeObserver when it was previously disconnected.
+     * - Schedules a window recalculation on the next animation frame.
+     *
+     * @returns {void}
      */
-    public resume() {
+    public resume(): void {
         this.suspended = false;
 
         if (this.scrollEl && this.boundOnScroll) {
@@ -322,10 +261,19 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Rebuilds internal state and schedules a render update.
-     * Probes initial item height on first run and rebuilds the Fenwick tree.
+     * Rebuilds internal virtualization state and schedules a render update.
      *
-     * @param isUpdate - True if called from a data update; false on initial setup.
+     * Behavior:
+     * - When `isUpdate === false`, triggers a hard refresh via {@link refreshItem} (reset + rebuild).
+     * - Updates caches to match the adapter item count.
+     * - Probes initial item height on first run to seed a better estimate.
+     * - Rebuilds Fenwick prefix sums and schedules window computation.
+     *
+     * No-op if adapter or `viewElement` is missing.
+     *
+     * @param {boolean} isUpdate - `true` when called due to incremental data update; `false` for initial setup/full replace.
+     * @returns {void}
+     * @override
      */
     public override refresh(isUpdate: boolean): void {
         if (!this.adapter || !this.viewElement) return;
@@ -353,23 +301,33 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Ensures the item at `index` is rendered and optionally scrolls it into view.
+     * Ensures the item at `index` is mounted, and optionally scrolls it into view.
      *
-     * @param index - Item index to ensure visible/mounted.
-     * @param opt - Optional behavior: `{ scrollIntoView?: boolean }`.
+     * This is primarily used by navigation/highlight flows where the target may not be rendered
+     * due to virtualization.
+     *
+     * @param {number} index - Item index to ensure visible/mounted.
+     * @param {{ scrollIntoView?: boolean }} [opt] - Optional behavior controls.
+     * @returns {void}
      */
-    public ensureRendered(index: number, opt?: { scrollIntoView?: boolean }) {
+    public ensureRendered(index: number, opt?: { scrollIntoView?: boolean }): void {
         this.mountRange(index, index);
         if (opt?.scrollIntoView) this.scrollToIndex(index);
     }
 
     /**
-     * Scrolls the container to make the item at `index` visible.
-     * Calculates target scroll position accounting for container offset.
+     * Scrolls the scroll container to align the item at `index` into view.
      *
-     * @param index - Item index to bring into view.
+     * Calculation notes:
+     * - Computes target top using prefix sums (`offsetTopOf`) and container offset relative to scrollEl.
+     * - Clamps scrollTop to the scrollable range to avoid overshoot.
+     *
+     * No-op when itemCount is 0.
+     *
+     * @param {number} index - Item index to bring into view.
+     * @returns {void}
      */
-    public scrollToIndex(index: number) {
+    public scrollToIndex(index: number): void {
         const count = this.adapter?.itemCount?.() ?? 0;
         if (count <= 0) return;
 
@@ -377,32 +335,44 @@ export class VirtualRecyclerView<
         const containerTop = this.containerTopInScroll();
         const target = containerTop + topInContainer;
         const maxScroll = Math.max(0, this.scrollEl.scrollHeight - this.scrollEl.clientHeight);
-        
+
         this.scrollEl.scrollTop = Math.min(Math.max(0, target), maxScroll);
     }
 
     /**
-     * Cleans up all resources: listeners, observers, and DOM elements.
-     * Call before removing the component to prevent memory leaks.
+     * Disposes runtime resources without destroying the instance.
+     *
+     * Intended for adapter swaps or teardown sequencing:
+     * - cancels pending frames,
+     * - removes scroll listeners,
+     * - disconnects ResizeObserver,
+     * - removes mounted item elements and clears internal maps.
+     *
+     * @returns {void}
      */
-    public dispose() {
+    public dispose(): void {
         this.cancelFrames();
-        
+
         if (this.scrollEl && this.boundOnScroll) {
             this.scrollEl.removeEventListener("scroll", this.boundOnScroll);
         }
-        
+
         this.resizeObs?.disconnect();
         this.created.forEach(el => el.remove());
         this.created.clear();
     }
 
     /**
-     * Destroys the virtual recycler view and releases resources.
+     * Destroys the virtual recycler view and releases all resources.
      *
-     * - Resets internal state and disposes observers/listeners
-     * - Removes scaffold elements (PadTop, ItemsHost, PadBottom)
-     * - Ends the lifecycle
+     * Behavior:
+     * - Idempotent: returns early if already in {@link LifecycleState.DESTROYED}.
+     * - Resets internal caches and disposes listeners/observers.
+     * - Removes scaffold DOM nodes (PadTop, ItemsHost, PadBottom).
+     * - Completes lifecycle teardown via {@link Lifecycle.destroy}.
+     *
+     * @returns {void}
+     * @override
      */
     public override destroy(): void {
         if (this.is(LifecycleState.DESTROYED)) {
@@ -416,20 +386,26 @@ export class VirtualRecyclerView<
         this.ItemsHost.remove();
         this.PadBottom.remove();
 
-        this.PadTop = null as unknown as HTMLDivElement;
-        this.ItemsHost = null as unknown as HTMLDivElement;
-        this.PadBottom = null as unknown as HTMLDivElement;
+        this.PadTop = null as HTMLDivElement;
+        this.ItemsHost = null as HTMLDivElement;
+        this.PadBottom = null as HTMLDivElement;
 
         super.destroy();
     }
 
     /**
-     * Hard reset after large visibility changes (e.g., search/filter cleared).
+     * Hard reset used after large visibility changes (e.g., search/filter cleared).
      *
-     * Rebuilds all height structures and remounts the visible window.
-     * Essential for fixing padding calculations after bulk visibility updates.
+     * This recalculates padding and height structures by:
+     * - suspending processing,
+     * - resetting state and removing invisible elements,
+     * - recomputing estimator stats from cache,
+     * - rebuilding Fenwick prefix sums,
+     * - resetting window bounds and resuming updates.
+     *
+     * @returns {void}
      */
-    public refreshItem() {
+    public refreshItem(): void {
         if (!this.adapter) return;
         const count = this.adapter.itemCount();
         if (count <= 0) return;
@@ -444,8 +420,8 @@ export class VirtualRecyclerView<
         this.resume();
     }
 
-    /** Cancels all pending animation frames. */
-    private cancelFrames() {
+    /** Cancels any pending animation frames for window calculation and measurement. */
+    private cancelFrames(): void {
         if (this.rafId != null) {
             cancelAnimationFrame(this.rafId);
             this.rafId = null;
@@ -456,8 +432,16 @@ export class VirtualRecyclerView<
         }
     }
 
-    /** Resets all internal state: DOM, caches, and measurements. */
-    private resetState() {
+    /**
+     * Resets internal state: mounted elements, caches, Fenwick sums, padding, and estimator stats.
+     *
+     * DOM side effects:
+     * - Removes all currently mounted item elements tracked in {@link created}.
+     * - Resets pad heights to `0px`.
+     *
+     * @returns {void}
+     */
+    private resetState(): void {
         this.created.forEach(el => el.remove());
         this.created.clear();
         this.heightCache = [];
@@ -470,10 +454,16 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Measures the first item to set an initial height estimate.
-     * If dynamic heights are disabled, removes the probe element afterward.
+     * Measures the first item to seed a better initial height estimate.
+     *
+     * Strategy:
+     * - Temporarily mounts index 0, measures its outer height, and updates `estimateItemHeight`.
+     * - If `dynamicHeights` is disabled, the probe element is removed and the model/view init flags
+     *   are reverted for that item to avoid treating the probe as a real render.
+     *
+     * @returns {void}
      */
-    private probeInitialHeight() {
+    private probeInitialHeight(): void {
         const probe = 0;
         this.mountIndexOnce(probe);
 
@@ -495,8 +485,13 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Whether item at `index` is visible (not filtered/hidden).
-     * Defaults to visible when the property is undefined.
+     * Whether the item at `index` is visible (i.e., not filtered/hidden).
+     *
+     * Visibility convention:
+     * - If `item.visible` is undefined, the item is treated as visible.
+     *
+     * @param {number} index - 0-based item index.
+     * @returns {boolean} True if visible; otherwise false.
      */
     private isIndexVisible(index: number): boolean {
         const item = this.adapter?.items?.[index];
@@ -505,7 +500,10 @@ export class VirtualRecyclerView<
 
     /**
      * Finds the next visible item index starting from `index`.
-     * Returns -1 if no visible items are found.
+     *
+     * @param {number} index - Start index (0-based).
+     * @param {number} count - Total item count.
+     * @returns {number} Next visible index, or -1 if none exist.
      */
     private nextVisibleFrom(index: number, count: number): number {
         for (let i = Math.max(0, index); i < count; i++) {
@@ -515,10 +513,14 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Recalculates total measured height and count from cache.
-     * Only counts **visible** items for adaptive estimation.
+     * Recomputes running estimator stats from the current height cache.
+     *
+     * Only counts **visible** items; invisible items do not contribute to adaptive estimation.
+     *
+     * @param {number} count - Total item count.
+     * @returns {void}
      */
-    private recomputeMeasuredStats(count: number) {
+    private recomputeMeasuredStats(count: number): void {
         this.measuredSum = 0;
         this.measuredCount = 0;
         for (let i = 0; i < count; i++) {
@@ -531,7 +533,13 @@ export class VirtualRecyclerView<
         }
     }
 
-    /** Returns view container's top offset relative to the scroll container. */
+    /**
+     * Returns the view container's top offset relative to the scroll container.
+     *
+     * This is used to convert absolute scrollTop to a scrollTop relative to the recycler's own container.
+     *
+     * @returns {number} Top offset in pixels (non-negative).
+     */
     private containerTopInScroll(): number {
         const a = this.viewElement!.getBoundingClientRect();
         const b = this.scrollEl.getBoundingClientRect();
@@ -539,8 +547,11 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Returns sticky header height with ~16ms cache to avoid layout thrashing.
-     * Used to adjust effective viewport height.
+     * Returns sticky header height with a short cache window (~16ms) to avoid layout thrashing.
+     *
+     * Used to adjust effective viewport height (so windowing math accounts for a visible sticky header).
+     *
+     * @returns {number} Sticky header height in pixels.
      */
     private stickyTopHeight(): number {
         const now = performance.now();
@@ -552,8 +563,16 @@ export class VirtualRecyclerView<
         return this.stickyCacheVal;
     }
 
-    /** Schedules a window update on the next frame if not already scheduled. */
-    private scheduleUpdateWindow() {
+    /**
+     * Schedules a window update on the next animation frame.
+     *
+     * No-op if:
+     * - a frame is already scheduled, or
+     * - the recycler is currently suspended.
+     *
+     * @returns {void}
+     */
+    private scheduleUpdateWindow(): void {
         if (this.rafId != null || this.suspended) return;
         this.rafId = requestAnimationFrame(() => {
             this.rafId = null;
@@ -562,10 +581,10 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Measures an element's total height including vertical margins.
+     * Measures an element's "outer height" including vertical margins.
      *
-     * @param el - Element to measure.
-     * @returns Total outer height in pixels.
+     * @param {HTMLElement} el - Element to measure.
+     * @returns {number} Total outer height in pixels (minimum 1).
      */
     private measureOuterHeight(el: HTMLElement): number {
         const rect = el.getBoundingClientRect();
@@ -576,8 +595,13 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Returns height estimate for unmeasured items.
-     * Uses adaptive average if enabled, otherwise the fixed estimate.
+     * Returns the current height estimate for unmeasured items.
+     *
+     * - When adaptive estimation is enabled and at least one item was measured,
+     *   returns the running average.
+     * - Otherwise returns the configured fixed estimate.
+     *
+     * @returns {number} Estimated item height in pixels (minimum 1).
      */
     private getEstimate(): number {
         if (this.opts.adaptiveEstimate && this.measuredCount > 0) {
@@ -587,14 +611,18 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Rebuilds the Fenwick tree with current heights and estimates.
-     * Invisible items receive height 0; others use cached or estimated height.
+     * Rebuilds Fenwick prefix sums from current cache/estimate and visibility.
      *
-     * @param count - Total number of items.
+     * Encoding:
+     * - Invisible items contribute `0` height.
+     * - Visible items contribute either cached measured height, or the current estimate.
+     *
+     * @param {number} count - Total number of items.
+     * @returns {void}
      */
-    private rebuildFenwick(count: number) {
+    private rebuildFenwick(count: number): void {
         const est = this.getEstimate();
-        const arr = Array.from({ length: count }, (_, i) => 
+        const arr = Array.from({ length: count }, (_, i) =>
             this.isIndexVisible(i) ? (this.heightCache[i] ?? est) : 0
         );
         this.fenwick.buildFrom(arr);
@@ -602,15 +630,19 @@ export class VirtualRecyclerView<
 
     /**
      * Updates cached height at `index` and applies delta to the Fenwick tree.
-     * Also updates running average for the adaptive estimator.
      *
-     * @param index - Item index to update.
-     * @param newH - Newly measured outer height (px).
-     * @returns True if the height changed beyond the epsilon threshold.
+     * Behavior:
+     * - Ignores invisible items (no-op).
+     * - Applies an epsilon threshold to avoid jitter from sub-pixel / minor changes.
+     * - Updates adaptive estimator stats and Fenwick sums in **O(log n)**.
+     *
+     * @param {number} index - 0-based item index to update.
+     * @param {number} newH - Newly measured outer height (px).
+     * @returns {boolean} True if the height changed beyond the epsilon threshold.
      */
     private updateHeightAt(index: number, newH: number): boolean {
         if (!this.isIndexVisible(index)) return false;
-        
+
         const est = this.getEstimate();
         const oldH = this.heightCache[index] ?? est;
 
@@ -631,10 +663,14 @@ export class VirtualRecyclerView<
 
     /**
      * Finds the first visible item at or after a scroll-relative offset.
-     * Uses Fenwick lower-bound then adjusts forward to the next visible item.
      *
-     * @param stRel - ScrollTop relative to the view container (px).
-     * @param count - Total item count.
+     * Strategy:
+     * - Use Fenwick lower-bound to approximate a candidate index by cumulative height,
+     * - Then advance to the next visible item.
+     *
+     * @param {number} stRel - ScrollTop relative to the view container (px).
+     * @param {number} count - Total item count.
+     * @returns {number} A visible index (best-effort); falls back to clamped candidate when needed.
      */
     private findFirstVisibleIndex(stRel: number, count: number): number {
         const k = this.fenwick.lowerBoundPrefix(Math.max(0, stRel));
@@ -644,13 +680,18 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Inserts an element into the host maintaining increasing index order.
-     * Tries adjacent siblings first, then scans for the insertion point.
+     * Inserts an element into {@link ItemsHost} maintaining increasing index order.
      *
-     * @param index - Item index.
-     * @param el - Element to insert.
+     * Heuristics:
+     * - Prefer inserting after the previous index element if present.
+     * - Else insert before the next index element if present.
+     * - Else scan children to find the first element with a larger `data-vindex`.
+     *
+     * @param {number} index - Item index.
+     * @param {HTMLElement} el - Element to insert.
+     * @returns {void}
      */
-    private insertIntoHostByIndex(index: number, el: HTMLElement) {
+    private insertIntoHostByIndex(index: number, el: HTMLElement): void {
         el.setAttribute(VirtualRecyclerView.ATTR_INDEX, String(index));
 
         const prev = this.created.get(index - 1);
@@ -678,12 +719,14 @@ export class VirtualRecyclerView<
 
     /**
      * Ensures the element is in the correct DOM position for its index.
-     * Reinserts when adjacent siblings indicate an out-of-order position.
      *
-     * @param index - Item index.
-     * @param el - Element to validate/reinsert.
+     * Reinserts the element when adjacent siblings indicate an out-of-order position.
+     *
+     * @param {number} index - Item index.
+     * @param {HTMLElement} el - Element to validate/reinsert.
+     * @returns {void}
      */
-    private ensureDomOrder(index: number, el: HTMLElement) {
+    private ensureDomOrder(index: number, el: HTMLElement): void {
         if (el.parentElement !== this.ItemsHost) {
             this.insertIntoHostByIndex(index, el);
             return;
@@ -694,7 +737,7 @@ export class VirtualRecyclerView<
         const prev = el.previousElementSibling as HTMLElement | null;
         const next = el.nextElementSibling as HTMLElement | null;
 
-        const needsReorder = 
+        const needsReorder =
             (prev && Number(prev.getAttribute(VirtualRecyclerView.ATTR_INDEX)) > index) ||
             (next && Number(next.getAttribute(VirtualRecyclerView.ATTR_INDEX)) < index);
 
@@ -705,15 +748,23 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Attaches a ResizeObserver to measure items when they resize.
-     * Singleton pattern — only creates once per instance.
+     * Attaches a {@link ResizeObserver} used for dynamic-height measurement.
+     *
+     * Singleton behavior:
+     * - Only creates/attaches the observer once per instance.
+     *
+     * Scheduling:
+     * - Observer callback schedules measurement on the next animation frame to batch DOM reads.
+     * - No-op when suppressed or suspended.
+     *
+     * @returns {void}
      */
-    private attachResizeObserverOnce() {
+    private attachResizeObserverOnce(): void {
         if (this.resizeObs) return;
 
         this.resizeObs = new ResizeObserver(() => {
             if (this.suppressResize || this.suspended || !this.adapter || this.measureRaf != null) return;
-            
+
             this.measureRaf = requestAnimationFrame(() => {
                 this.measureRaf = null;
                 this.measureVisibleAndUpdate();
@@ -725,9 +776,14 @@ export class VirtualRecyclerView<
 
     /**
      * Measures all currently rendered items and updates the height cache.
-     * Triggers a window update when any heights changed.
+     *
+     * If any height changed:
+     * - Rebuilds Fenwick sums when adaptive estimation is enabled.
+     * - Schedules a window recalculation.
+     *
+     * @returns {void}
      */
-    private measureVisibleAndUpdate() {
+    private measureVisibleAndUpdate(): void {
         if (!this.adapter) return;
         const count = this.adapter.itemCount();
         if (count <= 0) return;
@@ -751,24 +807,33 @@ export class VirtualRecyclerView<
         }
     }
 
-    /** Scroll event handler — schedules a render update. */
-    private onScroll() {
+    /**
+     * Scroll event handler. Schedules a window update on the next frame.
+     *
+     * @returns {void}
+     */
+    private onScroll(): void {
         this.scheduleUpdateWindow();
     }
 
     /**
-     * Core rendering logic — calculates and updates the visible window.
+     * Core window update routine: computes the visible range and reconciles mounted DOM.
      *
-     * Steps:
-     * 1) Calculate viewport bounds (account for sticky headers)
-     * 2) Use an anchor item to prevent scroll jumping on height changes
-     * 3) Determine start/end indices with overscan buffer
-     * 4) Mount/unmount items as needed
-     * 5) Measure visible items (if dynamic heights enabled)
-     * 6) Update pad heights (top/bottom) to maintain total scroll span
-     * 7) Adjust scroll position to keep the anchor item stable
+     * High-level steps:
+     * 1) Compute scroll-relative viewport bounds (accounting for sticky header height).
+     * 2) Capture an anchor item and its visual delta relative to scrollTop.
+     * 3) Compute new start/end with overscan.
+     * 4) Mount missing items and unmount items outside the window.
+     * 5) Measure visible items (optional) and update pad heights.
+     * 6) Apply anchor correction to keep scroll position stable after height changes.
+     *
+     * Guarding:
+     * - Prevents re-entrancy via `updating`.
+     * - No-op while `suspended`.
+     *
+     * @returns {void}
      */
-    private updateWindowInternal() {
+    private updateWindowInternal(): void {
         if (this.updating || this.suspended) return;
         this.updating = true;
 
@@ -851,17 +916,23 @@ export class VirtualRecyclerView<
     }
 
     /** Mounts all items in the inclusive range `[start..end]`. */
-    private mountRange(start: number, end: number) {
+    private mountRange(start: number, end: number): void {
         for (let i = start; i <= end; i++) this.mountIndexOnce(i);
     }
 
     /**
-     * Mounts a single item, reusing an existing element if available.
-     * Creates the view holder on first mount, or rebinds on subsequent renders.
+     * Mounts/rebinds a single item at `index`.
      *
-     * @param index - Item index to mount/rebind.
+     * Behavior:
+     * - If the item is invisible, ensures it is removed/untracked (no-op otherwise).
+     * - Reuses an existing DOM element when present and the model already has a view.
+     * - Creates a new view holder on first mount (`item.isInit === false`) and binds via `adapter.onViewHolder`.
+     * - Ensures DOM order within {@link ItemsHost} and updates the {@link created} map.
+     *
+     * @param {number} index - Item index to mount/rebind.
+     * @returns {void}
      */
-    private mountIndexOnce(index: number) {
+    private mountIndexOnce(index: number): void {
         if (!this.isIndexVisible(index)) {
             const existing = this.created.get(index);
             if (existing?.parentElement === this.ItemsHost) existing.remove();
@@ -901,9 +972,13 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Removes all mounted items outside the inclusive range `[start..end]`.
+     * Unmounts all mounted items outside the inclusive range `[start..end]`.
+     *
+     * @param {number} start - Window start (inclusive).
+     * @param {number} end - Window end (inclusive).
+     * @returns {void}
      */
-    private unmountOutside(start: number, end: number) {
+    private unmountOutside(start: number, end: number): void {
         this.created.forEach((el, idx) => {
             if (idx < start || idx > end) {
                 if (el.parentElement === this.ItemsHost) el.remove();
@@ -913,9 +988,11 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Removes all items currently marked as invisible from the DOM.
+     * Removes all currently mounted items that are now marked invisible.
+     *
+     * @returns {void}
      */
-    private cleanupInvisibleItems() {
+    private cleanupInvisibleItems(): void {
         this.created.forEach((el, idx) => {
             if (!this.isIndexVisible(idx)) {
                 if (el.parentElement === this.ItemsHost) el.remove();
@@ -925,31 +1002,36 @@ export class VirtualRecyclerView<
     }
 
     /**
-     * Returns cumulative height from the start to the **top** of item at `index`.
+     * Returns cumulative height from the start of the list to the **top** of item at `index`.
      *
-     * Internally uses Fenwick sum on the **inclusive** range [1..index],
-     * which corresponds to offset-top in 0-based item space.
+     * Indexing note:
+     * - Uses Fenwick prefix sum with a 1-based contract.
+     * - Passing a 0-based `index` to `sum(index)` yields the sum of heights for items `[0..index-1]`,
+     *   which corresponds to the CSS `offsetTop` for item `index` in a stacked list.
      *
-     * @param index - Item index (0-based).
+     * @param {number} index - Item index (0-based).
+     * @returns {number} Offset from the top of the list to the top of the item (px).
      */
     private offsetTopOf(index: number): number {
         return this.fenwick.sum(index);
     }
 
     /**
-     * Returns the total height of items in inclusive range `[start..end]`.
+     * Returns the total height of items in the inclusive range `[start..end]`.
      *
-     * @param start - Start index (0-based).
-     * @param end - End index (0-based).
+     * @param {number} start - Start index (0-based).
+     * @param {number} end - End index (0-based).
+     * @returns {number} Total height in pixels.
      */
     private windowHeight(start: number, end: number): number {
         return this.fenwick.rangeSum(start + 1, end + 1);
     }
 
     /**
-     * Returns the total scrollable height for all items.
+     * Returns total scrollable height for all items.
      *
-     * @param count - Total item count.
+     * @param {number} count - Total item count.
+     * @returns {number} Total height in pixels.
      */
     private totalHeight(count: number): number {
         return this.fenwick.sum(count);

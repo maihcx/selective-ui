@@ -1,3 +1,13 @@
+# 1.2.5 (2026-01-30)
+
+### Fixes
+
+- **SelectObserver,ModelManager** Remove the anti-duplicate loading mechanism (Snapshot) as it is no longer suitable and will cause unexpected errors
+
+### Optimizations
+
+- **ALL** Optimizations code and improve JSDoc
+
 # 1.2.4 (2026-01-27)
 
 ### Fixes

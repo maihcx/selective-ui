@@ -1,18 +1,51 @@
-
 import { LifecycleHookContext, LifecycleHooks, LifecycleState } from "src/ts/types/core/base/lifecycle.type";
 
 type LifecycleHookName = keyof LifecycleHooks;
 
 /**
- * Lightweight lifecycle manager that provides:
- * - A finite-state lifecycle machine (`NEW` → `INITIALIZED` → `MOUNTED` → `UPDATED` → `DESTROYED`)
- * - A simple hooks system to subscribe to lifecycle events (`onInit`, `onMount`, `onUpdate`, `onDestroy`)
+ * Minimal lifecycle finite-state machine (FSM) with a lightweight hook system.
  *
- * Classes in the core (e.g., Model/View) can extend this to standardize initialization,
- * mounting, updates, and teardown. Hooks are stored as in-memory callbacks and cleared on destroy.
+ * ### Responsibility
+ * - Provide a **strict**, **guarded** lifecycle FSM:
+ *   `NEW → INITIALIZED → MOUNTED → UPDATED → DESTROYED`
+ * - Provide an in-memory hook registry to observe lifecycle transitions:
+ *   `onInit`, `onMount`, `onUpdate`, `onDestroy`
+ *
+ * This class is designed to be extended by core primitives (Model/View/Adapter/Controller)
+ * so they share consistent lifecycle semantics without coupling to any rendering runtime.
+ *
+ * ### FSM & Idempotency
+ * - `init()` is **idempotent**: only transitions `NEW → INITIALIZED`; otherwise **no-op**.
+ * - `mount()` is **guarded**: only transitions `INITIALIZED → MOUNTED`; otherwise **no-op**.
+ * - `update()` is **repeatable** once mounted: allowed in `MOUNTED` and `UPDATED`.
+ *   It always emits `onUpdate` and keeps state at `UPDATED`.
+ * - `destroy()` is **idempotent**: once `DESTROYED`, subsequent calls are **no-op**.
+ *
+ * ### Hook semantics
+ * - Hooks are stored in a `Set` per hook name:
+ *   - de-duplicates identical callback references,
+ *   - preserves insertion order for deterministic execution.
+ * - Hook callbacks receive a {@link LifecycleHookContext} containing:
+ *   - `state` (current state after transition),
+ *   - `prevState` (state prior to the transition).
+ * - Hook exceptions are caught and forwarded to {@link handleHookError},
+ *   preventing a single subscriber from breaking the lifecycle flow.
+ *
+ * ### Memory & teardown
+ * - All registered hooks are cleared on `destroy()` via {@link clearHooks}.
+ * - Post-destroy calls to lifecycle methods do not emit further hooks.
+ *
+ * @see {@link LifecycleState}
+ * @see {@link LifecycleHooks}
+ * @see {@link LifecycleHookContext}
  */
 export class Lifecycle {
-    /** Current lifecycle state */
+    /**
+     * Current lifecycle state.
+     *
+     * Starts at {@link LifecycleState.NEW} and transitions through the FSM via
+     * {@link init}, {@link mount}, {@link update}, {@link destroy}.
+     */
     protected state: LifecycleState = LifecycleState.NEW;
 
     /**
@@ -21,12 +54,18 @@ export class Lifecycle {
      * Uses a Set per hook to:
      * - Avoid duplicate registrations
      * - Preserve insertion order for deterministic execution
+     *
+     * @remarks
+     * This map is initialized with keys for all supported hooks in the constructor.
+     * Callbacks are cleared on {@link destroy}.
      */
-    private hooks: Map<LifecycleHookName, Set<Function>> = new Map();
+    private hooks: Map<LifecycleHookName, Set<(ctx: LifecycleHookContext) => void>> = new Map();
 
     /**
      * Constructs the lifecycle manager and pre-registers hook containers.
-     * No hooks are executed during construction.
+     *
+     * No hooks are executed during construction; consumers must call
+     * {@link init}, {@link mount}, {@link update}, or {@link destroy}.
      */
     constructor() {
         this.hooks.set("onInit", new Set());
@@ -38,11 +77,14 @@ export class Lifecycle {
     /**
      * Subscribes a callback to a lifecycle hook.
      *
-     * @param hook - The lifecycle hook name to listen to
-     * @param fn - The callback to execute when the hook is emitted
-     * @returns `this` for chaining
+     * Hook callbacks are invoked in insertion order. Duplicate callback references are ignored
+     * due to Set semantics.
+     *
+     * @param {LifecycleHookName} hook - Hook name to subscribe to.
+     * @param {(ctx: LifecycleHookContext) => void} fn - Callback invoked when the hook is emitted.
+     * @returns {this} The current instance (chainable).
      */
-    on(hook: LifecycleHookName, fn: () => void): this {
+    on(hook: LifecycleHookName, fn: (ctx: LifecycleHookContext) => void): this {
         this.hooks.get(hook)!.add(fn);
         return this;
     }
@@ -50,22 +92,31 @@ export class Lifecycle {
     /**
      * Unsubscribes a previously registered callback from a lifecycle hook.
      *
-     * @param hook - The lifecycle hook name
-     * @param fn - The callback to remove
-     * @returns `this` for chaining
+     * Safe to call even if the callback was never registered (no-op).
+     *
+     * @param {LifecycleHookName} hook - Hook name to unsubscribe from.
+     * @param {(ctx: LifecycleHookContext) => void} fn - Callback to remove.
+     * @returns {this} The current instance (chainable).
      */
-    off(hook: LifecycleHookName, fn: () => void): this {
+    off(hook: LifecycleHookName, fn: (ctx: LifecycleHookContext) => void): this {
         this.hooks.get(hook)!.delete(fn);
         return this;
     }
 
     /**
-     * Emits a lifecycle hook, executing all registered callbacks
-     * in the order they were added.
+     * Emits a lifecycle hook by executing all registered callbacks for that hook.
      *
-     * @param hook - The lifecycle hook to emit
-     * @internal Prefer using the public lifecycle methods (`init/mount/update/destroy`)
-     *           which call `emit` at the correct times.
+     * Execution model:
+     * - Callbacks run in insertion order.
+     * - Errors thrown by callbacks are caught and forwarded to {@link handleHookError}.
+     *
+     * @param {LifecycleHookName} hook - The hook to emit.
+     * @param {LifecycleState} prevState - The state prior to the transition.
+     * @returns {void}
+     *
+     * @internal
+     * Prefer invoking the public lifecycle methods ({@link init}, {@link mount}, {@link update}, {@link destroy})
+     * which call `emit()` at the correct time and enforce FSM guards.
      */
     protected emit(hook: LifecycleHookName, prevState: LifecycleState): void {
         const ctx: LifecycleHookContext = {
@@ -82,14 +133,28 @@ export class Lifecycle {
         }
     }
 
+    /**
+     * Handles errors thrown by lifecycle hook callbacks.
+     *
+     * Default behavior logs to `console.error` with a hook-scoped prefix.
+     * Subclasses may override to integrate with application logging/telemetry.
+     *
+     * @param {unknown} error - Error thrown by a hook callback.
+     * @param {LifecycleHookName} hook - Hook name during which the error occurred.
+     * @returns {void}
+     * @protected
+     */
     protected handleHookError(error: unknown, hook: LifecycleHookName): void {
         console.error(`[Lifecycle:${hook}]`, error);
     }
 
     /**
-     * Transitions from `NEW` → `INITIALIZED` and emits `onInit`.
+     * Transitions `NEW → INITIALIZED` and emits `onInit`.
      *
-     * Safe to call multiple times; subsequent calls are no-ops unless current state is `NEW`.
+     * Idempotent: **no-op** unless current state is {@link LifecycleState.NEW}.
+     *
+     * @returns {void}
+     * @see {@link LifecycleHooks.onInit}
      */
     init(): void {
         if (this.state !== LifecycleState.NEW) return;
@@ -100,9 +165,12 @@ export class Lifecycle {
     }
 
     /**
-     * Transitions from `INITIALIZED` → `MOUNTED` and emits `onMount`.
+     * Transitions `INITIALIZED → MOUNTED` and emits `onMount`.
      *
-     * No-ops if current state is not `INITIALIZED` (guards against invalid order).
+     * Guarded: **no-op** unless current state is {@link LifecycleState.INITIALIZED}.
+     *
+     * @returns {void}
+     * @see {@link LifecycleHooks.onMount}
      */
     mount(): void {
         if (this.state !== LifecycleState.INITIALIZED) return;
@@ -113,10 +181,16 @@ export class Lifecycle {
     }
 
     /**
-     * Transitions from `MOUNTED` → `UPDATED` and emits `onUpdate`.
+     * Emits `onUpdate` and transitions to/keeps state `UPDATED`.
      *
-     * No-ops if not currently `MOUNTED`. Subsequent `update()` calls will keep the state
-     * at `UPDATED` while still emitting `onUpdate`.
+     * Allowed states:
+     * - `MOUNTED` → `UPDATED`
+     * - `UPDATED` → `UPDATED` (repeatable updates still emit)
+     *
+     * Guarded: **no-op** unless current state is `MOUNTED` or `UPDATED`.
+     *
+     * @returns {void}
+     * @see {@link LifecycleHooks.onUpdate}
      */
     update(): void {
         if (
@@ -132,9 +206,12 @@ export class Lifecycle {
     }
 
     /**
-     * Transitions to `DESTROYED` and emits `onDestroy`, then clears all hooks.
+     * Transitions to `DESTROYED`, emits `onDestroy`, then clears all hook registrations.
      *
-     * Idempotent: calling `destroy()` multiple times after destruction has no effect.
+     * Idempotent: **no-op** if already {@link LifecycleState.DESTROYED}.
+     *
+     * @returns {void}
+     * @see {@link LifecycleHooks.onDestroy}
      */
     destroy(): void {
         if (this.state === LifecycleState.DESTROYED) return;
@@ -147,16 +224,18 @@ export class Lifecycle {
 
     /**
      * Returns the current lifecycle state.
+     *
+     * @returns {LifecycleState} Current FSM state.
      */
     getState(): LifecycleState {
         return this.state;
     }
 
     /**
-     * Checks if the lifecycle is in the specified state.
+     * Checks whether the lifecycle is in the specified state.
      *
-     * @param state - The state to compare against
-     * @returns True if the current state matches; otherwise false
+     * @param {LifecycleState} state - State to compare against.
+     * @returns {boolean} `true` if current state matches; otherwise `false`.
      */
     is(state: LifecycleState): boolean {
         return this.state === state;
@@ -165,7 +244,11 @@ export class Lifecycle {
     /**
      * Clears all registered lifecycle hooks.
      *
-     * Called automatically during `destroy()`.
+     * Called automatically during {@link destroy}. After clearing, the hook containers remain
+     * allocated (map keys persist) but contain no subscribers.
+     *
+     * @returns {void}
+     * @private
      */
     private clearHooks(): void {
         for (const set of this.hooks.values()) {

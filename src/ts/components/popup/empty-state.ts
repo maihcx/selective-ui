@@ -5,37 +5,61 @@ import { SelectiveOptions } from "../../types/utils/selective.type";
 import { Libs } from "../../utils/libs";
 
 /**
- * UI component that represents an empty state.
+ * Lightweight UI state box that renders contextual "empty" feedback.
  *
- * The empty state is used to display contextual feedback when:
- * - No data is available
- * - A search yields no matching results
+ * ### Responsibility
+ * - Owns a single DOM node that can be shown/hidden to communicate:
+ *   - **No data** (no options available)
+ *   - **Not found** (search produced zero visible results)
+ * - Exposes a minimal imperative API (`show`, `hide`, `isVisible`) used by higher-level
+ *   controllers/components (e.g., popup/search flows).
  *
- * It manages a single DOM node and participates in the standard lifecycle.
+ * ### Lifecycle (Strict FSM)
+ * - Constructed in `NEW`. When `options` are provided, {@link initialize} is called and the
+ *   instance transitions to `INITIALIZED` via {@link Lifecycle.init}.
+ * - This component does not automatically mount itself into a container; consumers are expected
+ *   to append {@link node} where appropriate.
+ * - {@link destroy} removes the node and transitions to `DESTROYED`.
+ *
+ * ### Idempotency / No-ops
+ * - {@link show} and {@link hide} are **no-ops** until {@link node} exists.
+ * - {@link destroy} is idempotent once in {@link LifecycleState.DESTROYED}.
+ *
+ * ### Accessibility / DOM side effects
+ * - Uses `role="status"` and `aria-live="polite"` so screen readers announce changes without
+ *   interrupting the user.
+ * - Visibility is controlled via the `"hide"` CSS class; hiding does not remove the element.
  *
  * @extends Lifecycle
+ * @see {@link LifecycleState}
+ * @see {@link EmptyStateType}
  */
 export class EmptyState extends Lifecycle {
-
     /**
-     * Root DOM element of the empty state component.
-     * Created during initialization and removed on destroy.
+     * Root DOM element for the empty state UI.
+     *
+     * - Created during {@link initialize}.
+     * - Intended to be appended by the parent container (component does not auto-attach).
+     * - Removed from DOM during {@link destroy}.
      */
     public node: HTMLDivElement | null = null;
 
     /**
-     * Configuration options providing display text
-     * for different empty state scenarios.
+     * Configuration source for empty state messages.
+     *
+     * Expected to provide at least:
+     * - `textNoData` (for `"nodata"`)
+     * - `textNotFound` (for `"notfound"`)
      */
     public options: SelectiveOptions | null = null;
 
     /**
-     * Creates a new EmptyState instance.
+     * Creates a new {@link EmptyState}.
      *
-     * If options are provided, the component is initialized immediately.
+     * If `options` are provided, initialization runs immediately (creates {@link node} and
+     * transitions to `INITIALIZED`).
      *
-     * @param options - Configuration containing messages for
-     *                  "no data" and "not found" states.
+     * @param {SelectiveOptions | null} [options=null] - Configuration containing empty state messages.
      */
     public constructor(options: SelectiveOptions | null = null) {
         super();
@@ -43,12 +67,15 @@ export class EmptyState extends Lifecycle {
     }
 
     /**
-     * Initializes the empty state component.
+     * Initializes internal resources for this component.
      *
-     * Creates the root DOM element, applies accessibility attributes,
-     * stores configuration options, and starts the lifecycle.
+     * Side effects:
+     * - Creates the root `div` node with `role="status"` and `aria-live="polite"`.
+     * - Applies base CSS classes: `"selective-ui-empty-state"` and `"hide"`.
+     * - Stores the options reference and calls {@link Lifecycle.init}.
      *
-     * @param options - Configuration object containing empty state messages.
+     * @param {SelectiveOptions} options - Configuration object containing empty state messages.
+     * @returns {void}
      */
     private initialize(options: SelectiveOptions): void {
         this.options = options;
@@ -64,14 +91,15 @@ export class EmptyState extends Lifecycle {
     }
 
     /**
-     * Displays the empty state message.
+     * Shows the empty state message for the given scenario.
      *
-     * The message content depends on the provided type:
-     * - `"nodata"`: no data available
-     * - `"notfound"`: no matching search results
+     * - `"nodata"`: uses `options.textNoData`
+     * - `"notfound"`: uses `options.textNotFound`
      *
-     * @param type - Type of empty state to display.
-     *               Defaults to `"nodata"`.
+     * No-op if {@link node} or {@link options} are not initialized.
+     *
+     * @param {EmptyStateType} [type="nodata"] - Which empty state message to display.
+     * @returns {void}
      */
     public show(type: EmptyStateType = "nodata"): void {
         if (!this.node || !this.options) return;
@@ -86,10 +114,12 @@ export class EmptyState extends Lifecycle {
     }
 
     /**
-     * Hides the empty state component.
+     * Hides the empty state node by applying the `"hide"` CSS class.
      *
-     * This does not remove the element from the DOM;
-     * it only updates its visibility via CSS.
+     * This does not remove the element from the DOM.
+     * No-op if {@link node} is not initialized.
+     *
+     * @returns {void}
      */
     public hide(): void {
         if (!this.node) return;
@@ -97,19 +127,25 @@ export class EmptyState extends Lifecycle {
     }
 
     /**
-     * Indicates whether the empty state is currently visible.
+     * Whether the empty state is currently visible.
      *
-     * @returns True if the empty state is shown; otherwise false.
+     * @returns {boolean} `true` when {@link node} exists and does not have the `"hide"` class.
      */
     public get isVisible(): boolean {
         return !!this.node && !this.node.classList.contains("hide");
     }
 
     /**
-     * Destroys the empty state component.
+     * Releases resources owned by this component.
      *
-     * Removes the DOM node, clears stored options,
-     * and terminates the lifecycle.
+     * - Removes the root DOM node (if present).
+     * - Clears stored options and internal references.
+     * - Transitions to `DESTROYED`.
+     *
+     * Idempotent: returns early if already in {@link LifecycleState.DESTROYED}.
+     *
+     * @returns {void}
+     * @override
      */
     public override destroy(): void {
         if (this.is(LifecycleState.DESTROYED)) {

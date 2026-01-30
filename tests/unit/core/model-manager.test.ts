@@ -142,7 +142,7 @@ describe("ModelManager", () => {
 
         const oldModel = manager.getResources().modelList[0];
 
-        manager.update([opt1, opt2]);
+        manager.updateModel([opt1, opt2]);
 
         const models = manager.getResources().modelList;
         expect(models[0]).toBe(oldModel);
@@ -159,7 +159,7 @@ describe("ModelManager", () => {
 
         const oldGroup = manager.getResources().modelList[0];
 
-        manager.update([group, opt]);
+        manager.updateModel([group, opt]);
 
         const models = manager.getResources().modelList;
         expect(models[0]).toBe(oldGroup);
@@ -172,7 +172,7 @@ describe("ModelManager", () => {
         manager.createModelResources([opt]);
         manager.load(document.createElement("div"));
 
-        manager.update([opt]);
+        manager.updateModel([opt]);
 
         const { adapter, recyclerView } = manager.getResources();
 

@@ -4,35 +4,60 @@ import { SelectiveOptions } from "../../types/utils/selective.type";
 import { Libs } from "../../utils/libs";
 
 /**
- * UI component representing a loading state.
- *
- * The loading state is displayed while data is being fetched,
+ * Lightweight UI state box that renders a "loading" indicator while data is being fetched,
  * processed, or updated asynchronously.
  *
- * It manages a single DOM element and participates in the
- * standard lifecycle provided by `Lifecycle`.
+ * ### Responsibility
+ * - Owns a single DOM node representing the loading state.
+ * - Exposes an imperative API (`show`, `hide`, `isVisible`) to be driven by higher-level
+ *   controllers (e.g., AJAX search / pagination) and containers (e.g., Popup).
+ *
+ * ### Lifecycle (Strict FSM)
+ * - Constructed in `NEW`. When `options` are provided, {@link initialize} is invoked and the
+ *   instance transitions to `INITIALIZED` via {@link Lifecycle.init}.
+ * - This component does **not** attach itself to the DOM; consumers append {@link node} to the
+ *   desired container.
+ * - {@link destroy} removes the node, clears references, and transitions to `DESTROYED`.
+ *
+ * ### Idempotency / No-ops
+ * - {@link show} and {@link hide} are **no-ops** until {@link node} exists.
+ * - {@link destroy} is idempotent once in {@link LifecycleState.DESTROYED}.
+ *
+ * ### Accessibility / DOM side effects
+ * - Uses `role="status"` and `aria-live="polite"` so assistive technologies announce changes
+ *   without interrupting the user.
+ * - Visibility is controlled via the `"hide"` CSS class; hiding does not remove the element.
+ * - The `"small"` CSS class is toggled by {@link show} to support a compact loading indicator
+ *   when items are already present.
  *
  * @extends Lifecycle
+ * @see {@link LifecycleState}
  */
 export class LoadingState extends Lifecycle {
-
     /**
-     * Root DOM element of the loading state component.
-     * Created during initialization and removed on destroy.
+     * Root DOM element for the loading state UI.
+     *
+     * - Created during {@link initialize}.
+     * - Intended to be appended by the parent container (component does not auto-attach).
+     * - Removed from DOM during {@link destroy}.
      */
     public node: HTMLDivElement | null = null;
 
     /**
-     * Configuration options containing the loading message text.
+     * Configuration source for loading message text.
+     *
+     * Expected to provide:
+     * - `textLoading` (displayed while loading is active)
      */
     public options: SelectiveOptions | null = null;
 
     /**
-     * Creates a new LoadingState instance.
+     * Creates a new {@link LoadingState}.
      *
-     * If options are provided, the component is initialized immediately.
+     * If `options` are provided, initialization runs immediately (creates {@link node} and
+     * transitions to `INITIALIZED`).
      *
-     * @param options - Configuration object containing the loading message text.
+     * @param {SelectiveOptions | null} [options=null] - Configuration containing the loading message text.
      */
     public constructor(options: SelectiveOptions | null = null) {
         super();
@@ -40,13 +65,16 @@ export class LoadingState extends Lifecycle {
     }
 
     /**
-     * Initializes the loading state component.
+     * Initializes internal resources for this component.
      *
-     * Creates the root DOM element, sets the initial loading text,
-     * applies accessibility attributes, stores configuration options,
-     * and starts the lifecycle.
+     * Side effects:
+     * - Creates the root `div` node with base CSS classes: `"selective-ui-loading-state"` and `"hide"`.
+     * - Sets initial text to `options.textLoading`.
+     * - Applies `role="status"` and `aria-live="polite"`.
+     * - Stores the options reference and calls {@link Lifecycle.init}.
      *
-     * @param options - Configuration object containing loading text.
+     * @param {SelectiveOptions} options - Configuration object containing loading text.
+     * @returns {void}
      */
     private initialize(options: SelectiveOptions): void {
         this.options = options;
@@ -63,13 +91,17 @@ export class LoadingState extends Lifecycle {
     }
 
     /**
-     * Displays the loading state.
+     * Shows the loading indicator.
      *
-     * When items are already present, the loading state can be shown
-     * in a compact form by applying a reduced ("small") style.
+     * Behavior:
+     * - Updates the text to the latest `options.textLoading` (in case options changed).
+     * - Toggles the `"small"` CSS class when `hasItems` is true to display a compact variant.
+     * - Removes the `"hide"` class to make the node visible.
      *
-     * @param hasItems - True if existing items are present,
-     *                   enabling a compact loading indicator.
+     * No-op if {@link node} or {@link options} are not initialized.
+     *
+     * @param {boolean} hasItems - Whether existing items are already present (enables compact loading style).
+     * @returns {void}
      */
     public show(hasItems: boolean): void {
         if (!this.node || !this.options) return;
@@ -80,10 +112,12 @@ export class LoadingState extends Lifecycle {
     }
 
     /**
-     * Hides the loading state.
+     * Hides the loading indicator by applying the `"hide"` CSS class.
      *
-     * This only toggles visibility via CSS and does not
-     * remove the element from the DOM.
+     * This does not remove the element from the DOM.
+     * No-op if {@link node} is not initialized.
+     *
+     * @returns {void}
      */
     public hide(): void {
         if (!this.node) return;
@@ -91,19 +125,25 @@ export class LoadingState extends Lifecycle {
     }
 
     /**
-     * Indicates whether the loading state is currently visible.
+     * Whether the loading indicator is currently visible.
      *
-     * @returns True if the loading indicator is shown; otherwise false.
+     * @returns {boolean} `true` when {@link node} exists and does not have the `"hide"` class.
      */
     public get isVisible(): boolean {
         return !!this.node && !this.node.classList.contains("hide");
     }
 
     /**
-     * Destroys the loading state component.
+     * Releases resources owned by this component.
      *
-     * Removes the DOM node, clears stored options,
-     * and terminates the lifecycle.
+     * - Removes the root DOM node (if present).
+     * - Clears stored options and internal references.
+     * - Transitions to `DESTROYED`.
+     *
+     * Idempotent: returns early if already in {@link LifecycleState.DESTROYED}.
+     *
+     * @returns {void}
+     * @override
      */
     public override destroy(): void {
         if (this.is(LifecycleState.DESTROYED)) {

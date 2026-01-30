@@ -10,46 +10,90 @@ import { Libs } from "../utils/libs";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
 
 /**
- * Adapter that can render a heterogeneous list composed of groups and options.
+ * Mixed (heterogeneous) adapter for rendering and interacting with a list that contains
+ * both {@link GroupModel} and {@link OptionModel} items.
  *
- * Responsibilities:
- * - Build and maintain a flat list of options for navigation and visibility stats
- * - Create proper views based on item type (GroupView / OptionView)
- * - Bind view logic (events, image/label rendering, collapsed/expanded state)
- * - Track selection for both single and multiple-select modes
- * - Emit visibility-change statistics to subscribed listeners
+ * ### Responsibility
+ * - Flatten hierarchical data (groups → options) into `flatOptions` for:
+ *   - keyboard navigation (highlight + next/prev visible),
+ *   - visibility aggregation (visibleCount/totalCount),
+ *   - selection helpers (getSelectedItem(s), checkAll).
+ * - Create the correct view implementation per item:
+ *   - {@link GroupView} for groups,
+ *   - {@link OptionView} for options (including options inside a group container).
+ * - Bind DOM events and model hooks to keep View ↔ Model synchronized:
+ *   - click → selection changes,
+ *   - mouseenter → highlight changes,
+ *   - model visibility change → group visibility recalculation + debounced stats event.
  *
- * Lifecycle / Events:
- * - On `init()`: schedule a debounced visibility aggregation dispatcher
- * - On item changes: rebuild the flat structure and notify observers
- * - Delegates selection updates via the underlying `OptionModel` event hooks
+ * ### Lifecycle (Strict FSM, idempotency)
+ * - `init()` registers a debounced visibility aggregation job and then calls `mount()`.
+ * - View binding in `handleGroupView` / `handleOptionView` is guarded by `model.isInit`
+ *   to avoid double-wiring listeners (idempotent binding).
+ * - `destroy()` clears scheduler jobs and destroys groups (cascades into their options/views),
+ *   then transitions to `DESTROYED`. Subsequent destroy calls are **no-ops**.
  *
- * @extends Adapter
+ * ### Event / Hook flow (external vs internal)
+ * - **External selection**: user click triggers `changingProp("select")` then changes `OptionModel.selected`,
+ *   and eventually emits adapter-level `changeProp("selected")` via `optionModel.onSelected`.
+ * - **Internal selection**: `OptionModel.selectedNonTrigger` / `onInternalSelected` updates internal state
+ *   (e.g., cache `selectedItemSingle`) and emits adapter-level `changeProp("selected_internal")`
+ *   without implying user intent.
+ *
+ * ### Visibility / Highlight / Navigation
+ * - Visibility is tracked per option model (`OptionModel.visible`), and groups can update their own
+ *   derived visibility via `GroupModel.updateVisibility()`.
+ * - Highlight is tracked by flat index (`currentHighlightIndex`) and by model flag
+ *   (`OptionModel.highlighted`), enabling view-level styling / a11y hooks.
+ *
+ * ### DOM side effects / a11y notes
+ * - Adds DOM listeners (`click`, `mouseenter`) on first bind only.
+ * - Uses `Element.scrollIntoView()` when highlighting with scrolling enabled.
+ * - When options are virtualized, falls back to `recyclerView.ensureRendered(i, { scrollIntoView: true })`
+ *   before attempting to scroll.
+ *
+ * @extends {Adapter<MixedItem, GroupView | OptionView>}
+ * @see {@link GroupModel}
+ * @see {@link OptionModel}
+ * @see {@link GroupView}
+ * @see {@link OptionView}
  */
 export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     /** Whether the adapter operates in multi-selection mode. */
     public isMultiple = false;
 
-    /** Registered listeners for aggregated visibility statistics. */
+    /**
+     * Subscribers for aggregated visibility statistics.
+     * Fired via a debounced scheduler to avoid repeated recomputation during batch updates.
+     */
     private visibilityChangedCallbacks: Array<(stats: VisibilityStats) => void> = [];
 
-    /** Index (in the flat list) of the currently highlighted option. */
+    /**
+     * Flat index of the currently highlighted option.
+     * `-1` indicates "no highlight".
+     */
     private currentHighlightIndex = -1;
 
-    /** Cached pointer to the single selected item in single-select mode. */
+    /**
+     * Cached pointer to the selected option in single-select mode.
+     * Used to efficiently clear previous selection when selecting a new option.
+     */
     private selectedItemSingle: OptionModel | null = null;
 
     /** Top-level group models (if any). */
     public groups: GroupModel[] = [];
 
-    /** Flat list of all option models (including those inside groups). */
+    /**
+     * Flattened list of all option models, including options inside groups.
+     * This is the primary index space for navigation/highlight.
+     */
     public flatOptions: OptionModel[] = [];
 
     /**
      * Creates a MixedAdapter with an optional initial list of items.
-     * Builds an initial flat structure for fast navigation and stats.
+     * Immediately computes `groups` and `flatOptions` for navigation/stats.
      *
-     * @param items - Initial items (groups and/or options).
+     * @param {MixedItem[]} [items=[]] - Initial items (groups and/or options).
      */
     public constructor(items: MixedItem[] = []) {
         super(items);
@@ -57,11 +101,19 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Initializes internal scheduling for visibility-change notifications,
-     * then calls the base lifecycle and mounts immediately.
+     * Initializes debounced visibility aggregation and transitions lifecycle forward.
      *
-     * - Debounced `sche_vis_${adapterKey}` computes visibility aggregates
-     *   and invokes all registered `visibilityChangedCallbacks`.
+     * - Registers `sche_vis_${adapterKey}`:
+     *   - computes `{ visibleCount, totalCount, hasVisible, isEmpty }` from `flatOptions`,
+     *   - notifies {@link onVisibilityChanged} subscribers,
+     *   - triggers a proxy scheduler `sche_vis_proxy_${adapterKey}` for downstream chaining.
+     * - Calls base `init()` and mounts immediately.
+     *
+     * Idempotency:
+     * - Scheduler key is deterministic per adapter instance (`adapterKey`).
+     *
+     * @returns {void}
+     * @override
      */
     public override init() {
         Libs.callbackScheduler.on(
@@ -90,11 +142,16 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Builds / rebuilds a flat list of options and captures group references.
+     * Rebuilds the derived structures:
+     * - `groups`: top-level {@link GroupModel} list
+     * - `flatOptions`: all {@link OptionModel} instances in traversal order
      *
      * The flat list is used for:
-     * - navigation across visible options
-     * - computing visibility statistics quickly
+     * - navigation across visible options,
+     * - computing visibility statistics,
+     * - highlight index mapping.
+     *
+     * @returns {void}
      */
     private buildFlatStructure(): void {
         this.flatOptions = [];
@@ -111,11 +168,12 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Factory method returning the appropriate view implementation per item type.
+     * Creates the appropriate view instance for a given item.
      *
-     * @param parent - The container element where the view will be mounted.
-     * @param item - The item to render (group or option).
-     * @returns A new GroupView/OptionView instance based on the item type.
+     * @param {HTMLElement} parent - Container element where the view will be mounted.
+     * @param {MixedItem} item - The item to render (group or option).
+     * @returns {GroupView | OptionView} A view instance matching the item type.
+     * @override
      */
     override viewHolder(parent: HTMLElement, item: MixedItem): GroupView | OptionView {
         if (item instanceof GroupModel) return new GroupView(parent);
@@ -123,12 +181,17 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Binds a data model (group or option) to its view and delegates rendering
-     * to specialized handlers.
+     * Binds a model (group or option) to its view and delegates to specialized handlers.
      *
-     * @param item - GroupModel or OptionModel.
-     * @param viewer - The view instance that will render the model.
-     * @param position - Position of the item in the top-level list.
+     * Notes:
+     * - Assigns `item.position` in the top-level `items` list (not the `flatOptions` index).
+     * - Performs one-time listener binding guarded by `item.isInit`.
+     *
+     * @param {MixedItem} item - {@link GroupModel} or {@link OptionModel}.
+     * @param {GroupView | OptionView | null} viewer - The view instance that will render the model.
+     * @param {number} position - Position in the top-level mixed list.
+     * @returns {void}
+     * @override
      */
     override onViewHolder(item: MixedItem, viewer: GroupView | OptionView | null, position: number): void {
         item.position = position;
@@ -143,15 +206,24 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Handles binding/rendering for a group:
-     * - Sets header text and click-to-toggle behavior
-     * - Observes collapsed state to hide/show child options
-     * - Ensures each child option is rendered and bound
-     * - Syncs collapsed state and visibility
+     * Binds / renders a group header and its option children.
      *
-     * @param groupModel - Group data model.
-     * @param groupView - Group view instance.
-     * @param position - Group index.
+     * Responsibilities:
+     * - Set header label and click-to-toggle behavior (one-time).
+     * - Observe collapsed state:
+     *   - toggles child option DOM display,
+     *   - invokes {@link onCollapsedChange} hook.
+     * - Ensure each child option has a view and is bound via {@link handleOptionView}.
+     * - Sync collapsed UI and derived visibility for the group view.
+     *
+     * DOM side effects:
+     * - Adds a click listener to the group header (only once).
+     * - Updates child option view element `style.display` on collapse changes.
+     *
+     * @param {GroupModel} groupModel - Group data model.
+     * @param {GroupView} groupView - Group view instance.
+     * @param {number} position - Group index in the top-level list.
+     * @returns {void}
      */
     private handleGroupView(groupModel: GroupModel, groupView: GroupView, position: number): void {
         super.onViewHolder(groupModel, groupView, position);
@@ -196,15 +268,32 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Handles binding/rendering for an option:
-     * - Applies adapter-wide and model-specific visual configuration (image, label alignment, etc.)
-     * - Wires click/hover listeners for selection and highlighting
-     * - Syncs selection state (single vs multiple)
-     * - Updates image source/alt and label HTML
+     * Binds / renders an option row and wires selection/highlight/visibility behavior.
      *
-     * @param optionModel - Option data model.
-     * @param optionViewer - Option view instance.
-     * @param position - Option index within its group list.
+     * Responsibilities:
+     * - Apply visual configuration from the model options (image sizing/position, label alignment).
+     * - Render image (src/alt) and label HTML.
+     * - Wire DOM events (one-time):
+     *   - click → selection (single/multiple),
+     *   - mouseenter → highlight.
+     * - Wire model hooks (one-time):
+     *   - `onSelected` → `changeProp("selected")` (external semantics),
+     *   - `onInternalSelected` → cache single selected + `changeProp("selected_internal")` (internal semantics),
+     *   - `onVisibilityChanged` → group visibility recompute + debounced visibility stats.
+     *
+     * Selection semantics:
+     * - Multi-select: toggles `selected` for the clicked option.
+     * - Single-select: clears previous selected option (if cached) and selects the clicked one.
+     * - Both paths run `changingProp("select")` before mutating selection when not skipping events.
+     *
+     * DOM side effects:
+     * - Adds listeners to `OptionView` element only on first bind.
+     * - Updates image and label DOM each bind.
+     *
+     * @param {OptionModel} optionModel - Option data model.
+     * @param {OptionView} optionViewer - Option view instance.
+     * @param {number} position - Option index within its group list (or rendering context).
+     * @returns {void}
      */
     private handleOptionView(optionModel: OptionModel, optionViewer: OptionView, position: number): void {
         optionViewer.isMultiple = this.isMultiple;
@@ -233,6 +322,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
             }
         }
 
+        // Label uses HTML to support rich content; consumers must ensure the model text is safe.
         optionViewer.view.tags.LabelContent.innerHTML = optionModel.text;
 
         if (!optionModel.isInit) {
@@ -259,21 +349,25 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
                 this.setHighlight(this.flatOptions.indexOf(optionModel), false);
             });
 
+            // External selection notification (user-facing semantics).
             optionModel.onSelected((_evtToken: IEventCallback, _el: OptionModel, _selected: boolean) => {
                 this.changeProp("selected");
             });
 
+            // Internal selection notification (non-trigger semantics).
             optionModel.onInternalSelected((_evtToken: IEventCallback, _el: OptionModel, selected: boolean) => {
                 if (selected) this.selectedItemSingle = optionModel;
                 this.changeProp("selected_internal");
             });
 
+            // Visibility changes affect group visibility and aggregated visibility stats.
             optionModel.onVisibilityChanged((_evtToken: IEventCallback, model: OptionModel, _visible: boolean) => {
                 model.group?.updateVisibility();
                 this.notifyVisibilityChanged();
             });
         }
 
+        // Ensure single-select cache and suppress re-trigger when model is already selected.
         if (optionModel.selected) {
             this.selectedItemSingle = optionModel;
             optionModel.selectedNonTrigger = true;
@@ -281,10 +375,17 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Replaces items and rebuilds the internal flat structure.
-     * Emits the standard pre/post change notifications and updates lifecycle.
+     * Replaces items and rebuilds derived structures with full change notifications.
      *
-     * @param items - New mixed item collection (groups/options).
+     * Flow:
+     * - `changingProp("items", items)` (pre-change pipeline)
+     * - assign `this.items`, rebuild `groups`/`flatOptions`
+     * - `changeProp("items", items)` (post-change pipeline)
+     * - {@link Lifecycle.update}
+     *
+     * @param {MixedItem[]} items - New mixed item collection (groups/options).
+     * @returns {Promise<void>}
+     * @override
      */
     override async setItems(items: MixedItem[]): Promise<void> {
         await this.changingProp("items", items);
@@ -295,18 +396,23 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Synchronizes items from an external source by delegating to `setItems()`.
+     * Synchronizes items from an external source by delegating to {@link setItems}.
      *
-     * @param items - New mixed item collection (groups/options).
+     * @param {MixedItem[]} items - New mixed item collection (groups/options).
+     * @returns {Promise<void>}
+     * @override
      */
     override async syncFromSource(items: MixedItem[]): Promise<void> {
         await this.setItems(items);
     }
 
     /**
-     * Updates items and rebuilds the flat structure **without** firing change notifications.
+     * Updates items and rebuilds derived structures **without** emitting change notifications.
+     * Useful for internal reconciliation where observers should not be notified.
      *
-     * @param items - New mixed item collection (groups/options).
+     * @param {MixedItem[]} items - New mixed item collection (groups/options).
+     * @returns {void}
+     * @override
      */
     override updateData(items: MixedItem[]): void {
         this.items = items;
@@ -315,10 +421,18 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Destroys the adapter and cleans up:
-     * - Clears visibility scheduler
-     * - Destroys all groups (cascades to their items/views)
-     * - Resets cached state and arrays
+     * Releases adapter resources and clears derived state.
+     *
+     * Behavior:
+     * - Clears visibility scheduler task (`sche_vis_${adapterKey}`).
+     * - Destroys all group models (which may cascade to child models/views).
+     * - Resets cached selection/highlight and subscriber lists.
+     *
+     * Idempotent:
+     * - Returns early if already in {@link LifecycleState.DESTROYED}.
+     *
+     * @returns {void}
+     * @override
      */
     public override destroy(): void {
         if (this.is(LifecycleState.DESTROYED)) {
@@ -341,27 +455,30 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Returns all currently selected option items.
+     * Returns all currently selected options from the flat list.
      *
-     * @returns Array of selected options from the flat list.
+     * @returns {OptionModel[]} Selected options.
      */
     public getSelectedItems(): OptionModel[] {
         return this.flatOptions.filter((item) => item.selected);
     }
 
     /**
-     * Returns the first selected option (if any).
+     * Returns the first selected option from the flat list (if any).
+     * Primarily useful for single-select mode.
      *
-     * @returns The first selected option; `undefined` if none.
+     * @returns {OptionModel | undefined} The first selected option, or `undefined` if none.
      */
     public getSelectedItem(): OptionModel | undefined {
         return this.flatOptions.find((item) => item.selected);
     }
 
     /**
-     * Checks/unchecks all options when in multiple selection mode.
+     * Selects or deselects all options when in multiple selection mode.
+     * No-op if `isMultiple` is false.
      *
-     * @param isChecked - `true` to select all; `false` to deselect all.
+     * @param {boolean} isChecked - `true` to select all; `false` to deselect all.
+     * @returns {void}
      */
     public checkAll(isChecked: boolean): void {
         if (!this.isMultiple) return;
@@ -371,16 +488,20 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Subscribes a callback to visibility changes across options.
+     * Subscribes to aggregated visibility changes across all options.
+     * The callback is invoked from a debounced scheduler.
      *
-     * @param callback - Invoked with aggregated visibility stats.
+     * @param {(stats: VisibilityStats) => void} callback - Invoked with `{ visibleCount, totalCount, hasVisible, isEmpty }`.
+     * @returns {void}
      */
     public onVisibilityChanged(callback: (stats: VisibilityStats) => void): void {
         this.visibilityChangedCallbacks.push(callback);
     }
 
     /**
-     * Schedules a visibility statistics recomputation and notifies subscribers.
+     * Schedules a debounced visibility statistics recomputation and subscriber notification.
+     *
+     * @returns {void}
      */
     private notifyVisibilityChanged(): void {
         Libs.callbackScheduler.run(`sche_vis_${this.adapterKey}`);
@@ -389,7 +510,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     /**
      * Computes and returns current visibility statistics for options.
      *
-     * @returns Aggregated stats: `{ visibleCount, totalCount, hasVisible, isEmpty }`.
+     * @returns {VisibilityStats} Aggregated stats: `{ visibleCount, totalCount, hasVisible, isEmpty }`.
      */
     public getVisibilityStats(): VisibilityStats {
         const visibleCount = this.flatOptions.filter((item) => item.visible).length;
@@ -404,17 +525,23 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Resets the highlight to the first visible option.
+     * Resets highlight navigation to the first visible option (starting from index 0).
+     *
+     * @returns {void}
      */
     public resetHighlight(): void {
         this.setHighlight(0);
     }
 
     /**
-     * Moves the highlight among visible options and optionally scrolls into view.
+     * Moves highlight among **visible** options and optionally scrolls the new target into view.
      *
-     * @param direction - +1 to move forward; -1 to move backward.
-     * @param isScrollToView - Whether to scroll the highlighted item into view. Defaults to `true`.
+     * - Wraps around at both ends (circular navigation).
+     * - Uses the current highlight (flat index) as the starting point.
+     *
+     * @param {number} direction - `+1` to move forward; `-1` to move backward.
+     * @param {boolean} [isScrollToView=true] - Whether to scroll the highlighted item into view.
+     * @returns {void}
      */
     public navigate(direction: number, isScrollToView: boolean = true): void {
         const visibleOptions = this.flatOptions.filter((opt) => opt.visible);
@@ -436,8 +563,18 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Triggers a click on the currently highlighted, visible option.
-     * No-ops if nothing is highlighted or the item is hidden.
+     * Programmatically selects (clicks) the currently highlighted option if it is visible.
+     *
+     * DOM side effects:
+     * - Calls `HTMLElement.click()` on the rendered option view element.
+     *
+     * No-op if:
+     * - No highlight is set,
+     * - Highlighted item does not exist,
+     * - Highlighted item is not visible,
+     * - View element is not available (e.g., not rendered).
+     *
+     * @returns {void}
      */
     public selectHighlighted(): void {
         if (this.currentHighlightIndex > -1 && this.flatOptions[this.currentHighlightIndex]) {
@@ -450,11 +587,20 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Highlights a target option (by flat index or model reference),
-     * skipping invisible items and optionally scrolling into view.
+     * Highlights a target option (by flat index or model reference), skipping invisible items.
+     * Optionally scrolls the highlighted item into view.
      *
-     * @param target - Flat index or OptionModel instance to highlight.
-     * @param isScrollToView - Whether to scroll the highlighted item into view. Defaults to `true`.
+     * Behavior:
+     * - Clears previous highlight (if any) by toggling `OptionModel.highlighted = false`.
+     * - Starting from the resolved index, finds the first visible option and highlights it.
+     * - If scrolling is enabled:
+     *   - scrolls the DOM element when available, otherwise
+     *   - asks the recycler to render the item and scroll into view (virtualized lists).
+     * - Invokes {@link onHighlightChange} hook after applying highlight.
+     *
+     * @param {number | OptionModel} target - Flat index or option model to highlight.
+     * @param {boolean} [isScrollToView=true] - Whether to scroll the highlighted item into view.
+     * @returns {void}
      */
     public setHighlight(target: number | OptionModel, isScrollToView: boolean = true): void {
         let index = 0;
@@ -495,20 +641,30 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     }
 
     /**
-     * Hook invoked whenever the highlighted item changes.
-     * Override to handle UI side effects (e.g., ARIA announcement, focus sync).
+     * Hook called whenever highlight changes.
      *
-     * @param index - Flat index of the newly highlighted item.
-     * @param id - Optional DOM id of the highlighted view element.
+     * Intended for UI side effects that do not belong in core adapter logic, e.g.:
+     * - roving tabindex / focus synchronization,
+     * - ARIA live region announcements,
+     * - analytics/navigation instrumentation.
+     *
+     * @param {number} index - Flat index of the newly highlighted option.
+     * @param {string} [id] - Optional DOM id of the highlighted view element (when available).
+     * @returns {void}
      */
     public onHighlightChange(index: number, id?: string): void { }
 
     /**
-     * Hook invoked whenever a group's collapsed state changes.
-     * Override to handle side effects (e.g., analytics, layout adjustments).
+     * Hook called whenever a group's collapsed state changes.
      *
-     * @param model - The group whose collapsed state changed.
-     * @param collapsed - New collapsed state.
+     * Intended for integration side effects, e.g.:
+     * - layout recalculation,
+     * - popup resize,
+     * - analytics.
+     *
+     * @param {GroupModel} model - The group whose collapsed state changed.
+     * @param {boolean} collapsed - New collapsed state.
+     * @returns {void}
      */
     public onCollapsedChange(model: GroupModel, collapsed: boolean): void { }
 }

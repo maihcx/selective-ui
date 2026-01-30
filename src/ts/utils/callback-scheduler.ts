@@ -1,22 +1,67 @@
 import { StoredEntry, TimerKey, TimerOptions } from "../types/utils/callback-scheduler.type";
 
+/**
+ * CallbackScheduler
+ *
+ * Debounced multi-callback orchestrator with per-callback independent scheduling.
+ *
+ * ### Responsibility
+ * - Registers multiple callbacks under named keys ({@link TimerKey}).
+ * - Schedules each callback with its own debounce timer (independent delays per callback).
+ * - Supports "run-once" semantics via `options.once`.
+ * - Batches callback execution via {@link run}, passing a shared payload to all callbacks in a key group.
+ *
+ * ### Scheduling strategy
+ * - **Per-callback debounce**: Each registered callback has its own timer (tracked by index).
+ * - **Debounce reset**: Calling {@link run} again before a callback's timeout clears its previous timer.
+ * - **Async-aware**: Callbacks may return `Promise`; execution waits for resolution before cleanup.
+ *
+ * ### Lifecycle
+ * - **{@link on}**: Registers a callback under a key (appends to bucket in registration order).
+ * - **{@link run}**: Schedules all non-removed callbacks under a key with independent timers.
+ * - **{@link off}** / **{@link clear}**: Cancels active timers and removes callbacks.
+ *
+ * ### Index stability
+ * - Callbacks are stored in a sparse array (via `Array<StoredEntry | undefined>`).
+ * - "Once" callbacks become `undefined` after execution but **do not shift indices**.
+ * - This preserves timer bookkeeping in {@link timerRunner}.
+ *
+ * ### Payload semantics
+ * - `run(key)` → callbacks receive `null`
+ * - `run(key, ...params)` → callbacks receive `params` as an array
+ *
+ * ### No-op / Idempotency
+ * - {@link run} with no registered callbacks returns a resolved `Promise<void>`.
+ * - {@link off} and {@link clear} are safe to call multiple times (clear timers only if present).
+ *
+ * @class
+ */
 export class CallbackScheduler {
     /**
-     * Stores callbacks by key in registration order.
+     * Sparse array storage for callbacks, keyed by {@link TimerKey}.
      *
-     * Notes:
-     * - Entries may become `undefined` after execution when `once` is enabled.
-     *   This preserves indices so timer bookkeeping remains stable.
+     * Structure:
+     * - Each key maps to an ordered array of {@link StoredEntry} or `undefined`.
+     * - `undefined` slots indicate "once" callbacks that have already executed.
+     * - Indices are never removed to preserve timer bookkeeping stability.
+     *
+     * @private
      */
     private executeStored = new Map<TimerKey, Array<StoredEntry | undefined>>();
 
     /**
-     * Per-key timer registry.
+     * Per-callback timer registry.
      *
-     * - Outer Map: groups timers by `TimerKey`
-     * - Inner Map: maps callback index -> active timeout handle
+     * Structure:
+     * - **Outer Map**: Groups timers by {@link TimerKey}.
+     * - **Inner Map**: Maps callback index → active `setTimeout` handle.
      *
-     * Each callback index has its own debounce timer, allowing independent scheduling.
+     * Notes:
+     * - Each callback index has its own independent debounce timer.
+     * - Timers are cleared and replaced on subsequent {@link run} calls.
+     * - Cleaned up during {@link off} or after "once" callback execution.
+     *
+     * @private
      */
     private timerRunner = new Map<
         TimerKey,
@@ -24,17 +69,22 @@ export class CallbackScheduler {
     >();
 
     /**
-     * Registers a callback under a key.
-     *
-     * @param key - Group identifier for callbacks.
-     * @param callback - Function to execute after the debounce timeout.
-     * @param options - Scheduling options.
-     * @returns The index of the registered callback within its key bucket.
+     * Registers a callback under a key with optional debounce and "once" semantics.
      *
      * Behavior:
-     * - Callbacks are stored in registration order.
-     * - `options.debounce` is treated as a per-callback delay (milliseconds).
-     * - `options.once` removes the entry after its first execution (index is preserved).
+     * - Callbacks are appended to the key's bucket in registration order.
+     * - Each callback receives its own debounce timer (default: `50ms`).
+     * - `options.once = true` removes the callback after its first execution (slot becomes `undefined`).
+     *
+     * Notes:
+     * - Multiple callbacks under the same key execute independently with separate timers.
+     * - Registration does **not** start any timers; call {@link run} to schedule execution.
+     *
+     * @public
+     * @param {TimerKey} key - Group identifier for callbacks.
+     * @param {(payload: any[] | null) => void} callback - Function to execute after debounce timeout.
+     * @param {TimerOptions} [options={}] - Scheduling options (`debounce`, `once`).
+     * @returns {void}
      */
     public on(
         key: TimerKey,
@@ -51,9 +101,16 @@ export class CallbackScheduler {
     }
 
     /**
-     * Removes all callbacks associated with a key and clears any active timers.
+     * Removes all callbacks and active timers associated with a key.
      *
-     * @param key - Key whose callbacks and timers will be removed.
+     * Behavior:
+     * - Clears all pending timers for the key (prevents stale executions).
+     * - Deletes the key's callback bucket and timer registry.
+     * - Idempotent: safe to call multiple times or on non-existent keys.
+     *
+     * @public
+     * @param {TimerKey} key - Key whose callbacks and timers will be removed.
+     * @returns {void}
      */
     public off(key: TimerKey): void {
         const runner = this.timerRunner.get(key);
@@ -67,22 +124,33 @@ export class CallbackScheduler {
     }
 
     /**
-     * Schedules execution for all callbacks registered under a key.
+     * Schedules execution for all registered callbacks under a key.
      *
-     * @param key - Key whose callbacks will be scheduled.
-     * @param params - Parameters collected and passed as a single payload.
+     * Scheduling rules:
+     * - Each callback runs after its own debounce delay (independent timers per index).
+     * - Calling `run()` again before a callback's timeout **clears and resets** that timer.
+     * - Callbacks receive a shared payload derived from `params`.
      *
-     * Payload rules:
-     * - If `run(key)` is called without params, callbacks receive `null`.
-     * - If `run(key, ...params)` is called with params, callbacks receive `params` as an array.
+     * Payload semantics:
+     * - `run(key)` → callbacks receive `null`
+     * - `run(key, ...params)` → callbacks receive `params` as an array
      *
-     * Debounce rules:
-     * - Each callback has its own timer (by index).
-     * - Calling `run()` again before the timeout clears the previous timer for that callback.
+     * "Once" callbacks:
+     * - After execution, entries with `once = true` are set to `undefined` (index preserved).
+     * - Their timers are deleted from {@link timerRunner}.
      *
-     * Once rules:
-     * - If an entry has `once = true`, it is removed after execution by setting its slot to `undefined`.
-     *   (The list is not spliced to preserve indices.)
+     * Async handling:
+     * - If a callback returns a `Promise`, execution waits for resolution before cleanup.
+     * - Errors are silently caught (empty `catch` block).
+     *
+     * Return value:
+     * - Returns a `Promise<void>` that resolves when all scheduled callbacks complete.
+     * - If no callbacks are registered, returns an immediately resolved `Promise<void>`.
+     *
+     * @public
+     * @param {TimerKey} key - Key whose callbacks will be scheduled.
+     * @param {...any[]} params - Parameters passed as a shared payload to all callbacks.
+     * @returns {Promise<void> | void} Promise resolving when all callbacks finish execution.
      */
     public run(key: TimerKey, ...params: any[]): Promise<void> | void {
         const executes = this.executeStored.get(key);
@@ -137,9 +205,19 @@ export class CallbackScheduler {
     }
 
     /**
-     * Clears callbacks and timers.
+     * Clears callbacks and timers for a specific key or all keys.
      *
-     * @param key - When provided, clears only that key; otherwise clears all keys.
+     * Behavior:
+     * - **With `key`**: Delegates to {@link off} (clears only that key).
+     * - **Without `key`**: Clears all keys by iterating over a snapshot of {@link executeStored}.
+     *
+     * Notes:
+     * - Uses a snapshot (`Array.from(...)`) to avoid mutation issues during iteration.
+     * - Idempotent: safe to call multiple times.
+     *
+     * @public
+     * @param {TimerKey} [key] - When provided, clears only that key; otherwise clears all keys.
+     * @returns {void}
      */
     public clear(key?: TimerKey): void {
         if (key !== undefined) {

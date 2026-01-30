@@ -114,7 +114,6 @@ export class RecyclerView<
             return;
         }
         
-        this.adapter?.destroy?.();
         this.viewElement = null;
         this.adapter = null;
 
