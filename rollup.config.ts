@@ -21,8 +21,8 @@ const treeshake: RollupOptions['treeshake'] = { preset: 'recommended' };
 
 
 const PUBLIC_IDENTIFIERS = [
-  'SelectiveUI',
-  'bind', 'find', 'destroy', 'rebind', 'effector', 'version'
+  'SelectiveUI', 'init',
+  'bind', 'find', 'destroy', 'rebind', 'effector', 'registerPlugin', 'unregisterPlugin', 'version'
 ];
 
 const EFFECTOR_METHODS = [
@@ -137,8 +137,8 @@ const OPTIONTAG_PROPERTIES = [
 ];
 
 const PUBLIC_PROPERTIES = [
-  'SelectiveUI',
-  'bind', 'find', 'destroy', 'rebind', 'effector', 'version',
+  'SelectiveUI', 'init',
+  'bind', 'find', 'destroy', 'rebind', 'effector', 'registerPlugin', 'unregisterPlugin', 'version',
   ...EFFECTOR_METHODS,
   ...FIND_PROPERTIES,
   ...DATA_PROPERTIES,
