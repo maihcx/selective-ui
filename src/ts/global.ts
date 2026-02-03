@@ -35,6 +35,7 @@ import type {
     SelectiveOptions,
     SelectiveUIGlobal,
 } from "./types/utils/selective.type";
+import type { SelectivePlugin } from "./types/plugins/plugin.type";
 import type { EffectorInterface } from "./types/services/effector.type";
 import { Libs } from "./utils/libs";
 
@@ -54,7 +55,9 @@ if (typeof globalThis.GLOBAL_SEUI == "undefined") {
         find: SECLASS.find.bind(SECLASS),
         destroy: SECLASS.destroy.bind(SECLASS),
         effector: Effector.bind(Effector),
-        rebind: SECLASS.rebind.bind(SECLASS)
+        rebind: SECLASS.rebind.bind(SECLASS),
+        registerPlugin: SECLASS.registerPlugin.bind(SECLASS),
+        unregisterPlugin: SECLASS.unregisterPlugin.bind(SECLASS)
     } as SelectiveUIGlobal;
 
     let domInitialized = false;
@@ -180,4 +183,22 @@ export function rebind(query: string, options: SelectiveOptions = {}): void {
  */
 export function effector(element: string | HTMLElement): EffectorInterface {
     return globalThis.GLOBAL_SEUI.effector(element) as EffectorInterface;
+}
+
+/**
+ * Register a Selective plugin implementation.
+ *
+ * @param plugin - Plugin instance to register.
+ */
+export function registerPlugin(plugin: SelectivePlugin): void {
+    globalThis.GLOBAL_SEUI.registerPlugin(plugin);
+}
+
+/**
+ * Unregister a Selective plugin implementation by id.
+ *
+ * @param id - Plugin id to remove.
+ */
+export function unregisterPlugin(id: string): void {
+    globalThis.GLOBAL_SEUI.unregisterPlugin(id);
 }

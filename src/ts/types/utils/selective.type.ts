@@ -1,5 +1,6 @@
 import { EffectorInterface } from "../services/effector.type";
 import { DefaultConfig } from "./istorage.type";
+import type { SelectivePlugin } from "../plugins/plugin.type";
 
 /**
  * Represents configuration options for the Selective component.
@@ -55,6 +56,18 @@ export interface SelectiveUIGlobal {
      * @returns EffectorInterface instance.
      */
     effector(element: string | HTMLElement): EffectorInterface;
+
+    /**
+     * Register a Selective plugin implementation.
+     * @param plugin - Plugin instance to register.
+     */
+    registerPlugin(plugin: SelectivePlugin): void;
+
+    /**
+     * Unregister a Selective plugin implementation by id.
+     * @param id - Plugin id to remove.
+     */
+    unregisterPlugin(id: string): void;
 
     /**
      * Current version of the library.
