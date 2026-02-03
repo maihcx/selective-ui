@@ -3,6 +3,7 @@ import { iEvents } from "./ievents";
 import { SelectBox } from "../components/selectbox";
 import { ElementAdditionObserver } from "../services/ea-observer";
 import { SelectiveActionApi, SelectiveOptions } from "../types/utils/selective.type";
+import type { SelectivePlugin } from "../types/plugins/plugin.type";
 import { BinderMap, PropertiesType } from "../types/utils/istorage.type";
 import { Lifecycle } from "../core/base/lifecycle";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
@@ -82,6 +83,13 @@ export class Selective extends Lifecycle {
     private bindedQueries: Map<string, SelectiveOptions> = new Map();
 
     /**
+     * Registry for Selective plugins, keyed by plugin id.
+     *
+     * @private
+     */
+    private plugins: Map<string, SelectivePlugin> = new Map();
+
+    /**
      * Creates a new Selective instance and immediately initializes it.
      *
      * Lifecycle progression:
@@ -115,6 +123,7 @@ export class Selective extends Lifecycle {
 
         // Initialize core properties
         this.bindedQueries = new Map();
+        this.plugins = new Map();
 
         super.init();
     }
@@ -306,6 +315,34 @@ export class Selective extends Lifecycle {
     }
 
     /**
+     * Registers a Selective plugin.
+     *
+     * @param plugin - Plugin to register.
+     */
+    public registerPlugin(plugin: SelectivePlugin): void {
+        this.plugins.set(plugin.id, plugin);
+    }
+
+    /**
+     * Unregisters a Selective plugin by id.
+     *
+     * @param id - Plugin id.
+     */
+    public unregisterPlugin(id: string): void {
+        this.plugins.delete(id);
+    }
+
+    /**
+     * Retrieves a Selective plugin by id.
+     *
+     * @param id - Plugin id.
+     * @returns The plugin if found.
+     */
+    public getPlugin(id: string): SelectivePlugin | undefined {
+        return this.plugins.get(id);
+    }
+
+    /**
      * Activates auto-binding for newly added `<select>` elements.
      *
      * Behavior:
@@ -402,6 +439,7 @@ export class Selective extends Lifecycle {
         this.bindedQueries.clear();
         Libs.getBindedCommand().length = 0;
         this.EAObserver?.disconnect();
+        this.plugins.clear();
 
         // Call parent lifecycle destroy
         super.destroy();
