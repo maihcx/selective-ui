@@ -3,11 +3,11 @@ import { iEvents } from "./ievents";
 import { SelectBox } from "../components/selectbox";
 import { ElementAdditionObserver } from "../services/ea-observer";
 import { SelectiveActionApi, SelectiveOptions } from "../types/utils/selective.type";
-import type { SelectivePlugin } from "../types/plugins/plugin.type";
 import { BinderMap, PropertiesType } from "../types/utils/istorage.type";
 import { Lifecycle } from "../core/base/lifecycle";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
 import { SelectivePlugin } from "../types/plugins/plugin.type";
+import { SelectBoxTags } from "../types/components/searchbox.type";
 
 /**
  * Selective
@@ -317,34 +317,6 @@ export class Selective extends Lifecycle {
         }
 
         return response;
-    }
-
-    /**
-     * Registers a Selective plugin.
-     *
-     * @param plugin - Plugin to register.
-     */
-    public registerPlugin(plugin: SelectivePlugin): void {
-        this.plugins.set(plugin.id, plugin);
-    }
-
-    /**
-     * Unregisters a Selective plugin by id.
-     *
-     * @param id - Plugin id.
-     */
-    public unregisterPlugin(id: string): void {
-        this.plugins.delete(id);
-    }
-
-    /**
-     * Retrieves a Selective plugin by id.
-     *
-     * @param id - Plugin id.
-     * @returns The plugin if found.
-     */
-    public getPlugin(id: string): SelectivePlugin | undefined {
-        return this.plugins.get(id);
     }
 
     /**

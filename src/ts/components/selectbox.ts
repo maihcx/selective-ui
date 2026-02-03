@@ -23,7 +23,7 @@ import type { SelectiveOptions } from "../types/utils/selective.type";
 import { IEventToken, IEventCallback } from "../types/utils/ievents.type";
 import { MixedItem } from "../types/core/base/mixed-adapter.type";
 import { BinderMap } from "../types/utils/istorage.type";
-import { ContainerRuntime, SelectBoxAction } from "../types/components/searchbox.type";
+import { ContainerRuntime, SelectBoxAction, SelectBoxTags } from "../types/components/searchbox.type";
 import { AjaxConfig } from "../types/core/search-controller.type";
 import { Selective } from "../utils/selective";
 import { VirtualRecyclerView } from "../core/base/virtual-recyclerview";
@@ -159,7 +159,7 @@ export class SelectBox extends Lifecycle {
     /**
      * Cached plugin context for this SelectBox instance.
      */
-    private pluginContext: PluginContext | null = null;
+    private pluginContext: PluginContext<SelectBoxTags> | null = null;
 
     /**
      * Creates a {@link SelectBox} bound to a native `<select>` element.
@@ -372,7 +372,7 @@ export class SelectBox extends Lifecycle {
         this.plugins = this.Selective?.getPlugins?.() ?? [];
         if (this.plugins.length) {
             const resources = optionModelManager.getResources();
-            const pluginContext: PluginContext = {
+            const pluginContext: PluginContext<SelectBoxTags> = {
                 selectBox: this,
                 options,
                 adapter: resources.adapter,
