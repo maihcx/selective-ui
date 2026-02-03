@@ -343,6 +343,15 @@ export class Selective extends Lifecycle {
     }
 
     /**
+     * Returns all registered Selective plugins.
+     *
+     * @returns The list of plugins in registration order.
+     */
+    public getPlugins(): SelectivePlugin[] {
+        return Array.from(this.plugins.values());
+    }
+
+    /**
      * Activates auto-binding for newly added `<select>` elements.
      *
      * Behavior:

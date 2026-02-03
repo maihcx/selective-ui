@@ -3,6 +3,7 @@ import type { SelectBoxAction, SelectBoxTags } from "../components/searchbox.typ
 import type { AdapterContract } from "../core/base/adapter.type";
 import type { RecyclerViewContract } from "../core/base/recyclerview.type";
 import type { SelectiveOptions } from "../utils/selective.type";
+import type { MixedItem } from "../core/base/mixed-adapter.type";
 
 /**
  * Context object passed to Selective plugins.
@@ -32,5 +33,5 @@ export interface SelectivePlugin {
     onDestroy?(ctx: PluginContext): void;
     onOpen?(ctx: PluginContext): void;
     onClose?(ctx: PluginContext): void;
-    onChange?(ctx: PluginContext): void;
+    onChange?(value: unknown, models: Array<MixedItem>, adapter: AdapterContract<any> | null, ctx: PluginContext): void;
 }
