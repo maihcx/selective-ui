@@ -371,7 +371,7 @@ export class OptionView extends View<OptionViewTags> {
      * @override
      */
     public override mount(): void {
-        const viewClass: string[] = ["selective-ui-option-view"];
+        const viewClass: string[] = ["seui-option-view"];
         const opt_id = Libs.randomString(7);
         const inputID = `option_${opt_id}`;
 

@@ -45,7 +45,7 @@ import { Libs } from "../utils/libs";
  *   popup/layout logic to recompute geometry.
  *
  * ### DOM & a11y side effects
- * - Creates a root `<div>` with classes `selective-ui-accessorybox hide`.
+ * - Creates a root `<div>` with classes `seui-accessorybox hide`.
  * - Stops `mouseup` propagation on the root to avoid "outside click" behaviors.
  * - Each chip has:
  *   - a `<span role="button">` with `aria-label`/`title` for screen readers and tooltips,
@@ -133,7 +133,7 @@ export class AccessoryBox extends Lifecycle {
      * Guarded: runs only when state is `NEW`.
      *
      * Side effects:
-     * - Creates the root node with base classes (`selective-ui-accessorybox`, `hide`).
+     * - Creates the root node with base classes (`seui-accessorybox`, `hide`).
      * - Stops `mouseup` propagation to avoid outside-click handlers reacting to chip interactions.
      *
      * @returns {void}
@@ -146,7 +146,7 @@ export class AccessoryBox extends Lifecycle {
             AccessoryBox: {
                 tag: {
                     node: "div",
-                    classList: ["selective-ui-accessorybox", "hide"],
+                    classList: ["seui-accessorybox", "hide"],
                     onmouseup: (evt: MouseEvent) => {
                         // Prevent outside listeners from reacting to chip clicks
                         evt.stopPropagation();

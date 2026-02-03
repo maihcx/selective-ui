@@ -100,7 +100,7 @@ export class GroupView extends View<GroupViewTags> {
             GroupView: {
                 tag: {
                     node: "div",
-                    classList: ["selective-ui-group"],
+                    classList: ["seui-group"],
                     role: "group",
                     ariaLabelledby: `seui-${group_id}-header`,
                     id: `seui-${group_id}-group`,
@@ -109,7 +109,7 @@ export class GroupView extends View<GroupViewTags> {
                     GroupHeader: {
                         tag: {
                             node: "div",
-                            classList: ["selective-ui-group-header"],
+                            classList: ["seui-group-header"],
                             role: "presentation",
                             id: `seui-${group_id}-header`,
                         },
@@ -117,7 +117,7 @@ export class GroupView extends View<GroupViewTags> {
                     GroupItems: {
                         tag: {
                             node: "div",
-                            classList: ["selective-ui-group-items"],
+                            classList: ["seui-group-items"],
                             role: "group",
                         },
                     },

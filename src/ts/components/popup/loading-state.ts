@@ -68,7 +68,7 @@ export class LoadingState extends Lifecycle {
      * Initializes internal resources for this component.
      *
      * Side effects:
-     * - Creates the root `div` node with base CSS classes: `"selective-ui-loading-state"` and `"hide"`.
+     * - Creates the root `div` node with base CSS classes: `"seui-loading-state"` and `"hide"`.
      * - Sets initial text to `options.textLoading`.
      * - Applies `role="status"` and `aria-live="polite"`.
      * - Stores the options reference and calls {@link Lifecycle.init}.
@@ -81,7 +81,7 @@ export class LoadingState extends Lifecycle {
 
         this.node = Libs.nodeCreator({
             node: "div",
-            classList: ["selective-ui-loading-state", "hide"],
+            classList: ["seui-loading-state", "hide"],
             textContent: options.textLoading,
             role: "status",
             ariaLive: "polite",

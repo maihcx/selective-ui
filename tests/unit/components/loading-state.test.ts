@@ -26,7 +26,7 @@ describe("LoadingState", () => {
         expect(ls.node).toBeInstanceOf(HTMLDivElement);
         expect(ls.options).toBe(options);
         expect(ls.node?.textContent).toBe(options.textLoading);
-        expect(ls.node?.classList.contains("selective-ui-loading-state")).toBe(true);
+        expect(ls.node?.classList.contains("seui-loading-state")).toBe(true);
         expect(ls.node?.classList.contains("hide")).toBe(true);
         expect(ls.node?.getAttribute("role")).toBe("status");
         expect(ls.node?.getAttribute("aria-live")).toBe("polite");
