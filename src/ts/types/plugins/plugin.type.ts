@@ -1,37 +1,45 @@
-import type { SelectBox } from "../../components/selectbox";
-import type { SelectBoxAction, SelectBoxTags } from "../components/searchbox.type";
-import type { AdapterContract } from "../core/base/adapter.type";
-import type { RecyclerViewContract } from "../core/base/recyclerview.type";
-import type { SelectiveOptions } from "../utils/selective.type";
-import type { MixedItem } from "../core/base/mixed-adapter.type";
+import { SelectBox } from "../../components/selectbox";
+import { AdapterContract } from "../core/base/adapter.type";
+import { RecyclerViewContract } from "../core/base/recyclerview.type";
+import { SelectiveActionApi, SelectiveOptions } from "../utils/selective.type";
 
 /**
- * Context object passed to Selective plugins.
- *
- * Provides access to core Selective runtime resources for integrations/extensions.
+ * Runtime context passed to plugin hooks.
  */
 export interface PluginContext {
     selectBox: SelectBox;
     options: SelectiveOptions;
-    adapter?: AdapterContract<any> | null;
-    recycler?: RecyclerViewContract<AdapterContract<any>> | null;
-    viewTags?: SelectBoxTags | null;
-    actions?: SelectBoxAction | null;
-    [key: string]: unknown;
+    adapter: AdapterContract<any> | null;
+    recycler: RecyclerViewContract<AdapterContract<any>> | null;
+    viewTags: Record<string, HTMLElement | null>;
+    actions: SelectiveActionApi | null;
 }
 
 /**
- * Selective plugin contract.
- *
- * Plugins can hook into Selective lifecycle moments and UI events.
+ * Plugin contract for extending Selective lifecycle behavior.
  */
 export interface SelectivePlugin {
+    /** Unique plugin identifier. */
     id: string;
-    init?(ctx: PluginContext): void;
-    destroy?(): void;
-    onBind?(ctx: PluginContext): void;
-    onDestroy?(ctx: PluginContext): void;
-    onOpen?(ctx: PluginContext): void;
-    onClose?(ctx: PluginContext): void;
-    onChange?(value: unknown, models: Array<MixedItem>, adapter: AdapterContract<any> | null, ctx: PluginContext): void;
+
+    /** Initialization hook invoked during plugin setup. */
+    init?(context?: PluginContext): void;
+
+    /** Teardown hook invoked when plugin is destroyed. */
+    destroy?(context?: PluginContext): void;
+
+    /** Alias for destroy hook, invoked during global teardown. */
+    onDestroy?(context?: PluginContext): void;
+
+    /** Hook invoked when a SelectBox is bound. */
+    onBind?(context?: PluginContext): void;
+
+    /** Hook invoked when a SelectBox is opened. */
+    onOpen?(context?: PluginContext): void;
+
+    /** Hook invoked when a SelectBox is closed. */
+    onClose?(context?: PluginContext): void;
+
+    /** Hook invoked when selection changes. */
+    onChange?(context?: PluginContext, ...args: unknown[]): void;
 }

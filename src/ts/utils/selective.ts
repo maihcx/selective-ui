@@ -7,6 +7,7 @@ import type { SelectivePlugin } from "../types/plugins/plugin.type";
 import { BinderMap, PropertiesType } from "../types/utils/istorage.type";
 import { Lifecycle } from "../core/base/lifecycle";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
+import { SelectivePlugin } from "../types/plugins/plugin.type";
 
 /**
  * Selective
@@ -83,7 +84,10 @@ export class Selective extends Lifecycle {
     private bindedQueries: Map<string, SelectiveOptions> = new Map();
 
     /**
-     * Registry for Selective plugins, keyed by plugin id.
+     * Registry of Selective plugins keyed by plugin ID.
+     *
+     * - Managed via {@link registerPlugin}, {@link unregisterPlugin}, and {@link getPlugin}.
+     * - Cleared during {@link destroyAll} after invoking plugin teardown hooks.
      *
      * @private
      */
@@ -108,6 +112,7 @@ export class Selective extends Lifecycle {
      * Behavior:
      * - No-op if not in {@link LifecycleState.NEW} (idempotent guard).
      * - Initializes {@link bindedQueries} as empty `Map`.
+     * - Initializes {@link plugins} as empty `Map`.
      * - Transitions `NEW → INITIALIZED` via `super.init()`.
      *
      * Notes:
@@ -425,13 +430,50 @@ export class Selective extends Lifecycle {
     }
 
     /**
+     * Registers a plugin for Selective lifecycle integration.
+     *
+     * @public
+     * @param {SelectivePlugin} plugin - Plugin instance to register.
+     * @returns {void}
+     */
+    public registerPlugin(plugin: SelectivePlugin): void {
+        if (!plugin?.id) return;
+        this.plugins.set(plugin.id, plugin);
+    }
+
+    /**
+     * Unregisters a plugin by ID.
+     *
+     * @public
+     * @param {string} id - Plugin ID to remove.
+     * @returns {void}
+     */
+    public unregisterPlugin(id: string): void {
+        if (!id) return;
+        this.plugins.delete(id);
+    }
+
+    /**
+     * Retrieves a plugin by ID.
+     *
+     * @public
+     * @param {string} id - Plugin ID to retrieve.
+     * @returns {SelectivePlugin | undefined} Plugin instance if found.
+     */
+    public getPlugin(id: string): SelectivePlugin | undefined {
+        if (!id) return undefined;
+        return this.plugins.get(id);
+    }
+
+    /**
      * Destroys all bound Selective instances and releases global resources.
      *
      * Teardown flow:
      * 1. Iterates all registered queries and calls {@link destroyByQuery}.
      * 2. Clears {@link bindedQueries} and {@link Libs.getBindedCommand}.
-     * 3. Disconnects {@link EAObserver} (stops auto-binding).
-     * 4. Transitions to {@link LifecycleState.DESTROYED} via `super.destroy()`.
+     * 3. Invokes plugin teardown hooks and clears {@link plugins}.
+     * 4. Disconnects {@link EAObserver} (stops auto-binding).
+     * 5. Transitions to {@link LifecycleState.DESTROYED} via `super.destroy()`.
      *
      * Idempotency:
      * - No-op if already {@link LifecycleState.DESTROYED}.
@@ -447,6 +489,13 @@ export class Selective extends Lifecycle {
 
         this.bindedQueries.clear();
         Libs.getBindedCommand().length = 0;
+
+        this.plugins.forEach((plugin) => {
+            plugin.destroy?.();
+            plugin.onDestroy?.();
+        });
+        this.plugins.clear();
+
         this.EAObserver?.disconnect();
         this.plugins.clear();
 
