@@ -34,6 +34,7 @@ import type {
     SelectiveActionApi,
     SelectiveOptions,
 } from "./types/utils/selective.type";
+import type { SelectivePlugin } from "./types/plugins/plugin.type";
 import type { EffectorInterface } from "./types/services/effector.type";
 import { Libs } from "./utils/libs";
 
@@ -131,6 +132,24 @@ export function rebind(query: string, options: SelectiveOptions = {}): void {
  */
 export function effector(element: string | HTMLElement): EffectorInterface {
     return Effector(element) as EffectorInterface;
+}
+
+/**
+ * Register a Selective plugin globally.
+ *
+ * @param plugin - Plugin to register.
+ */
+export function registerPlugin(plugin: SelectivePlugin): void {
+    SECLASS.registerPlugin(plugin);
+}
+
+/**
+ * Unregister a Selective plugin by id.
+ *
+ * @param id - Plugin id.
+ */
+export function unregisterPlugin(id: string): void {
+    SECLASS.unregisterPlugin(id);
 }
 
 let domInitialized = false;
