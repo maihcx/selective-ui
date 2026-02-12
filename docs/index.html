@@ -45,6 +45,7 @@
             color: var(--dark);
             background: #fff;
             animation: 700ms fadeInUp;
+            scroll-behavior: smooth;
         }
 
         @keyframes fadeInUp {
@@ -690,7 +691,7 @@
     <!-- Navigation -->
     <nav class="nav">
         <div class="nav-container">
-            <a href="#"><div class="nav-logo">SelectiveUI</div></a>
+            <a href=""><div class="nav-logo">SelectiveUI</div></a>
             
             <!-- Hamburger Menu Button -->
             <button class="hamburger" id="hamburger" aria-label="Menu">
@@ -721,173 +722,183 @@
         <div class="nav-overlay" id="navOverlay"></div>
 
         <script>
-        // Mobile Menu Toggle
-        const hamburger = document.getElementById('hamburger');
-        const navMenu = document.getElementById('navMenu');
-        const navOverlay = document.getElementById('navOverlay');
-        let navOverlayTimeout = null;
-        const effector = SelectiveUI.effector(navMenu);
-        document.getElementById('versionBadge').textContent = `v${SelectiveUI.version}`;
+            // Mobile Menu Toggle
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.getElementById('navMenu');
+            const navOverlay = document.getElementById('navOverlay');
+            let navOverlayTimeout = null;
+            const effector = SelectiveUI.effector(navMenu);
+            document.getElementById('versionBadge').textContent = `v${SelectiveUI.version}`;
 
-        let goldenHue = Math.random();
+            let goldenHue = Math.random();
 
-        function randomNiceColor() {
-             // Golden ratio
-            goldenHue = (goldenHue + 0.618033988749895) % 1;
+            function randomNiceColor() {
+                // Golden ratio
+                goldenHue = (goldenHue + 0.618033988749895) % 1;
 
-            // OKLCH parameters (đã test UI-safe)
-            const h = goldenHue * 360; // Hue
-            const l = 0.75;      // Lightness (ổn định)
-            const c = 0.22;      // Chroma (không neon)
+                // OKLCH parameters (đã test UI-safe)
+                const h = goldenHue * 360; // Hue
+                const l = 0.75;      // Lightness (ổn định)
+                const c = 0.22;      // Chroma (không neon)
 
-            return oklchToHex(l, c, h);
-        }
-
-        function oklchToHex(l, c, h) {
-            const a = c * Math.cos(h * Math.PI / 180);
-            const b = c * Math.sin(h * Math.PI / 180);
-
-            // OKLab → Linear RGB
-            let L = l;
-            let M = l - 0.1055613458 * a - 0.0638541728 * b;
-            let S = l - 0.0894841775 * a - 1.2914855480 * b;
-
-            L = L ** 3;
-            M = M ** 3;
-            S = S ** 3;
-
-            let r = +4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * S;
-            let g = -1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * S;
-            let b2 = -0.0041960863 * L - 0.7034186147 * M + 1.7076147010 * S;
-
-            // Gamma correction
-            r = r <= 0.0031308 ? 12.92 * r : 1.055 * Math.pow(r, 1 / 2.4) - 0.055;
-            g = g <= 0.0031308 ? 12.92 * g : 1.055 * Math.pow(g, 1 / 2.4) - 0.055;
-            b2 = b2 <= 0.0031308 ? 12.92 * b2 : 1.055 * Math.pow(b2, 1 / 2.4) - 0.055;
-
-            return rgbToHex(r, g, b2);
-        }
-
-        function rgbToHex(r, g, b) {
-            return "#" + [r, g, b]
-                .map(v => Math.round(Math.min(Math.max(v, 0), 1) * 255)
-                .toString(16).padStart(2, "0"))
-                .join("");
-        }
-
-        function applyCoverColors() {
-            const root = document.documentElement;
-
-            root.style.setProperty("--cover-bg-color-1", randomNiceColor());
-            root.style.setProperty("--cover-bg-color-2", randomNiceColor());
-            root.style.setProperty("--cover-bg-color-3", randomNiceColor());
-            root.style.setProperty("--cover-bg-color-4", randomNiceColor());
-
-            var gradient = new Gradient();
-            gradient.initGradient("#gradient-canvas");
-        }
-
-        window.onload = () => {
-            applyCoverColors();
-        }
-
-        function toggleMenu(force) {
-            if (navOverlayTimeout) {
-                clearTimeout(navOverlayTimeout);
-                navOverlayTimeout = null;
+                return oklchToHex(l, c, h);
             }
-            if (force === null) {
-                hamburger.classList.toggle('active');
-                const isMenuOpen = navMenu.classList.toggle('active')
-                if (isMenuOpen) {
-                    effector.showSwipeWidth({duration: 300, display: 'flex'});
 
-                }
-                else {
-                    effector.hideSwipeWidth({duration: 300});
-                }
-                if (isMenuOpen) {
-                    navOverlay.classList.add('start');
-                    requestAnimationFrame(() => {
-                        navOverlay.classList.add('active');
-                    });
-                }
-                else {
-                    navOverlay.classList.remove('active');
-                    navOverlayTimeout = setTimeout(() => {
-                        navOverlay.classList.remove('start');
-                    }, 300);
+            function oklchToHex(l, c, h) {
+                const a = c * Math.cos(h * Math.PI / 180);
+                const b = c * Math.sin(h * Math.PI / 180);
+
+                // OKLab → Linear RGB
+                let L = l;
+                let M = l - 0.1055613458 * a - 0.0638541728 * b;
+                let S = l - 0.0894841775 * a - 1.2914855480 * b;
+
+                L = L ** 3;
+                M = M ** 3;
+                S = S ** 3;
+
+                let r = +4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * S;
+                let g = -1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * S;
+                let b2 = -0.0041960863 * L - 0.7034186147 * M + 1.7076147010 * S;
+
+                // Gamma correction
+                r = r <= 0.0031308 ? 12.92 * r : 1.055 * Math.pow(r, 1 / 2.4) - 0.055;
+                g = g <= 0.0031308 ? 12.92 * g : 1.055 * Math.pow(g, 1 / 2.4) - 0.055;
+                b2 = b2 <= 0.0031308 ? 12.92 * b2 : 1.055 * Math.pow(b2, 1 / 2.4) - 0.055;
+
+                return rgbToHex(r, g, b2);
+            }
+
+            function rgbToHex(r, g, b) {
+                return "#" + [r, g, b]
+                    .map(v => Math.round(Math.min(Math.max(v, 0), 1) * 255)
+                    .toString(16).padStart(2, "0"))
+                    .join("");
+            }
+
+            function applyCoverColors() {
+                const root = document.documentElement;
+
+                root.style.setProperty("--cover-bg-color-1", randomNiceColor());
+                root.style.setProperty("--cover-bg-color-2", randomNiceColor());
+                root.style.setProperty("--cover-bg-color-3", randomNiceColor());
+                root.style.setProperty("--cover-bg-color-4", randomNiceColor());
+
+                var gradient = new Gradient();
+                gradient.initGradient("#gradient-canvas");
+            }
+
+            window.onload = () => {
+                applyCoverColors();
+                
+                let hash = document.location.hash;
+                if (hash != '') {
+                    if (hash == '#') {
+                        document.documentElement.scrollTop = 0;
+                    }
+                    else {
+                        document.querySelector(hash).scrollIntoView();
+                    }
                 }
             }
-            else {
-                hamburger.classList.toggle('active', force);
-                if (navMenu.classList.toggle('active', force)) {
-                    effector.showSwipeWidth({duration: 300, display: 'flex'});
+
+            function toggleMenu(force) {
+                if (navOverlayTimeout) {
+                    clearTimeout(navOverlayTimeout);
+                    navOverlayTimeout = null;
+                }
+                if (force === null) {
+                    hamburger.classList.toggle('active');
+                    const isMenuOpen = navMenu.classList.toggle('active')
+                    if (isMenuOpen) {
+                        effector.showSwipeWidth({duration: 300, display: 'flex'});
+
+                    }
+                    else {
+                        effector.hideSwipeWidth({duration: 300});
+                    }
+                    if (isMenuOpen) {
+                        navOverlay.classList.add('start');
+                        requestAnimationFrame(() => {
+                            navOverlay.classList.add('active');
+                        });
+                    }
+                    else {
+                        navOverlay.classList.remove('active');
+                        navOverlayTimeout = setTimeout(() => {
+                            navOverlay.classList.remove('start');
+                        }, 300);
+                    }
                 }
                 else {
-                    effector.hideSwipeWidth({duration: 300});
+                    hamburger.classList.toggle('active', force);
+                    if (navMenu.classList.toggle('active', force)) {
+                        effector.showSwipeWidth({duration: 300, display: 'flex'});
+                    }
+                    else {
+                        effector.hideSwipeWidth({duration: 300});
+                    }
+                    if (force) {
+                        navOverlay.classList.add('start');
+                        requestAnimationFrame(() => {
+                            navOverlay.classList.add('active', force);
+                        });
+                    }
+                    else {
+                        navOverlay.classList.remove('active', force);
+                        navOverlayTimeout = setTimeout(() => {
+                            navOverlay.classList.remove('start');
+                        }, 300);
+                    }
                 }
-                if (force) {
-                    navOverlay.classList.add('start');
-                    requestAnimationFrame(() => {
-                        navOverlay.classList.add('active', force);
-                    });
-                }
-                else {
-                    navOverlay.classList.remove('active', force);
-                    navOverlayTimeout = setTimeout(() => {
-                        navOverlay.classList.remove('start');
-                    }, 300);
-                }
+                
+                // Prevent body scroll when menu is open
+                // if (navMenu.classList.contains('active')) {
+                //     document.body.style.overflow = 'hidden';
+                // } else {
+                //     document.body.style.overflow = '';
+                // }
             }
-            
-            // Prevent body scroll when menu is open
-            // if (navMenu.classList.contains('active')) {
-            //     document.body.style.overflow = 'hidden';
-            // } else {
-            //     document.body.style.overflow = '';
-            // }
-        }
 
-        hamburger.addEventListener('click', () => { 
-            toggleMenu(null)
-        });
+            hamburger.addEventListener('click', () => { 
+                toggleMenu(null)
+            });
 
-        navOverlay.addEventListener('click', () => { 
-            toggleMenu(false)
-        });
+            navOverlay.addEventListener('click', () => { 
+                toggleMenu(false)
+            });
 
-        document.getElementById('buttonArrowDown').addEventListener('click', () => { 
-            window.document.body.scrollTo({top: document.getElementById('header').offsetHeight, behavior: "smooth"  });
-        });
+            document.getElementById('buttonArrowDown').addEventListener('click', () => { 
+                window.document.body.scrollTo({top: document.getElementById('header').offsetHeight, behavior: "smooth"  });
+            });
 
-        // Close menu when clicking on a link
-        const navLinks = navMenu.querySelectorAll('a');
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 1350) {
+            // Close menu when clicking on a link
+            const navLinks = navMenu.querySelectorAll('a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 1350) {
+                        toggleMenu(false);
+                    }
+                });
+            });
+
+            // Close menu on escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && navMenu.classList.contains('active')) {
                     toggleMenu(false);
                 }
             });
-        });
 
-        // Close menu on escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && navMenu.classList.contains('active')) {
-                toggleMenu(false);
-            }
-        });
-
-        // Handle resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 1350 && navMenu.classList.contains('active')) {
-                hamburger.classList.remove('active');
-                navMenu.classList.remove('active');
-                navOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        });
-    </script>
+            // Handle resize
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 1350 && navMenu.classList.contains('active')) {
+                    hamburger.classList.remove('active');
+                    navMenu.classList.remove('active');
+                    navOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        </script>
     </nav>
 
     <!-- Content -->
@@ -2522,6 +2533,8 @@ SelectiveUI.rebind(<span class="string">'#mySelect'</span>, {
                         </tr>
                     </tbody>
                 </table>
+
+                <p>Create new issues or contribute source code at: <a href="https://github.com/maihcx/selective-ui">GITHUB</a></p>
             </div>
 
             <h3>V1.2.6 | 2026-02-12</h3>
