@@ -63,7 +63,7 @@ export class ResizeObserverService {
      * @remarks
      * Set by {@link connect} and cleared by {@link disconnect}.
      */
-    public element: Element | null = null;
+    public element: HTMLElement | null = null;
 
     /**
      * Underlying `ResizeObserver` instance.
@@ -132,7 +132,7 @@ export class ResizeObserverService {
      * This method is the single funnel for all observation signals (internal + external).
      */
     private updateChanged(): void {
-        const el = this.element as HTMLElement | null;
+        const el = this.element;
 
         if (!el || typeof el.getBoundingClientRect !== "function") {
             const defaultMetrics: ElementMetrics = {
@@ -213,8 +213,8 @@ export class ResizeObserverService {
      * @remarks
      * Not idempotent. Call {@link disconnect} before calling `connect()` again to avoid duplicates.
      */
-    public connect(element: Element): void {
-        if (!(element instanceof Element)) {
+    public connect(element: HTMLElement): void {
+        if (!(element instanceof HTMLElement)) {
             throw new Error("Invalid element");
         }
 

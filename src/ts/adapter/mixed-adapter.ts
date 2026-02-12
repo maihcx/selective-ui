@@ -315,7 +315,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
         optionModel.view = optionViewer;
 
         if (optionModel.hasImage) {
-            const imageTag = optionViewer.view.tags.OptionImage as HTMLImageElement | null;
+            const imageTag = optionViewer.view.tags.OptionImage;
             if (imageTag) {
                 if (imageTag.src !== optionModel.imageSrc) imageTag.src = optionModel.imageSrc;
                 if (imageTag.alt !== optionModel.text) imageTag.alt = optionModel.text;

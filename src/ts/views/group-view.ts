@@ -73,7 +73,7 @@ export class GroupView extends View<GroupViewTags> {
      *
      * Creation flow:
      * 1. Generates unique group ID (7-character random string).
-     * 2. Creates DOM structure via {@link Libs.mountView}:
+     * 2. Creates DOM structure via {@link Libs.mountNode}:
      *    - Root: `<div role="group" aria-labelledby="seui-{id}-header">`
      *    - Header: `<div role="presentation" id="seui-{id}-header">`
      *    - Items: `<div role="group">` (nested group for child items)
@@ -96,7 +96,7 @@ export class GroupView extends View<GroupViewTags> {
     public override mount(): void {
         const group_id = Libs.randomString(7);
 
-        this.view = Libs.mountView<GroupViewTags>({
+        this.view = Libs.mountNode<GroupViewResult>({
             GroupView: {
                 tag: {
                     node: "div",
@@ -123,7 +123,7 @@ export class GroupView extends View<GroupViewTags> {
                     },
                 },
             },
-        }) as GroupViewResult;
+        });
 
         // Parent is guaranteed to exist by the base View constructor.
         this.parent!.appendChild(this.view.view);

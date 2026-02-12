@@ -82,7 +82,7 @@ export function bind(query: string, options: SelectiveOptions = {}): void {
  * The return type is casted to `SelectiveActionApi` for a stable public contract.
  */
 export function find(query: string): SelectiveActionApi {
-    return SECLASS.find(query) as SelectiveActionApi;
+    return SECLASS.find(query);
 }
 
 /**
@@ -131,7 +131,7 @@ export function rebind(query: string, options: SelectiveOptions = {}): void {
  * fx.show();
  */
 export function effector(element: string | HTMLElement): EffectorInterface {
-    return Effector(element) as EffectorInterface;
+    return Effector(element);
 }
 
 /**

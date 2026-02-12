@@ -165,10 +165,10 @@ export class Selective extends Lifecycle {
             this.init();
         }
 
-        const merged = Libs.mergeConfig(
+        const merged = Libs.mergeConfig<SelectiveOptions>(
             Libs.getDefaultConfig(),
             options,
-        ) as SelectiveOptions;
+        );
 
         // Ensure hooks exist
         merged.on = merged.on ?? {};
@@ -183,7 +183,7 @@ export class Selective extends Lifecycle {
             merged.on!.load = [];
         });
 
-        const selectElements = Libs.getElements(query) as HTMLSelectElement[];
+        const selectElements = Libs.getElements<HTMLSelectElement[]>(query);
         let hasAnyBound = false;
 
         selectElements.forEach((item) => {
@@ -290,10 +290,10 @@ export class Selective extends Lifecycle {
             if (query === "") return empty;
         }
 
-        const sels = Libs.getElements(query) as HTMLElement[];
+        const sels = Libs.getElements(query);
         if (sels.length === 0) return empty;
 
-        const binded = Libs.getBinderMap(sels[0]) as BinderMap | null;
+        const binded = Libs.getBinderMap<BinderMap>(sels[0]);
         if (!binded || !binded.action) return empty;
 
         const actions: Record<string, PropertiesType> = {};
@@ -492,7 +492,7 @@ export class Selective extends Lifecycle {
      * @returns {void}
      */
     private destroyByQuery(query: string): void {
-        const selectElements = Libs.getElements(query) as HTMLSelectElement[];
+        const selectElements = Libs.getElements<HTMLSelectElement[]>(query);
         selectElements.forEach((element) => {
             if (element.tagName === "SELECT") this.destroyElement(element);
         });
@@ -531,10 +531,10 @@ export class Selective extends Lifecycle {
      * @returns {void}
      */
     private destroyElement(selectElement: HTMLSelectElement): void {
-        const bindMap = Libs.getBinderMap(selectElement) as BinderMap | null;
+        const bindMap = Libs.getBinderMap<BinderMap<{element: HTMLElement}, Record<string, any>, SelectBox> | null>(selectElement);
         if (!bindMap) return;
 
-        const selfBox = bindMap.self as SelectBox | null;
+        const selfBox = bindMap.self;
 
         Libs.setUnbinderMap(selectElement, bindMap);
 
@@ -543,9 +543,7 @@ export class Selective extends Lifecycle {
 
         bindMap.self?.deInit?.();
 
-        const wrapper: HTMLElement | null =
-            (bindMap.container?.element as HTMLElement | undefined) ??
-            selectElement.parentElement;
+        const wrapper = (bindMap.container?.element) ?? selectElement.parentElement;
 
         selectElement.style.display = "";
         selectElement.style.visibility = "";
@@ -632,7 +630,7 @@ export class Selective extends Lifecycle {
         const options_cfg = Libs.buildConfig(
             selectElement,
             options,
-        ) as SelectiveOptions;
+        );
 
         options_cfg.SEID = SEID;
         options_cfg.SEID_LIST = `seui-${SEID}-optionlist`;
@@ -725,12 +723,12 @@ export class Selective extends Lifecycle {
     ): void {
         Object.defineProperty(object, name, {
             get() {
-                const binded = Libs.getBinderMap(els[0]) as BinderMap;
+                const binded = Libs.getBinderMap<BinderMap>(els[0]);
                 return binded.action?.[name];
             },
             set(value: any) {
                 els.forEach((el) => {
-                    const binded = Libs.getBinderMap(el) as BinderMap | null;
+                    const binded = Libs.getBinderMap<BinderMap>(el);
                     if (binded?.action) binded.action[name] = value;
                 });
             },
@@ -772,7 +770,7 @@ export class Selective extends Lifecycle {
             let resp = null;
             for (let index = 0; index < els.length; index++) {
                 const el = els[index];
-                const binded = Libs.getBinderMap(el) as BinderMap | null;
+                const binded = Libs.getBinderMap<BinderMap>(el);
                 if (!binded?.action) continue;
 
                 const evtToken = iEvents.buildEventToken();

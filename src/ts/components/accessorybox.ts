@@ -61,7 +61,7 @@ export class AccessoryBox extends Lifecycle {
      * Mounted structure returned by the node mounting helper.
      * Contains the root element (`view`) and any tag handles (if present).
      */
-    private nodeMounted: MountViewResult<any> | null = null;
+    private nodeMounted: MountViewResult | null = null;
 
     /**
      * Root DOM element of the accessory box (hidden by default).
@@ -142,7 +142,7 @@ export class AccessoryBox extends Lifecycle {
     public init(): void {
         if (this.state !== LifecycleState.NEW) return;
 
-        this.nodeMounted = Libs.mountNode({
+        this.nodeMounted = Libs.mountNode<MountViewResult>({
             AccessoryBox: {
                 tag: {
                     node: "div",
@@ -153,7 +153,7 @@ export class AccessoryBox extends Lifecycle {
                     },
                 },
             },
-        }) as MountViewResult<any>;
+        });
 
         this.node = this.nodeMounted.view as HTMLDivElement;
 
@@ -216,7 +216,7 @@ export class AccessoryBox extends Lifecycle {
         const ref =
             this.options.accessoryStyle === "top"
                 ? this.selectUIMask
-                : (this.selectUIMask.nextSibling as ChildNode | null);
+                : (this.selectUIMask.nextSibling as ChildNode);
 
         this.parentMask.insertBefore(this.node, ref);
     }
@@ -224,11 +224,11 @@ export class AccessoryBox extends Lifecycle {
     /**
      * Assigns the {@link ModelManager} used to run selection pipelines and mutate selection state.
      *
-     * @param {ModelManager<MixedItem, MixedAdapter> | null} modelManager - Model manager controlling option state.
+     * @param {ModelManager<MixedItem, MixedAdapter>} modelManager - Model manager controlling option state.
      * @returns {void}
      */
     public setModelManager(
-        modelManager: ModelManager<MixedItem, MixedAdapter> | null,
+        modelManager: ModelManager<MixedItem, MixedAdapter>,
     ): void {
         this.modelManager = modelManager;
     }

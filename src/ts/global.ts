@@ -70,7 +70,7 @@ if (typeof globalThis.GLOBAL_SEUI == "undefined") {
             if (sels.length > 0) {
                 const actionApi = SECLASS.find(
                     sels.join(", ")
-                ) as SelectiveActionApi;
+                );
                 if (!actionApi.isEmpty) actionApi.close();
             }
         });
@@ -133,7 +133,7 @@ export function bind(query: string, options: SelectiveOptions = {}): void {
  * The return type is casted to `SelectiveActionApi` for a stable public contract.
  */
 export function find(query: string): SelectiveActionApi {
-    return globalThis.GLOBAL_SEUI.find(query) as SelectiveActionApi;
+    return globalThis.GLOBAL_SEUI.find(query);
 }
 
 /**
@@ -182,7 +182,7 @@ export function rebind(query: string, options: SelectiveOptions = {}): void {
  * fx.show();
  */
 export function effector(element: string | HTMLElement): EffectorInterface {
-    return globalThis.GLOBAL_SEUI.effector(element) as EffectorInterface;
+    return globalThis.GLOBAL_SEUI.effector(element);
 }
 
 /**

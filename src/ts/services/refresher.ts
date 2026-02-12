@@ -1,3 +1,4 @@
+import { BinderMap } from "../types/utils/istorage.type";
 import { Libs } from "../utils/libs";
 
 /**
@@ -37,7 +38,7 @@ export class Refresher {
      * @param view - View panel element whose inline styles will be updated.
      */
     public static resizeBox(select: HTMLSelectElement, view: HTMLElement): void {
-        const bindedMap = Libs.getBinderMap(select);
+        const bindedMap = Libs.getBinderMap<BinderMap>(select);
         if (!bindedMap?.options) return;
 
         const options = bindedMap.options;

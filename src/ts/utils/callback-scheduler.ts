@@ -150,12 +150,12 @@ export class CallbackScheduler {
      * @public
      * @param {TimerKey} key - Key whose callbacks will be scheduled.
      * @param {...any[]} params - Parameters passed as a shared payload to all callbacks.
-     * @returns {Promise<void> | void} Promise resolving when all callbacks finish execution.
+     * @returns {Promise<void>} Promise resolving when all callbacks finish execution.
      */
-    public run(key: TimerKey, ...params: any[]): Promise<void> | void {
+    public run<T extends Promise<void>>(key: TimerKey, ...params: any[]): T {
         const executes = this.executeStored.get(key);
         if (!executes || executes.length === 0) {
-            return Promise.resolve();
+            return Promise.resolve() as T;
         }
 
         if (!this.timerRunner.has(key)) {
@@ -201,7 +201,7 @@ export class CallbackScheduler {
             tasks.push(task);
         }
 
-        return Promise.all(tasks).then(() => void 0);
+        return Promise.all(tasks).then(() => void 0) as T;
     }
 
     /**

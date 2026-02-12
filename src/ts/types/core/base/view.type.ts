@@ -3,7 +3,7 @@ import { Lifecycle } from "src/ts/core/base/lifecycle";
 import { MountViewResult } from "../../utils/libs.type";
 
 /**
- * Contract definition for a UI View created via `mountView` or `mountNode`.
+ * Contract definition for a UI View created via `mountNode`.
  *
  * A View encapsulates:
  * - The mounted DOM structure
@@ -32,7 +32,7 @@ export interface ViewContract<TTags extends Record<string, HTMLElement>> extends
     parent: HTMLElement | null;
 
     /**
-     * Internal representation of the mounted view returned by `mountView` or `mountNode`.
+     * Internal representation of the mounted view returned by `mountNode`.
      *
      * Contains:
      * - The root element of the view
@@ -46,7 +46,7 @@ export interface ViewContract<TTags extends Record<string, HTMLElement>> extends
      * Returns the root HTMLElement of the mounted view.
      *
      * This is typically the top-level container element
-     * created by `mountView` / `mountNode`.
+     * created by `mountNode`.
      *
      * @returns The root HTMLElement of the view.
      * @throws {Error} If the view has not been mounted or initialized.

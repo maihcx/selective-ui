@@ -49,7 +49,7 @@ export class OptionHandle extends Lifecycle {
      *
      * @internal
      */
-    private nodeMounted: MountViewResult<any> | null = null;
+    private nodeMounted: MountViewResult | null = null;
 
     /**
      * Root element of this control.
@@ -124,7 +124,7 @@ export class OptionHandle extends Lifecycle {
      * @internal
      */
     private initialize(options: SelectiveOptions): void {
-        this.nodeMounted = Libs.mountNode({
+        this.nodeMounted = Libs.mountNode<MountViewResult>({
             OptionHandle: {
                 tag: { node: "div", classList: ["seui-option-handle", "hide"] },
                 child: {
@@ -150,7 +150,7 @@ export class OptionHandle extends Lifecycle {
                     },
                 },
             },
-        }) as MountViewResult<any>;
+        });
 
         this.node = this.nodeMounted.view as HTMLDivElement;
         this.options = options;

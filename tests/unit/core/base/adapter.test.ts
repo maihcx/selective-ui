@@ -4,8 +4,8 @@ import { Libs } from "../../../../src/ts/utils/libs";
 describe("Adapter", () => {
 
     beforeEach(() => {
-        jest.spyOn(Libs.callbackScheduler, "on").mockImplementation(() => {});
-        jest.spyOn(Libs.callbackScheduler, "run").mockImplementation(() => {});
+        jest.spyOn(Libs.callbackScheduler, "on").mockImplementation(async () => {});
+        jest.spyOn(Libs.callbackScheduler, "run").mockImplementation(async () => {});
     });
 
     afterEach(() => {

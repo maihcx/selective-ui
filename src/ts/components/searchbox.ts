@@ -176,7 +176,7 @@ export class SearchBox extends Lifecycle {
      * @internal
      */
     private initialize(options: SelectiveOptions): void {
-        this.nodeMounted = Libs.mountNode({
+        this.nodeMounted = Libs.mountNode<MountViewResult<SearchBoxTags>>({
             SearchBox: {
                 tag: { node: "div", classList: ["seui-searchbox", "hide"] },
                 child: {
@@ -194,7 +194,7 @@ export class SearchBox extends Lifecycle {
                     },
                 },
             },
-        }) as MountViewResult<SearchBoxTags>;
+        });
 
         this.node = this.nodeMounted.view as HTMLDivElement;
         this.SearchInput = this.nodeMounted.tags.SearchInput;

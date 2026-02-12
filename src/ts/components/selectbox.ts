@@ -237,8 +237,8 @@ export class SelectBox extends Lifecycle {
      * @internal
      */
     private initialize(select: HTMLSelectElement, Selective: Selective): void {
-        const bindedMap = Libs.getBinderMap(select) as BinderMap;
-        this.options = bindedMap.options as SelectiveOptions;
+        const bindedMap = Libs.getBinderMap<BinderMap>(select);
+        this.options = bindedMap.options;
         this.Selective = Selective;
         
         this.init(select);
@@ -290,7 +290,7 @@ export class SelectBox extends Lifecycle {
         // ensure placeholder has id for aria-labelledby usage
         if (placeholder.node) placeholder.node.id = String(options.SEID_HOLDER ?? "");
 
-        const container = Libs.mountNode(
+        const container = Libs.mountNode<ContainerRuntime>(
             {
                 Container: {
                     tag: { node: "div", classList: "seui-MAIN" },
@@ -317,7 +317,7 @@ export class SelectBox extends Lifecycle {
                 },
             },
             null
-        ) as ContainerRuntime;
+        );
 
         this.container = container;
         this.node = container.view as HTMLDivElement;
@@ -410,7 +410,7 @@ export class SelectBox extends Lifecycle {
         if (!this.node || !this.container.targetElement) return;
 
         const select = this.container.targetElement;
-        const container = this.container as ContainerRuntime;
+        const container = this.container;
 
         // Mount into DOM: wrapper before select, then move select inside
         select.parentNode?.insertBefore(this.node, select);
@@ -481,7 +481,7 @@ export class SelectBox extends Lifecycle {
         searchController: SearchController,
         searchbox: SearchBox
     ): void {
-        const optionAdapter = container.popup!.optionAdapter as MixedAdapter;
+        const optionAdapter = container.popup!.optionAdapter;
         let hightlightTimer: ReturnType<typeof setTimeout> | null = null;
 
         const searchHandle = (keyword: string, isTrigger: boolean) => {
@@ -712,7 +712,7 @@ export class SelectBox extends Lifecycle {
             return this.Selective.find(container.targetElement);
         };
 
-        const bindedMap = Libs.getBinderMap(container.targetElement) as BinderMap | null;
+        const bindedMap = Libs.getBinderMap<BinderMap>(container.targetElement);
         if (!bindedMap) return null;
 
         const bindedOptions = bindedMap.options;

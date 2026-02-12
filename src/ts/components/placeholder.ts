@@ -79,11 +79,11 @@ export class PlaceHolder extends Lifecycle {
      * @internal
      */
     private initialize(options: SelectiveOptions): void {
-        this.node = Libs.nodeCreator({
+        this.node = Libs.nodeCreator<HTMLElement>({
             node: "div",
             classList: "seui-placeholder",
             innerHTML: options.placeholder,
-        }) as HTMLElement;
+        });
 
         this.options = options;
 

@@ -76,7 +76,7 @@ describe('Libs Utility Functions', () => {
         });
 
         test('should handle NodeList', () => {
-            const nodeList = document.querySelectorAll('.test-class');
+            const nodeList = document.querySelectorAll<HTMLElement>('.test-class');
             const elements = Libs.getElements(nodeList);
             expect(elements.length).toBe(2);
         });

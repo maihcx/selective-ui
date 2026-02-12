@@ -13,6 +13,7 @@ import { SelectiveOptions } from "../../types/utils/selective.type";
 import { ParentBinderMapLike, VirtualRecyclerOptions } from "../../types/components/popup.type";
 import { Lifecycle } from "../../core/base/lifecycle";
 import { LifecycleState } from "../../types/core/base/lifecycle.type";
+import { MountViewResult } from "src/ts/types/utils/libs.type";
 
 /**
  * Popup panel that renders and manages the dropdown surface.
@@ -129,7 +130,7 @@ export class Popup extends Lifecycle {
         this.emptyState = new EmptyState(options);
         this.loadingState = new LoadingState(options);
 
-        const nodeMounted = Libs.mountNode(
+        const nodeMounted = Libs.mountNode<MountViewResult>(
             {
                 PopupContainer: {
                     tag: {
@@ -158,7 +159,7 @@ export class Popup extends Lifecycle {
         this.node = nodeMounted.view as HTMLDivElement;
         this.optionsContainer = nodeMounted.tags.OptionsContainer as HTMLDivElement;
 
-        this.parent = Libs.getBinderMap(select) as ParentBinderMapLike | null;
+        this.parent = Libs.getBinderMap<ParentBinderMapLike>(select);
         this.options = options;
         this.init();
         
@@ -174,10 +175,7 @@ export class Popup extends Lifecycle {
         // Load ModelManager resources into the list container
         this.modelManager.load<VirtualRecyclerOptions>(this.optionsContainer, { isMultiple: options.multiple }, recyclerViewOpt);
 
-        const MMResources = this.modelManager.getResources() as {
-            adapter: MixedAdapter;
-            recyclerView: RecyclerViewContract<MixedAdapter>;
-        };
+        const MMResources = this.modelManager.getResources();
 
         this.optionAdapter = MMResources.adapter;
         this.recyclerView = MMResources.recyclerView;
@@ -490,7 +488,7 @@ export class Popup extends Lifecycle {
 
         if (this.node) {
             try {
-                const clone = this.node.cloneNode(true) as HTMLDivElement;
+                const clone = Libs.nodeCloner<HTMLDivElement>(this.node);
                 this.node.replaceWith(clone);
                 clone.remove();
             } catch (_) {

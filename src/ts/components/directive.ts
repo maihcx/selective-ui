@@ -72,7 +72,7 @@ export class Directive extends Lifecycle {
             classList: "seui-directive",
             role: "button",
             ariaLabel: "Toggle dropdown",
-        }) as HTMLElement;
+        });
 
         super.init();
         this.mount();

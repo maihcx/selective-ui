@@ -80,12 +80,12 @@ export class EmptyState extends Lifecycle {
     private initialize(options: SelectiveOptions): void {
         this.options = options;
 
-        this.node = Libs.nodeCreator({
+        this.node = Libs.nodeCreator<HTMLDivElement>({
             node: "div",
             classList: ["seui-empty-state", "hide"],
             role: "status",
             ariaLive: "polite",
-        }) as HTMLDivElement;
+        });
 
         this.init();
     }

@@ -174,7 +174,7 @@ export class Adapter<
      * @returns {Promise<void>} Resolves when scheduled callbacks complete.
      */
     public changeProp(propName: string, ...params: unknown[]): Promise<void> {
-        return Libs.callbackScheduler.run(`${propName}_${this.adapterKey}`, ...params) as Promise<void>;
+        return Libs.callbackScheduler.run(`${propName}_${this.adapterKey}`, ...params);
     }
 
     /**
@@ -188,7 +188,7 @@ export class Adapter<
      * @returns {Promise<void>} Resolves when scheduled callbacks complete.
      */
     public changingProp(propName: string, ...params: unknown[]): Promise<void> {
-        return Libs.callbackScheduler.run(`${propName}ing_${this.adapterKey}`, ...params) as Promise<void>;
+        return Libs.callbackScheduler.run(`${propName}ing_${this.adapterKey}`, ...params);
     }
 
     /**

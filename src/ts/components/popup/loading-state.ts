@@ -79,13 +79,13 @@ export class LoadingState extends Lifecycle {
     private initialize(options: SelectiveOptions): void {
         this.options = options;
 
-        this.node = Libs.nodeCreator({
+        this.node = Libs.nodeCreator<HTMLDivElement>({
             node: "div",
             classList: ["seui-loading-state", "hide"],
             textContent: options.textLoading,
             role: "status",
             ariaLive: "polite",
-        }) as HTMLDivElement;
+        });
 
         this.init();
     }

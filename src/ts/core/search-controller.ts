@@ -270,7 +270,7 @@ export class SearchController extends Lifecycle {
         const { modelList } = this.modelManager.getResources();
         const flatOptions: OptionModel[] = [];
 
-        for (const m of modelList as MixedItem[]) {
+        for (const m of modelList) {
             if (m instanceof OptionModel) flatOptions.push(m);
             else if (m instanceof GroupModel && Array.isArray(m.items)) flatOptions.push(...m.items);
         }
@@ -338,7 +338,7 @@ export class SearchController extends Lifecycle {
         const { modelList } = this.modelManager.getResources();
 
         const flatOptions: OptionModel[] = [];
-        for (const m of modelList as MixedItem[]) {
+        for (const m of modelList) {
             if (m instanceof OptionModel) flatOptions.push(m);
             else if (m instanceof GroupModel && Array.isArray(m.items)) flatOptions.push(...m.items);
         }
