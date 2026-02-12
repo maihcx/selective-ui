@@ -13,6 +13,7 @@ import { SelectiveOptions } from "../../types/utils/selective.type";
 import { ParentBinderMapLike, VirtualRecyclerOptions } from "../../types/components/popup.type";
 import { Lifecycle } from "../../core/base/lifecycle";
 import { LifecycleState } from "../../types/core/base/lifecycle.type";
+import { MountViewResult } from "src/ts/types/utils/libs.type";
 
 /**
  * Popup panel that renders and manages the dropdown surface.
@@ -129,12 +130,12 @@ export class Popup extends Lifecycle {
         this.emptyState = new EmptyState(options);
         this.loadingState = new LoadingState(options);
 
-        const nodeMounted = Libs.mountNode(
+        const nodeMounted = Libs.mountNode<MountViewResult>(
             {
                 PopupContainer: {
                     tag: {
                         node: "div",
-                        classList: "selective-ui-popup",
+                        classList: "seui-popup",
                         style: { maxHeight: options.panelHeight },
                     },
                     child: {
@@ -143,7 +144,7 @@ export class Popup extends Lifecycle {
                             tag: {
                                 id: options.SEID_LIST,
                                 node: "div",
-                                classList: "selective-ui-options-container",
+                                classList: "seui-options-container",
                                 role: "listbox",
                             },
                         },
@@ -158,7 +159,7 @@ export class Popup extends Lifecycle {
         this.node = nodeMounted.view as HTMLDivElement;
         this.optionsContainer = nodeMounted.tags.OptionsContainer as HTMLDivElement;
 
-        this.parent = Libs.getBinderMap(select) as ParentBinderMapLike | null;
+        this.parent = Libs.getBinderMap<ParentBinderMapLike>(select);
         this.options = options;
         this.init();
         
@@ -174,10 +175,7 @@ export class Popup extends Lifecycle {
         // Load ModelManager resources into the list container
         this.modelManager.load<VirtualRecyclerOptions>(this.optionsContainer, { isMultiple: options.multiple }, recyclerViewOpt);
 
-        const MMResources = this.modelManager.getResources() as {
-            adapter: MixedAdapter;
-            recyclerView: RecyclerViewContract<MixedAdapter>;
-        };
+        const MMResources = this.modelManager.getResources();
 
         this.optionAdapter = MMResources.adapter;
         this.recyclerView = MMResources.recyclerView;
@@ -471,10 +469,8 @@ export class Popup extends Lifecycle {
             return;
         }
 
-        if (this.hideLoadHandle) {
-            clearTimeout(this.hideLoadHandle);
-            this.hideLoadHandle = null;
-        }
+        clearTimeout(this.hideLoadHandle!);
+        this.hideLoadHandle = null;
 
         if (this.node && this.scrollListener) {
             this.node.removeEventListener("scroll", this.scrollListener);
@@ -484,50 +480,35 @@ export class Popup extends Lifecycle {
         this.emptyState.destroy();
         this.loadingState.destroy();
         this.optionHandle.destroy();
-
-        try {
-            this.resizeObser?.disconnect();
-        } catch (_) {}
-        this.resizeObser = null;
-
-        try {
-            this.effSvc?.setElement?.(null);
-        } catch (_) {}
-        this.effSvc = null;
+        this.resizeObser?.disconnect?.();
+        this.effSvc?.setElement?.(null);
+        this.modelManager?.skipEvent?.(false);
+        this.recyclerView?.clear?.();
+        this.node?.remove?.();
 
         if (this.node) {
             try {
-                const clone = this.node.cloneNode(true) as HTMLDivElement;
+                const clone = Libs.nodeCloner<HTMLDivElement>(this.node);
                 this.node.replaceWith(clone);
                 clone.remove();
             } catch (_) {
                 this.node.remove();
             }
         }
+        
         this.node = null;
         this.optionsContainer = null;
-
-        try {
-            this.modelManager?.skipEvent?.(false);
-
-            this.recyclerView?.clear?.();
-            this.recyclerView = null;
-
-            this.optionAdapter = null;
-
-            // Original behavior kept intentionally.
-            this.node.remove();
-        } catch (_) {}
-
         this.modelManager = null;
         this.optionHandle = null;
         this.emptyState = null;
         this.loadingState = null;
-
         this.parent = null;
         this.options = null;
-
         this.isCreated = false;
+        this.effSvc = null;
+        this.resizeObser = null;
+        this.recyclerView = null;
+        this.optionAdapter = null;
 
         super.destroy();
     }

@@ -23,10 +23,11 @@ import type { SelectiveOptions } from "../types/utils/selective.type";
 import { IEventToken, IEventCallback } from "../types/utils/ievents.type";
 import { MixedItem } from "../types/core/base/mixed-adapter.type";
 import { BinderMap } from "../types/utils/istorage.type";
-import { ContainerRuntime, SelectBoxAction } from "../types/components/searchbox.type";
+import { ContainerRuntime, SelectBoxAction, SelectBoxTags } from "../types/components/searchbox.type";
 import { AjaxConfig } from "../types/core/search-controller.type";
 import { Selective } from "../utils/selective";
 import { VirtualRecyclerView } from "../core/base/virtual-recyclerview";
+import type { PluginContext, SelectivePlugin } from "../types/plugins/plugin.type";
 
 /**
  * SelectBox
@@ -161,6 +162,16 @@ export class SelectBox extends Lifecycle {
     public Selective: Selective | null = null;
 
     /**
+     * Registered plugins for this SelectBox instance.
+     */
+    private plugins: SelectivePlugin[] = [];
+
+    /**
+     * Cached plugin context for this SelectBox instance.
+     */
+    private pluginContext: PluginContext<SelectBoxTags> | null = null;
+
+    /**
      * Creates a {@link SelectBox} bound to a native `<select>` element.
      *
      * When both `select` and `Selective` are provided, the instance initializes immediately
@@ -236,8 +247,8 @@ export class SelectBox extends Lifecycle {
      * @internal
      */
     private initialize(select: HTMLSelectElement, Selective: Selective): void {
-        const bindedMap = Libs.getBinderMap(select) as BinderMap;
-        this.options = bindedMap.options as SelectiveOptions;
+        const bindedMap = Libs.getBinderMap<BinderMap>(select);
+        this.options = bindedMap.options;
         this.Selective = Selective;
         
         this.init(select);
@@ -289,15 +300,15 @@ export class SelectBox extends Lifecycle {
         // ensure placeholder has id for aria-labelledby usage
         if (placeholder.node) placeholder.node.id = String(options.SEID_HOLDER ?? "");
 
-        const container = Libs.mountNode(
+        const container = Libs.mountNode<ContainerRuntime>(
             {
                 Container: {
-                    tag: { node: "div", classList: "selective-ui-MAIN" },
+                    tag: { node: "div", classList: "seui-MAIN" },
                     child: {
                         ViewPanel: {
                             tag: {
                                 node: "div",
-                                classList: "selective-ui-view",
+                                classList: "seui-view",
                                 tabIndex: 0,
                                 onkeydown: (e: KeyboardEvent) => {
                                     if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
@@ -316,7 +327,7 @@ export class SelectBox extends Lifecycle {
                 },
             },
             null
-        ) as ContainerRuntime;
+        );
 
         this.container = container;
         this.node = container.view as HTMLDivElement;
@@ -368,6 +379,21 @@ export class SelectBox extends Lifecycle {
         this.setupEventHandlers(select, container, options, searchController, searchbox);
         this.setupObservers(selectObserver, datasetObserver, select, optionModelManager);
 
+        this.plugins = this.Selective?.getPlugins?.() ?? [];
+        if (this.plugins.length) {
+            const resources = optionModelManager.getResources();
+            const pluginContext: PluginContext<SelectBoxTags> = {
+                selectBox: this,
+                options,
+                adapter: resources.adapter,
+                recycler: resources.recyclerView,
+                viewTags: container.tags,
+                actions: this.getAction(),
+            };
+            this.pluginContext = pluginContext;
+            this.runPluginHook("init", (plugin) => plugin.init?.(pluginContext));
+        }
+
         // Initial states
         this.isDisabled = Libs.string2Boolean(options.disabled);
         this.isReadOnly = Libs.string2Boolean(options.readonly);
@@ -394,7 +420,7 @@ export class SelectBox extends Lifecycle {
         if (!this.node || !this.container.targetElement) return;
 
         const select = this.container.targetElement;
-        const container = this.container as ContainerRuntime;
+        const container = this.container;
 
         // Mount into DOM: wrapper before select, then move select inside
         select.parentNode?.insertBefore(this.node, select);
@@ -465,7 +491,7 @@ export class SelectBox extends Lifecycle {
         searchController: SearchController,
         searchbox: SearchBox
     ): void {
-        const optionAdapter = container.popup!.optionAdapter as MixedAdapter;
+        const optionAdapter = container.popup!.optionAdapter;
         let hightlightTimer: ReturnType<typeof setTimeout> | null = null;
 
         const searchHandle = (keyword: string, isTrigger: boolean) => {
@@ -604,6 +630,12 @@ export class SelectBox extends Lifecycle {
         const c: any = this.container ?? {};
         const { selectObserver, datasetObserver } = c;
 
+        if (this.plugins.length) {
+            this.runPluginHook("destroy", (plugin) => plugin.destroy?.());
+        }
+        this.plugins = [];
+        this.pluginContext = null;
+
         if (selectObserver?.disconnect) selectObserver.disconnect();
         if (datasetObserver?.disconnect) datasetObserver.disconnect();
 
@@ -696,7 +728,7 @@ export class SelectBox extends Lifecycle {
             return this.Selective.find(container.targetElement);
         };
 
-        const bindedMap = Libs.getBinderMap(container.targetElement) as BinderMap | null;
+        const bindedMap = Libs.getBinderMap<BinderMap>(container.targetElement);
         if (!bindedMap) return null;
 
         const bindedOptions = bindedMap.options;
@@ -954,6 +986,9 @@ export class SelectBox extends Lifecycle {
                 if (bindedOptions.multiple) ViewPanel.setAttribute("aria-multiselectable", "true");
 
                 iEvents.callEvent([getInstance()], ...bindedOptions.on.show);
+                if (superThis.pluginContext) {
+                    superThis.runPluginHook("onOpen", (plugin) => plugin.onOpen?.(superThis.pluginContext));
+                }
                 return;
             },
 
@@ -974,6 +1009,9 @@ export class SelectBox extends Lifecycle {
                 container.tags.ViewPanel.setAttribute("aria-expanded", "false");
 
                 iEvents.callEvent([getInstance()], ...bindedOptions.on.close);
+                if (superThis.pluginContext) {
+                    superThis.runPluginHook("onClose", (plugin) => plugin.onClose?.(superThis.pluginContext));
+                }
                 return;
             },
 
@@ -1015,6 +1053,13 @@ export class SelectBox extends Lifecycle {
                 // Trigger update lifecycle
                 if (superThis.is(LifecycleState.MOUNTED)) {
                     superThis.update();
+                }
+
+                if (superThis.pluginContext && superThis.optionModelManager) {
+                    const resources = superThis.optionModelManager.getResources();
+                    superThis.runPluginHook("onChange", (plugin) =>
+                        plugin.onChange?.(this.value, resources.modelList, resources.adapter, superThis.pluginContext)
+                    );
                 }
             },
 
@@ -1163,5 +1208,26 @@ export class SelectBox extends Lifecycle {
         }
 
         return flatOptions;
+    }
+
+    /**
+     * Safely runs a hook across all registered plugins.
+     *
+     * Any plugin failure is isolated to prevent breaking the current flow.
+     *
+     * @param hook - Hook name for logging context.
+     * @param runner - Hook invocation handler.
+     * @internal
+     */
+    private runPluginHook(hook: string, runner: (plugin: SelectivePlugin) => void): void {
+        if (!this.plugins.length) return;
+
+        this.plugins.forEach((plugin) => {
+            try {
+                runner(plugin);
+            } catch (error) {
+                console.error(`Plugin "${plugin.id}" ${hook} error:`, error);
+            }
+        });
     }
 }

@@ -42,7 +42,7 @@ export type VirtualOptions = {
 
 /**
  * Tag map for the virtual recycler view DOM structure.
- * These nodes are typically produced by `mountView`/`mountNode` and used to
+ * These nodes are typically produced by `mountNode` and used to
  * manipulate padding and host the rendered item elements.
  */
 export type VirtualRecyclerViewTags = {

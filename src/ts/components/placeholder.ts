@@ -11,7 +11,7 @@ import { Libs } from "../utils/libs";
  * getter/setter APIs for the placeholder content.
  *
  * ### Responsibility
- * - Create and own the placeholder DOM element (`.selective-ui-placeholder`).
+ * - Create and own the placeholder DOM element (`.seui-placeholder`).
  * - Render placeholder content from {@link SelectiveOptions.placeholder}.
  * - Support runtime updates via {@link set}, optionally persisting into options.
  * - Participate in the shared {@link Lifecycle} FSM.
@@ -71,7 +71,7 @@ export class PlaceHolder extends Lifecycle {
      * Builds the placeholder DOM node and starts the lifecycle.
      *
      * Side effects:
-     * - Creates a `div.selective-ui-placeholder` node via {@link Libs.nodeCreator}.
+     * - Creates a `div.seui-placeholder` node via {@link Libs.nodeCreator}.
      * - Writes initial placeholder content into `innerHTML`.
      * - Transitions the lifecycle by calling `init()`.
      *
@@ -79,11 +79,11 @@ export class PlaceHolder extends Lifecycle {
      * @internal
      */
     private initialize(options: SelectiveOptions): void {
-        this.node = Libs.nodeCreator({
+        this.node = Libs.nodeCreator<HTMLElement>({
             node: "div",
-            classList: "selective-ui-placeholder",
+            classList: "seui-placeholder",
             innerHTML: options.placeholder,
-        }) as HTMLElement;
+        });
 
         this.options = options;
 

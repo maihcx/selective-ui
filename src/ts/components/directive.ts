@@ -69,10 +69,10 @@ export class Directive extends Lifecycle {
         // is guaranteed to be an HTMLElement in this context.
         this.node = Libs.nodeCreator({
             node: "div",
-            classList: "selective-ui-directive",
+            classList: "seui-directive",
             role: "button",
             ariaLabel: "Toggle dropdown",
-        }) as HTMLElement;
+        });
 
         super.init();
         this.mount();

@@ -49,8 +49,8 @@ import { Lifecycle } from "./base/lifecycle";
  * @see {@link Lifecycle}
  */
 export class ModelManager<
-    TModel extends ModelContract<any, any>,
-    TAdapter extends Adapter<TModel, ViewContract<any>>
+    TModel extends MixedItem,
+    TAdapter extends Adapter<MixedItem, ViewContract<any>>
 > extends Lifecycle {
     private privModelList: Array<MixedItem> = [];
 
@@ -126,10 +126,9 @@ export class ModelManager<
                 currentGroup = new GroupModel(this.options, data as HTMLOptGroupElement);
                 this.privModelList.push(currentGroup);
             } else if (data.tagName === "OPTION") {
-                const optionEl = data as HTMLOptionElement;
-                const optionModel = new OptionModel(this.options, optionEl);
+                const optionModel = new OptionModel(this.options, data as HTMLOptionElement);
 
-                const parentGroup = optionEl["__parentGroup"] as HTMLOptGroupElement | undefined;
+                const parentGroup = data["__parentGroup"] as HTMLOptGroupElement | undefined;
 
                 if (parentGroup && currentGroup && parentGroup === currentGroup.targetElement) {
                     currentGroup.addItem(optionModel);
@@ -161,7 +160,7 @@ export class ModelManager<
 
         if (this.privAdapterHandle) {
             // Adapter expects TModel[], but this manager's list is GroupModel|OptionModel.
-            await this.privAdapterHandle.syncFromSource(this.privModelList as unknown as TModel[]);
+            await this.privAdapterHandle.syncFromSource(this.privModelList);
         }
 
         this.refresh(false);
@@ -203,7 +202,7 @@ export class ModelManager<
         recyclerViewOpt: Partial<RecyclerViewContract<TAdapter>> & TExtra = {} as any
     ): void {
 
-        this.privAdapterHandle = new this.privAdapter(this.privModelList as unknown as TModel[]);
+        this.privAdapterHandle = new this.privAdapter(this.privModelList);
         Object.assign(this.privAdapterHandle, adapterOpt);
 
         this.privRecyclerViewHandle = new this.privRecyclerView(viewElement);
@@ -233,7 +232,7 @@ export class ModelManager<
      */
     public updateModel(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): void {
         const oldModels = this.privModelList;
-        const newModels: Array<GroupModel | OptionModel> = [];
+        const newModels: Array<MixedItem> = [];
 
         const oldGroupMap = new Map<string, GroupModel>();
         const oldOptionMap = new Map<string, OptionModel>();
@@ -284,7 +283,7 @@ export class ModelManager<
                     existingOption.updateTarget(dataVset);
                     existingOption.position = position;
 
-                    const parentGroup = dataVset["__parentGroup"] as HTMLOptGroupElement | undefined;
+                    const parentGroup = dataVset["__parentGroup"] as HTMLOptGroupElement;
 
                     if (parentGroup && currentGroup) {
                         currentGroup.addItem(existingOption);
@@ -299,7 +298,7 @@ export class ModelManager<
                     const newOption = new OptionModel(this.options, dataVset);
                     newOption.position = position;
 
-                    const parentGroup = dataVset["__parentGroup"] as HTMLOptGroupElement | undefined;
+                    const parentGroup = dataVset["__parentGroup"] as HTMLOptGroupElement;
 
                     if (parentGroup && currentGroup) {
                         currentGroup.addItem(newOption);
@@ -332,7 +331,7 @@ export class ModelManager<
         this.privModelList = newModels;
 
         if (this.privAdapterHandle) {
-            this.privAdapterHandle.updateData(this.privModelList as unknown as TModel[]);
+            this.privAdapterHandle.updateData(this.privModelList);
         }
 
         this.refresh(isUpdate);

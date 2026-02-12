@@ -1,4 +1,4 @@
-.selective-ui-option-handle {
+.seui-option-handle {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -16,11 +16,11 @@
     border-radius: var(--seui-option-border-radius);
 }
 
-.selective-ui-option-handle.hide {
+.seui-option-handle.hide {
     display: none;
 }
 
-.selective-ui-option-handle-item {
+.seui-option-handle-item {
     text-decoration: none;
     cursor: pointer;
     color: var(--seui-option-crtl-text-color);
@@ -29,6 +29,6 @@
     white-space: nowrap;
 }
 
-.selective-ui-option-handle-item:hover {
+.seui-option-handle-item:hover {
     color: var(--seui-option-crtl-text-color-hover);
 }

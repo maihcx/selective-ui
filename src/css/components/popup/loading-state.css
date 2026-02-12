@@ -1,4 +1,4 @@
-.selective-ui-loading-state {
+.seui-loading-state {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -15,12 +15,12 @@
     bottom: 0;
 }
 
-.selective-ui-loading-state.small {
+.seui-loading-state.small {
     text-align: left;
     justify-content: flex-start;
     min-height: 30px;
 }
 
-.selective-ui-loading-state.hide {
+.seui-loading-state.hide {
     display: none;
 }

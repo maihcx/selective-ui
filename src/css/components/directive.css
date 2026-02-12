@@ -1,4 +1,4 @@
-.selective-ui-directive {
+.seui-directive {
     content: " ";
     position: absolute;
     display: inline-block;
@@ -15,6 +15,6 @@
     z-index: 1;
     pointer-events: none;
 }
-.selective-ui-directive.drop-down {
+.seui-directive.drop-down {
     transform: translateY(-50%) rotate(180deg);
 }

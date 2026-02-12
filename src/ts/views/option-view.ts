@@ -243,7 +243,7 @@ export class OptionView extends View<OptionViewTags> {
      * @param {boolean} value - `true` for multiple selection; `false` for single.
      */
     public set isMultiple(value: boolean) {
-        (this.configProxy as OptionConfig).isMultiple = !!value;
+        this.configProxy.isMultiple = !!value;
     }
 
     /**
@@ -271,7 +271,7 @@ export class OptionView extends View<OptionViewTags> {
      * @param {boolean} value - `true` to show image; `false` to hide.
      */
     public set hasImage(value: boolean) {
-        (this.configProxy as OptionConfig).hasImage = !!value;
+        this.configProxy.hasImage = !!value;
     }
 
     /**
@@ -353,7 +353,7 @@ export class OptionView extends View<OptionViewTags> {
      *    - **OptionImage** (conditional): `<img>` with inline styles (width/height/borderRadius).
      *    - **OptionLabel**: `<label htmlFor="{inputID}">` with alignment classes.
      *      - **LabelContent**: `<div>` (content placeholder).
-     * 4. Creates DOM via {@link Libs.mountView}.
+     * 4. Creates DOM via {@link Libs.mountNode}.
      * 5. Appends root to {@link parent}.
      * 6. Sets {@link isRendered} to `true` (enables reactive updates).
      * 7. Transitions `INITIALIZED → MOUNTED` via `super.mount()`.
@@ -371,7 +371,7 @@ export class OptionView extends View<OptionViewTags> {
      * @override
      */
     public override mount(): void {
-        const viewClass: string[] = ["selective-ui-option-view"];
+        const viewClass: string[] = ["seui-option-view"];
         const opt_id = Libs.randomString(7);
         const inputID = `option_${opt_id}`;
 
@@ -418,7 +418,7 @@ export class OptionView extends View<OptionViewTags> {
             },
         };
 
-        this.view = Libs.mountView<OptionViewTags>({
+        this.view = Libs.mountNode<OptionViewResult>({
             OptionView: {
                 tag: {
                     node: "div",
@@ -430,7 +430,7 @@ export class OptionView extends View<OptionViewTags> {
                 },
                 child: childStructure,
             },
-        }) as OptionViewResult;
+        });
 
         this.parent!.appendChild(this.view.view);
         this.isRendered = true;
@@ -478,8 +478,8 @@ export class OptionView extends View<OptionViewTags> {
         if (!v || !v.view) return;
 
         const root = v.view;
-        const input = v.tags?.OptionInput as HTMLInputElement | undefined;
-        const label = v.tags?.OptionLabel as HTMLLabelElement | undefined;
+        const input = v.tags?.OptionInput;
+        const label = v.tags?.OptionLabel;
 
         switch (prop) {
             case "isMultiple": {
@@ -504,7 +504,7 @@ export class OptionView extends View<OptionViewTags> {
                         .replace(/image-(top|right|bottom|left)/g, "")
                         .trim();
 
-                    const img = v.tags?.OptionImage as HTMLImageElement | null | undefined;
+                    const img = v.tags?.OptionImage;
                     img?.remove();
                     v.tags.OptionImage = null;
                 }
@@ -524,7 +524,7 @@ export class OptionView extends View<OptionViewTags> {
             case "imageWidth":
             case "imageHeight":
             case "imageBorderRadius": {
-                const img = v.tags?.OptionImage as HTMLImageElement | null | undefined;
+                const img = v.tags?.OptionImage;
                 if (img) {
                     const styleProp =
                         prop === "imageWidth" ? "width" :
@@ -580,7 +580,7 @@ export class OptionView extends View<OptionViewTags> {
         if (v.tags?.OptionImage) return;
 
         const root = v.view;
-        const label = v.tags?.OptionLabel as HTMLLabelElement | undefined;
+        const label = v.tags?.OptionLabel;
 
         const image = document.createElement("img");
         image.className = "option-image";

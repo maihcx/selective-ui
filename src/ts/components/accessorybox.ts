@@ -45,7 +45,7 @@ import { Libs } from "../utils/libs";
  *   popup/layout logic to recompute geometry.
  *
  * ### DOM & a11y side effects
- * - Creates a root `<div>` with classes `selective-ui-accessorybox hide`.
+ * - Creates a root `<div>` with classes `seui-accessorybox hide`.
  * - Stops `mouseup` propagation on the root to avoid "outside click" behaviors.
  * - Each chip has:
  *   - a `<span role="button">` with `aria-label`/`title` for screen readers and tooltips,
@@ -61,7 +61,7 @@ export class AccessoryBox extends Lifecycle {
      * Mounted structure returned by the node mounting helper.
      * Contains the root element (`view`) and any tag handles (if present).
      */
-    private nodeMounted: MountViewResult<any> | null = null;
+    private nodeMounted: MountViewResult | null = null;
 
     /**
      * Root DOM element of the accessory box (hidden by default).
@@ -133,7 +133,7 @@ export class AccessoryBox extends Lifecycle {
      * Guarded: runs only when state is `NEW`.
      *
      * Side effects:
-     * - Creates the root node with base classes (`selective-ui-accessorybox`, `hide`).
+     * - Creates the root node with base classes (`seui-accessorybox`, `hide`).
      * - Stops `mouseup` propagation to avoid outside-click handlers reacting to chip interactions.
      *
      * @returns {void}
@@ -142,18 +142,18 @@ export class AccessoryBox extends Lifecycle {
     public init(): void {
         if (this.state !== LifecycleState.NEW) return;
 
-        this.nodeMounted = Libs.mountNode({
+        this.nodeMounted = Libs.mountNode<MountViewResult>({
             AccessoryBox: {
                 tag: {
                     node: "div",
-                    classList: ["selective-ui-accessorybox", "hide"],
+                    classList: ["seui-accessorybox", "hide"],
                     onmouseup: (evt: MouseEvent) => {
                         // Prevent outside listeners from reacting to chip clicks
                         evt.stopPropagation();
                     },
                 },
             },
-        }) as MountViewResult<any>;
+        });
 
         this.node = this.nodeMounted.view as HTMLDivElement;
 
@@ -216,7 +216,7 @@ export class AccessoryBox extends Lifecycle {
         const ref =
             this.options.accessoryStyle === "top"
                 ? this.selectUIMask
-                : (this.selectUIMask.nextSibling as ChildNode | null);
+                : (this.selectUIMask.nextSibling as ChildNode);
 
         this.parentMask.insertBefore(this.node, ref);
     }
@@ -224,11 +224,11 @@ export class AccessoryBox extends Lifecycle {
     /**
      * Assigns the {@link ModelManager} used to run selection pipelines and mutate selection state.
      *
-     * @param {ModelManager<MixedItem, MixedAdapter> | null} modelManager - Model manager controlling option state.
+     * @param {ModelManager<MixedItem, MixedAdapter>} modelManager - Model manager controlling option state.
      * @returns {void}
      */
     public setModelManager(
-        modelManager: ModelManager<MixedItem, MixedAdapter> | null,
+        modelManager: ModelManager<MixedItem, MixedAdapter>,
     ): void {
         this.modelManager = modelManager;
     }

@@ -229,7 +229,9 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
         const input = this.view?.view?.tags?.OptionInput;
         const viewEl = this.view?.getView?.();
 
-        if (input) (input as HTMLInputElement).checked = value;
+        if (input) {
+            input.checked = value;
+        }
 
         if (viewEl && this.targetElement) {
             viewEl.classList.toggle("checked", !!value);
@@ -237,7 +239,9 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
             this.targetElement.toggleAttribute("selected", !!value);
         }
 
-        if (this.targetElement) this.targetElement.selected = value;
+        if (this.targetElement) {
+            this.targetElement.selected = value;
+        }
 
         iEvents.callEvent<[OptionModel, boolean]>([this, value], ...this.privOnInternalSelected);
     }
@@ -284,7 +288,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      * @returns {DOMStringMap}
      */
     public get dataset(): DOMStringMap {
-        return this.targetElement?.dataset ?? ({} as DOMStringMap);
+        return this.targetElement?.dataset ?? {};
     }
 
     /**
@@ -377,8 +381,12 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
 
         const imageTag = this.view.view.tags.OptionImage;
         if (imageTag && this.hasImage) {
-            (imageTag as HTMLImageElement).src = this.imageSrc;
-            (imageTag as HTMLImageElement).alt = this.text;
+            if (imageTag.src != this.imageSrc) {
+                imageTag.src = this.imageSrc;
+            }
+            if (imageTag.alt != this.text) {
+                imageTag.alt = this.text;
+            }
         }
 
         if (this.targetElement) this.selectedNonTrigger = this.targetElement.selected;

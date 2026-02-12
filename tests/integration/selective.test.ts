@@ -38,7 +38,7 @@ describe('Selective UI Integration', () => {
             SelectiveUI.bind('#test-select');
 
             const wrapper = select.parentElement as HTMLElement;
-            expect(wrapper.classList.contains('selective-ui-MAIN')).toBe(true);
+            expect(wrapper.classList.contains('seui-MAIN')).toBe(true);
         });
 
         test('should handle multiple selects', () => {
@@ -47,7 +47,7 @@ describe('Selective UI Integration', () => {
 
             SelectiveUI.bind('select');
 
-            const wrappers = document.querySelectorAll('.selective-ui-MAIN');
+            const wrappers = document.querySelectorAll('.seui-MAIN');
             expect(wrappers.length).toBe(2);
         });
 
@@ -152,7 +152,7 @@ describe('Selective UI Integration', () => {
             api.open();
             await waitFor(250);
 
-            const popup = document.querySelector('.selective-ui-popup') as HTMLElement;
+            const popup = document.querySelector('.seui-popup') as HTMLElement;
             expect(popup).toBeVisible();
         });
 
@@ -165,7 +165,7 @@ describe('Selective UI Integration', () => {
             api.close();
             await waitFor(250);
 
-            const popup = document.querySelector('.selective-ui-popup') as HTMLElement;
+            const popup = document.querySelector('.seui-popup') as HTMLElement;
             expect(popup).not.toBeVisible();
         });
     });

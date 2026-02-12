@@ -1,8 +1,8 @@
-.selective-ui-MAIN {
+.seui-MAIN {
     display: inline-block;
     max-width: min-content;
 }
-.selective-ui-MAIN, .selective-ui-MAIN * {
+.seui-MAIN, .seui-MAIN * {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
@@ -15,10 +15,10 @@
 
     line-height: normal;
 }
-.selective-ui-MAIN > select.init {
+.seui-MAIN > select.init {
     display: none;
 }
-.selective-ui-MAIN > .selective-ui-view {
+.seui-MAIN > .seui-view {
     position: relative;
     width: 100%;
     height: 100%;
@@ -32,18 +32,18 @@
     border-radius: var(--seui-view-border-radius);
 }
 
-.selective-ui-MAIN.invisible {
+.seui-MAIN.invisible {
     display: none;
 }
 
-.selective-ui-MAIN.disabled {
+.seui-MAIN.disabled {
     --seui-view-background-color: var(--seui-view-ro-background-color);
     --seui-view-border-color: var(--seui-view-ro-border-color);
     --seui-view-text-color: var(--seui-view-ro-text-color);
     --seui-directive-color: var(--seui-directive-ro-color);
 }
 
-.selective-ui-MAIN .hide {
+.seui-MAIN .hide {
     display: none;
 }
 

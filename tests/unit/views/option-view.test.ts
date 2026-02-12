@@ -19,7 +19,7 @@ describe('OptionView', () => {
             
             const viewEl = view.getView();
             expect(viewEl).toBeInTheDocument();
-            expect(viewEl.classList.contains('selective-ui-option-view')).toBe(true);
+            expect(viewEl.classList.contains('seui-option-view')).toBe(true);
         });
 
         test('should render with checkbox for multiple', () => {

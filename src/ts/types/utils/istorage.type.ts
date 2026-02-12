@@ -70,11 +70,15 @@ export interface DefaultConfig {
  * Represents a binding map for component initialization.
  * Includes options, container reference, and lifecycle actions.
  */
-export type BinderMap = {
+export type BinderMap<
+    TContainer extends any = any, 
+    TAction extends Record<string, any> = Record<string, any>, 
+    TSelf extends { deInit?: () => void } & Record<string, any> = { deInit?: () => void } & Record<string, any>
+> = {
     options: SelectiveOptions;       // Component options
-    container?: any;                 // Reference to the container element
-    action?: Record<string, any>;    // Action handlers or methods
-    self?: { deInit?: () => void } & Record<string, any>; // Self-reference with optional cleanup
+    container?: TContainer;                 // Reference to the container element
+    action?: TAction;    // Action handlers or methods
+    self?: TSelf; // Self-reference with optional cleanup
 };
 
 /**

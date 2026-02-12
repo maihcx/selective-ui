@@ -71,7 +71,7 @@ export class EmptyState extends Lifecycle {
      *
      * Side effects:
      * - Creates the root `div` node with `role="status"` and `aria-live="polite"`.
-     * - Applies base CSS classes: `"selective-ui-empty-state"` and `"hide"`.
+     * - Applies base CSS classes: `"seui-empty-state"` and `"hide"`.
      * - Stores the options reference and calls {@link Lifecycle.init}.
      *
      * @param {SelectiveOptions} options - Configuration object containing empty state messages.
@@ -80,12 +80,12 @@ export class EmptyState extends Lifecycle {
     private initialize(options: SelectiveOptions): void {
         this.options = options;
 
-        this.node = Libs.nodeCreator({
+        this.node = Libs.nodeCreator<HTMLDivElement>({
             node: "div",
-            classList: ["selective-ui-empty-state", "hide"],
+            classList: ["seui-empty-state", "hide"],
             role: "status",
             ariaLive: "polite",
-        }) as HTMLDivElement;
+        });
 
         this.init();
     }

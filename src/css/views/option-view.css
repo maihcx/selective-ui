@@ -1,4 +1,4 @@
-.selective-ui-option-view {
+.seui-option-view {
     display: flex;
     width: auto;
     flex-direction: row;
@@ -14,16 +14,16 @@
     border: solid 1px var(--seui-transparent-color);
 }
 
-.selective-ui-option-view.checked {
+.seui-option-view.checked {
     background-color: var(--seui-chkbox-checked-background-color);
     border-color: var(--seui-chkbox-checked-border-color);
 }
 
-.selective-ui-option-view > input {
+.seui-option-view > input {
     display: none;
 }
 
-.selective-ui-option-view > label {
+.seui-option-view > label {
     width: 100%;
     height: 100%;
     display: flex;
@@ -34,7 +34,7 @@
     align-items: center;
 }
 
-.selective-ui-option-view.multiple > label::before {
+.seui-option-view.multiple > label::before {
     content: "";
     display: block;
     width: 17px;
@@ -48,13 +48,13 @@
     transition: all 200ms, background 200ms ease-in-out;
 }
 
-.selective-ui-option-view.multiple.checked > label::before {
+.seui-option-view.multiple.checked > label::before {
     color: var(--seui-view-background-color);
     background: var(--seui-chkbox-checked-color) url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTciIGhlaWdodD0iMTciIHZpZXdCb3g9IjAgMCAxNyAxNyIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik04LjE2ODQ3IDEyLjM4MDhDNy43Nzc3OCAxMi43NzIyIDcuMTQzNTMgMTIuNzcyMiA2Ljc1Mjg0IDEyLjM4MDhMMi43NDQ5OCA4LjM2NDlDMi4zNTU0IDcuOTc0NTQgMi4zNTU0IDcuMzQyNDcgMi43NDQ5OCA2Ljk1MjFMMy4xNjQ1MiA2LjUzMTczQzMuNTU1MiA2LjE0MDI3IDQuMTg5NDYgNi4xNDAyNyA0LjU4MDE0IDYuNTMxNzNMNi43NTI4NCA4LjcwODc4QzcuMTQzNTIgOS4xMDAyNCA3Ljc3Nzc4IDkuMTAwMjQgOC4xNjg0NiA4LjcwODc4TDEyLjI0OTggNC42MTkyM0MxMi42NDA1IDQuMjI3NzcgMTMuMjc0OCA0LjIyNzc3IDEzLjY2NTUgNC42MTkyM0wxNC4wODUgNS4wMzk2QzE0LjQ3NDYgNS40Mjk5NyAxNC40NzQ2IDYuMDYyMDQgMTQuMDg1IDYuNDUyNEw4LjE2ODQ3IDEyLjM4MDhaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K) 50% 40% no-repeat;
     border: 1px solid var(--seui-chkbox-checked-color);
 }
 
-.selective-ui-option-view > label > div {
+.seui-option-view > label > div {
     width: 100%;
     height: 100%;
 
@@ -64,68 +64,68 @@
     white-space: nowrap;
 }
 
-.selective-ui-option-view > label.align-horizontal-left > div {
+.seui-option-view > label.align-horizontal-left > div {
     justify-content: flex-start;
 }
 
-.selective-ui-option-view > label.align-horizontal-center > div {
+.seui-option-view > label.align-horizontal-center > div {
     justify-content: center;
 }
 
-.selective-ui-option-view > label.align-horizontal-right > div {
+.seui-option-view > label.align-horizontal-right > div {
     justify-content: flex-end;
 }
 
-.selective-ui-option-view > label.align-vertical-left > div {
+.seui-option-view > label.align-vertical-left > div {
     align-items: flex-start;
 }
 
-.selective-ui-option-view > label.align-vertical-center > div {
+.seui-option-view > label.align-vertical-center > div {
     align-items: center;
 }
 
-.selective-ui-option-view > label.align-vertical-right > div {
+.seui-option-view > label.align-vertical-right > div {
     align-items: flex-end;
 }
 
-.selective-ui-option-view.hide {
+.seui-option-view.hide {
     display: none;
 }
 
-.selective-ui-option-view.highlight {
+.seui-option-view.highlight {
     background-color: var(--seui-chkbox-hover-background-color);
     border-color: var(--seui-chkbox-hover-border-color);
 }
 
-.selective-ui-option-view.highlight.checked {
+.seui-option-view.highlight.checked {
     background-color: var(--seui-chkbox-checked-hover-background-color);
     border-color: var(--seui-chkbox-checked-hover-border-color);
 }
 
-.selective-ui-option-view.has-image {
+.seui-option-view.has-image {
     gap: 10px;
 }
 
-.selective-ui-option-view.has-image.image-top {
+.seui-option-view.has-image.image-top {
     flex-direction: column;
     align-items: center;
     text-align: center;
 }
 
-.selective-ui-option-view.has-image.image-right {
+.seui-option-view.has-image.image-right {
     flex-direction: row-reverse;
 }
 
-.selective-ui-option-view.has-image.image-bottom {
+.seui-option-view.has-image.image-bottom {
     flex-direction: column-reverse;
 }
 
-.selective-ui-option-view .option-image {
+.seui-option-view .option-image {
     object-fit: cover;
     flex-shrink: 0;
 }
 
-.selective-ui-option-view.multiple.has-image > label::before {
+.seui-option-view.multiple.has-image > label::before {
     order: -1;
     display: none;
 }

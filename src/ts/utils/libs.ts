@@ -61,65 +61,65 @@ export class Libs {
     }
 
     /**
-     * Resolves a selector, NodeList, or single Element into an array of elements.
+     * Resolves a selector, NodeList, or single HTMLElement into an array of elements.
      * Returns an empty array if nothing is found.
      *
-     * @param {string|NodeListOf<Element>|Element|HTMLElement|ArrayLike<Element>|null} queryCommon - CSS selector, NodeList, or Element.
-     * @returns {Element[]} - Array of matched elements (empty if none).
+     * @param {string|NodeListOf<HTMLElement>|HTMLElement|HTMLElement|ArrayLike<HTMLElement>|null} queryCommon - CSS selector, NodeList, or HTMLElement.
+     * @returns {HTMLElement[]} - Array of matched elements (empty if none).
      */
-    public static getElements(
+    public static getElements<T extends HTMLElement[]>(
         queryCommon:
             | string
-            | NodeListOf<Element>
+            | NodeListOf<HTMLElement>
             | Element
             | HTMLElement
-            | ArrayLike<Element>
+            | ArrayLike<HTMLElement>
             | null
             | undefined
-    ): Element[] {
-        if (!queryCommon) return [];
+    ): T {
+        if (!queryCommon) return [] as T;
 
         if (typeof queryCommon === "string") {
-            const nodeList = document.querySelectorAll(queryCommon);
-            return Array.from(nodeList);
+            const nodeList = document.querySelectorAll<HTMLElement>(queryCommon);
+            return Array.from(nodeList) as T;
         }
 
-        if (queryCommon instanceof Element) {
-            return [queryCommon];
+        if (queryCommon instanceof HTMLElement) {
+            return [queryCommon] as T;
         }
 
         // NodeList or array-like
         if (queryCommon instanceof NodeList || Array.isArray(queryCommon)) {
-            return Array.from(queryCommon);
+            return Array.from(queryCommon) as T;
         }
 
-        return [];
+        return [] as T;
     }
 
     /**
-     * Creates a new Element based on a NodeSpec and applies attributes, classes, styles, dataset, and events.
+     * Creates a new HTMLElement based on a NodeSpec and applies attributes, classes, styles, dataset, and events.
      *
      * @param {NodeSpec} data - Specification describing the element to create.
-     * @returns {Element} - The created element.
+     * @returns {HTMLElement} - The created element.
      */
-    public static nodeCreator(data: Partial<NodeSpec> = {}): Element {
+    public static nodeCreator<T extends HTMLElement>(data: Partial<NodeSpec> = {}): T {
         const nodeName = (data.node ?? "div") as string;
-        return this.nodeCloner(document.createElement(nodeName), data as NodeSpec, true);
+        return this.nodeCloner<T>(document.createElement(nodeName), data as NodeSpec, true);
     }
 
     /**
-     * Clones an element (or converts a Node to Element) and applies NodeSpec options.
+     * Clones an element (or converts a Node to HTMLElement) and applies NodeSpec options.
      * When systemNodeCreate=true, uses the provided node as-is.
      *
-     * @param {Element} node - The element to clone or use.
+     * @param {HTMLElement} node - The element to clone or use.
      * @param {NodeSpec|null} _nodeOption - Options (classList, style, dataset, event, other props).
      * @param {boolean} systemNodeCreate - If true, do not clone; use original node.
-     * @returns {Element} - The processed element.
+     * @returns {HTMLElement} - The processed element.
      */
-    public static nodeCloner(node: Element = document.documentElement, _nodeOption: NodeSpec | null = null, systemNodeCreate = false): Element {
+    public static nodeCloner<T extends HTMLElement>(node: HTMLElement = document.documentElement, _nodeOption: NodeSpec | null = null, systemNodeCreate = false): T {
         const nodeOption: Record<string, unknown> = { ...(_nodeOption ?? {}) };
 
-        const element_creation: Element = systemNodeCreate ? node : this.nodeToElement(node.cloneNode(true));
+        const element_creation: T = systemNodeCreate ? node as T : node.cloneNode(true) as T;
 
         const classList = nodeOption.classList;
         if (typeof classList === "string") {
@@ -185,54 +185,30 @@ export class Libs {
     }
 
     /**
-     * Ensures the given Node is an Element; throws if not.
-     *
-     * @param {Node} node - The node to validate.
-     * @returns {Element} - The element cast.
-     * @throws {TypeError} - If node is not an Element.
-     */
-    public static nodeToElement(node: Node): Element {
-        if (node instanceof Element) return node;
-        throw new TypeError("Node is not an Element");
-    }
-
-    /**
-     * Mounts a view from a plain object specification and returns a typed result
-     * containing the root element and a tag map.
-     *
-     * @template TTags
-     * @param {object} rawObj - The specification describing elements and tags.
-     * @returns {MountViewResult<TTags>} - The mounted view and its tag references.
-     */
-    public static mountView<TTags extends Record<string, any>>(rawObj: Record<string, any>): MountViewResult<TTags> {
-        return this.mountNode<TTags>(rawObj) as MountViewResult<TTags>;
-    }
-
-    /**
      * Recursively builds DOM nodes from a specification object, appends/prepends them
      * to an optional parent, and returns either a tag map or a full MountViewResult.
      *
      * @template TTags
      * @param {Object<string, any>} rawObj - Node spec (keys -> { tag, child }).
-     * @param {Element|null} [parentE=null] - Parent to attach into; if null, returns root.
+     * @param {HTMLElement|null} [parentE=null] - Parent to attach into; if null, returns root.
      * @param {boolean} [isPrepend=false] - If true, prepend; otherwise append.
      * @param {boolean} [isRecusive=false] - Internal flag for recursion control.
      * @param {TTags|Object} [recursiveTemp={}] - Accumulator for tag references.
-     * @returns {MountViewResult<TTags>|TTags} - Tag map or the final mount result.
+     * @returns {TTags} - Tag map or the final mount result.
      */
     public static mountNode<TTags extends Record<string, any>>(
         rawObj: Record<string, any>,
-        parentE: Element | null = null,
+        parentE: HTMLElement | null = null,
         isPrepend = false,
         isRecusive = false,
         recursiveTemp: any = {}
-    ): MountViewResult<TTags> | TTags {
-        let view: Element | null = null;
+    ): TTags {
+        let view: HTMLElement | null = null;
 
         for (const key in rawObj) {
             const singleObj = rawObj[key];
-            const tag: Element =
-                singleObj?.tag?.tagName ? (singleObj.tag as Element) : (this.nodeCreator(singleObj.tag) as Element);
+            const tag: HTMLElement =
+                singleObj?.tag?.tagName ? (singleObj.tag as HTMLElement) : (this.nodeCreator(singleObj.tag) as HTMLElement);
 
             recursiveTemp[key] = tag;
 
@@ -349,7 +325,7 @@ export class Libs {
     /**
      * Removes a binder map entry for the given element from the global storage.
      *
-     * @param {HTMLElement} element - Element key to remove from the binder map.
+     * @param {HTMLElement} element - HTMLElement key to remove from the binder map.
      * @returns {boolean} - True if an entry existed and was removed.
      */
     public static removeBinderMap(element: HTMLElement): boolean {
@@ -359,17 +335,17 @@ export class Libs {
     /**
      * Retrieves the binder map entry associated with the given element.
      *
-     * @param {HTMLElement} item - Element key whose binder map is requested.
-     * @returns {BinderMap | null} - The stored binder map value or undefined if absent.
+     * @param {HTMLElement} item - HTMLElement key whose binder map is requested.
+     * @returns {BinderMap | any} - The stored binder map value or undefined if absent.
      */
-    public static getBinderMap(item: HTMLElement): BinderMap | null {
-        return this.iStorage.bindedMap.get(item);
+    public static getBinderMap<T extends BinderMap | any>(item: HTMLElement): T {
+        return this.iStorage.bindedMap.get(item) as T;
     }
 
     /**
      * Sets or updates the binder map entry for a given element.
      *
-     * @param {HTMLElement} item - Element key to associate with the binder map.
+     * @param {HTMLElement} item - HTMLElement key to associate with the binder map.
      * @param {BinderMap} bindMap - Value to store in the binder map.
      */
     public static setBinderMap(item: HTMLElement, bindMap: BinderMap): void {
@@ -379,7 +355,7 @@ export class Libs {
     /**
      * Removes an unbinder map entry for the given element from the global storage.
      *
-     * @param {HTMLElement} element - Element key to remove from the unbinder map.
+     * @param {HTMLElement} element - HTMLElement key to remove from the unbinder map.
      * @returns {boolean} - True if an entry existed and was removed.
      */
     public static removeUnbinderMap(element: HTMLElement): boolean {
@@ -389,7 +365,7 @@ export class Libs {
     /**
      * Retrieves the unbinder map entry associated with the given element.
      *
-     * @param {HTMLElement} item - Element key whose unbinder map is requested.
+     * @param {HTMLElement} item - HTMLElement key whose unbinder map is requested.
      * @returns {unknown} - The stored unbinder map value or undefined if absent.
      */
     public static getUnbinderMap(item: HTMLElement): unknown {
@@ -399,7 +375,7 @@ export class Libs {
     /**
      * Sets or updates the unbinder map entry for a given element.
      *
-     * @param {HTMLElement} item - Element key to associate with the unbinder map.
+     * @param {HTMLElement} item - HTMLElement key to associate with the unbinder map.
      * @param {BinderMap} bindMap - Value to store in the unbinder map.
      */
     public static setUnbinderMap(item: HTMLElement, bindMap: BinderMap): void {
@@ -440,7 +416,7 @@ export class Libs {
             .replace(/\`\>/g, ">")
             .trim();
 
-        const doc = globalThis?.document as Document | undefined;
+        const doc = globalThis?.document;
 
         if (!doc || typeof doc.createElement !== "function") {
             s = s
@@ -560,7 +536,7 @@ export class Libs {
         if (v.endsWith("rem")) return fs * parseFloat(v) + "px";
 
         // fallback: DOM measure
-        const el = this.nodeCreator({ node: "div", style: { height: v, opacity: "0" } }) as HTMLElement;
+        const el = this.nodeCreator({ node: "div", style: { height: v, opacity: "0" } });
         document.body.appendChild(el);
         const px = el.offsetHeight + "px";
         el.remove();

@@ -72,7 +72,7 @@ describe('Performance Tests', () => {
             await waitFor(250);
 
             const searchInput = document.querySelector(
-                '.selective-ui-searchbox-input'
+                '.seui-searchbox-input'
             ) as HTMLInputElement;
 
             const startTime = performance.now();
@@ -193,7 +193,7 @@ describe('Performance Tests', () => {
             await waitFor(250);
 
             const searchInput = document.querySelector(
-                '.selective-ui-searchbox-input'
+                '.seui-searchbox-input'
             ) as HTMLInputElement;
 
             const startTime = performance.now();
@@ -231,7 +231,7 @@ describe('Performance Tests', () => {
             await waitFor(250);
 
             const searchInput = document.querySelector(
-                '.selective-ui-searchbox-input'
+                '.seui-searchbox-input'
             ) as HTMLInputElement;
 
             const startTime = performance.now();
@@ -266,7 +266,7 @@ describe('Performance Tests', () => {
             await waitFor(250);
 
             const popup = document.querySelector(
-                '.selective-ui-popup'
+                '.seui-popup'
             ) as HTMLElement;
 
             const startTime = performance.now();

@@ -1,4 +1,4 @@
-.selective-ui-searchbox {
+.seui-searchbox {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -11,7 +11,7 @@
     height: 100%;
 }
 
-.selective-ui-searchbox-input {
+.seui-searchbox-input {
     width: 100%;
     height: calc(100% - 10px);
     border: 0;

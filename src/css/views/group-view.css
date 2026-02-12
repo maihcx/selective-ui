@@ -1,14 +1,14 @@
-.selective-ui-group {
+.seui-group {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-.selective-ui-group.hide {
+.seui-group.hide {
     display: none;
 }
 
-.selective-ui-group-header {
+.seui-group-header {
     font-family: var(--seui-view-text-style);
     font-size: var(--seui-view-text-size);
     font-weight: 600;
@@ -27,7 +27,7 @@
     gap: 8px;
 }
 
-.selective-ui-group-header::before {
+.seui-group-header::before {
     content: "";
     display: inline-block;
     width: 0;
@@ -39,23 +39,23 @@
     transform: rotate(90deg);
 }
 
-.selective-ui-group.collapsed .selective-ui-group-header::before {
+.seui-group.collapsed .seui-group-header::before {
     transform: rotate(0deg);
 }
 
-.selective-ui-group-items {
+.seui-group-items {
     display: flex;
     flex-direction: column;
     gap: 2px;
     padding-left: 16px;
 }
 
-.selective-ui-group.collapsed .selective-ui-group-items {
+.seui-group.collapsed .seui-group-items {
     display: none;
 }
 
 /* Option trong group có indent nhẹ hơn */
-.selective-ui-group-items .selective-ui-option-view {
+.seui-group-items .seui-option-view {
     padding-left: 12px;
     border-left: 2px solid #e0e0e0;
     margin-left: 4px;

@@ -20,11 +20,11 @@ export type NodeSpec = {
 
 /**
  * Generic mount result shape used across views.
- * Returned by mountView/mountNode utilities.
+ * Returned by mountNode utilities.
  *
  * @template TTags - A map of tag names to their corresponding HTMLElement instances.
  */
-export type MountViewResult<TTags extends Record<string, HTMLElement>> = {
+export type MountViewResult<TTags extends Record<string, HTMLElement> = Record<string, HTMLElement>> = {
     view: HTMLElement | null;                   // Root element of the mounted view
     tags: TTags & { id: string };               // Tag map with an additional unique ID
 };
