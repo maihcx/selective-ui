@@ -964,7 +964,7 @@ export class VirtualRecyclerView<
             this.adapter!.onViewHolder(item, (item as any).view, index);
         }
 
-        const el = (item as any).view?.getView?.() as HTMLElement | undefined;
+        const el = item.view?.getView?.() as HTMLElement | undefined;
         if (el) {
             this.ensureDomOrder(index, el);
             this.created.set(index, el);
