@@ -381,8 +381,12 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
 
         const imageTag = this.view.view.tags.OptionImage;
         if (imageTag && this.hasImage) {
-            imageTag.src = this.imageSrc;
-            imageTag.alt = this.text;
+            if (imageTag.src != this.imageSrc) {
+                imageTag.src = this.imageSrc;
+            }
+            if (imageTag.alt != this.text) {
+                imageTag.alt = this.text;
+            }
         }
 
         if (this.targetElement) this.selectedNonTrigger = this.targetElement.selected;
