@@ -1,3 +1,17 @@
+# 1.2.6 (2026-02-12)
+
+### Fixes
+
+- **OptionModel** Avoid reloading images in option tags (this is a problem that occurs when using VirtualScroll)
+
+### Features
+
+- **Selective,SelectBox** Initial plugin support
+
+### Optimizations
+
+- **ALL** Optimizing source code and JSDoc
+
 # 1.2.5 (2026-01-30)
 
 ### Fixes
