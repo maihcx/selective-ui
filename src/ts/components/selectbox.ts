@@ -145,6 +145,16 @@ export class SelectBox extends Lifecycle {
     private isBeforeSearch = false;
 
     /**
+     * Tracks whether {@link deInit} has already run.
+     *
+     * This guards teardown work (including plugin lifecycle hooks) from running more than once
+     * when {@link deInit} is called separately before {@link destroy}.
+     *
+     * @internal
+     */
+    private hasDeInitialized = false;
+
+    /**
      * Selective context (global helper / registry).
      *
      * Used to locate the instance wrapper via `Selective.find(...)` and to close other open instances.
@@ -613,6 +623,10 @@ export class SelectBox extends Lifecycle {
      * preventing memory leaks and unintended background updates.
      */
     public deInit(): void {
+        if (this.hasDeInitialized) {
+            return;
+        }
+
         const c: any = this.container ?? {};
         const { selectObserver, datasetObserver } = c;
 
@@ -624,6 +638,8 @@ export class SelectBox extends Lifecycle {
 
         if (selectObserver?.disconnect) selectObserver.disconnect();
         if (datasetObserver?.disconnect) datasetObserver.disconnect();
+
+        this.hasDeInitialized = true;
     }
 
     /**
