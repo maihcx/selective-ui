@@ -2,29 +2,46 @@
  * Represents the state of pagination for AJAX-based data loading.
  */
 export type PaginationState = {
-    currentPage: number;           // Current page number
-    totalPages: number;            // Total number of pages available
-    hasMore: boolean;              // Indicates if more pages are available
-    isLoading: boolean;            // Indicates if data is currently being loaded
-    currentKeyword: string;        // Current search keyword used for filtering
-    isPaginationEnabled: boolean;  // Indicates if pagination is enabled
+    /** Current 1-based page index. */
+    currentPage: number;
+    /** Total number of pages available for the current query. */
+    totalPages: number;
+    /** Whether another page can be requested. */
+    hasMore: boolean;
+    /** Whether a request is currently in flight. */
+    isLoading: boolean;
+    /** Keyword currently used to fetch/filter data. */
+    currentKeyword: string;
+    /** Whether pagination behavior is enabled for this datasource. */
+    isPaginationEnabled: boolean;
 };
 
 /**
  * Represents an individual option item returned from an AJAX request.
  */
 export type AjaxOptionItem = {
-    type?: "option";               // Type identifier (optional, defaults to "option")
-    value: string;                 // The value of the option
-    text: string;                  // Display text for the option
-    selected?: boolean;            // Indicates if the option is selected
-    data?: Record<string, any>;    // Additional custom data associated with the option
-    imgsrc?: string;               // Optional image source for the option
-    id?: string;                   // Optional unique identifier
-    key?: string;                  // Optional key for internal mapping
-    label?: string;                // Optional label for accessibility or grouping
-    name?: string;                 // Optional name attribute
-    title?: string;                // Optional title attribute
+    /** Type discriminator; defaults to `"option"` when omitted. */
+    type?: "option";
+    /** Serialized option value submitted to forms / APIs. */
+    value: string;
+    /** Display text shown in the UI. */
+    text: string;
+    /** Whether the option should start in selected state. */
+    selected?: boolean;
+    /** Arbitrary metadata preserved through normalization. */
+    data?: Record<string, any>;
+    /** Optional image source for custom rendering. */
+    imgsrc?: string;
+    /** Optional unique identifier from backend data. */
+    id?: string;
+    /** Optional stable key for mapping or diffing. */
+    key?: string;
+    /** Optional label override (e.g. accessibility/grouping use-cases). */
+    label?: string;
+    /** Optional name attribute for compatibility with legacy payloads. */
+    name?: string;
+    /** Optional title attribute for tooltip/semantics. */
+    title?: string;
 };
 
 /**
@@ -32,10 +49,14 @@ export type AjaxOptionItem = {
  * Contains a label and a list of options.
  */
 export type AjaxOptGroupItem = {
-    type: "optgroup";              // Type identifier for option groups
-    label: string;                 // Display label for the group
-    data?: Record<string, any>;    // Additional custom data for the group
-    options?: Array<{              // List of options within the group
+    /** Type discriminator for grouped entries. */
+    type: "optgroup";
+    /** Human-readable label for the group. */
+    label: string;
+    /** Group-level metadata from the datasource. */
+    data?: Record<string, any>;
+    /** Option children when backend uses `options` as group payload key. */
+    options?: Array<{
         value: string;
         text: string;
         selected?: boolean;
@@ -47,11 +68,16 @@ export type AjaxOptGroupItem = {
         name?: string;
         title?: string;
     }>;
-    items?: any[];                 // Optional raw items for flexibility
-    isGroup?: boolean;             // Indicates if this is treated as a group
-    group?: boolean;               // Alternative flag for grouping
-    name?: string;                 // Optional name attribute
-    title?: string;                // Optional title attribute
+    /** Raw child payload when backend uses non-standard item structures. */
+    items?: any[];
+    /** Compatibility flag used by some APIs to mark grouped entries. */
+    isGroup?: boolean;
+    /** Legacy alias of `isGroup`. */
+    group?: boolean;
+    /** Optional name attribute for compatibility with legacy payloads. */
+    name?: string;
+    /** Optional title attribute for tooltip/semantics. */
+    title?: string;
 };
 
 /**
@@ -68,20 +94,28 @@ export type NormalizedAjaxItem =
  * Represents the result of parsing an AJAX response.
  */
 export type ParseResponseResult = {
-    items: NormalizedAjaxItem[];   // List of normalized items
-    hasPagination: boolean;        // Indicates if pagination is supported
-    page: number;                  // Current page number
-    totalPages: number;            // Total number of pages
-    hasMore: boolean;              // Indicates if more data is available
+    /** Normalized items ready to be consumed by the adapter layer. */
+    items: NormalizedAjaxItem[];
+    /** Whether pagination metadata is present and should be honored. */
+    hasPagination: boolean;
+    /** Current 1-based page index returned from the server. */
+    page: number;
+    /** Total number of pages for the current query. */
+    totalPages: number;
+    /** Whether another page can be fetched. */
+    hasMore: boolean;
 };
 
 /**
  * Configuration for making AJAX requests to fetch options or groups.
  */
 export type AjaxConfig = {
-    url: string;                   // Endpoint URL for the AJAX request
-    method?: "GET" | "POST";       // HTTP method (default: GET)
-    keepSelected?: boolean;        // Whether to keep previously selected items after refresh
+    /** Endpoint URL used for remote search/pagination requests. */
+    url: string;
+    /** HTTP method used by requests (defaults to `GET`). */
+    method?: "GET" | "POST";
+    /** Preserve selected options when replacing remote results. */
+    keepSelected?: boolean;
 
     /**
      * Data payload for the request.
