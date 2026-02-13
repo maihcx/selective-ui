@@ -26,7 +26,7 @@ describe('ElementAdditionObserver', () => {
     test('onDetect() registers callback', () => {
         const fn = jest.fn();
         observer.onDetect(fn);
-        observer.start('select');
+        observer.connect('select');
 
         const el = document.createElement('select');
 
@@ -41,7 +41,7 @@ describe('ElementAdditionObserver', () => {
         const fn = jest.fn();
         observer.onDetect(fn);
         observer.clearDetect();
-        observer.start('select');
+        observer.connect('select');
 
         const el = document.createElement('select');
 
@@ -55,7 +55,7 @@ describe('ElementAdditionObserver', () => {
     test('detects direct added element with matching tag', () => {
         const fn = jest.fn();
         observer.onDetect(fn);
-        observer.start('select');
+        observer.connect('select');
 
         const select = document.createElement('select');
 
@@ -70,7 +70,7 @@ describe('ElementAdditionObserver', () => {
     test('detects nested matching elements inside added subtree', () => {
         const fn = jest.fn();
         observer.onDetect(fn);
-        observer.start('select');
+        observer.connect('select');
 
         const wrapper = document.createElement('div');
         const select = document.createElement('select');
@@ -87,7 +87,7 @@ describe('ElementAdditionObserver', () => {
     test('ignores non-element nodes', () => {
         const fn = jest.fn();
         observer.onDetect(fn);
-        observer.start('select');
+        observer.connect('select');
 
         const text = document.createTextNode('abc');
 
@@ -98,18 +98,18 @@ describe('ElementAdditionObserver', () => {
         expect(fn).not.toHaveBeenCalled();
     });
 
-    test('start() does not create multiple observers', () => {
-        observer.start('select');
-        observer.start('select');
+    test('connect() does not create multiple observers', () => {
+        observer.connect('select');
+        observer.connect('select');
 
         expect(MutationObserver).toHaveBeenCalledTimes(1);
     });
 
-    test('stop() disconnects observer when active', () => {
-        observer.start('select');
+    test('disconnect() disconnects observer when active', () => {
+        observer.connect('select');
 
         const instance = (MutationObserver as jest.Mock).mock.results[0].value;
-        observer.stop();
+        observer.disconnect();
 
         expect(instance.disconnect).toHaveBeenCalledTimes(1);
     });
