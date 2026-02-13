@@ -203,10 +203,11 @@ describe('MixedAdapter', () => {
             
             const newModel = new OptionModel({}, newOption);
             
-            adapter.setItems([newModel]);
+            adapter.setItems([newModel]).then(() => {
+                expect(adapter.items.length).toBe(1);
+                expect(adapter.flatOptions.length).toBe(1);
+            });
             
-            expect(adapter.items.length).toBe(1);
-            expect(adapter.flatOptions.length).toBe(1);
         });
 
         test('should sync from source', () => {
@@ -217,10 +218,10 @@ describe('MixedAdapter', () => {
             
             const newModel = new OptionModel({}, newOption);
             
-            adapter.syncFromSource([newModel]);
-            
-            expect(adapter.items.length).toBe(1);
-            expect(adapter.flatOptions.length).toBe(1);
+            adapter.syncFromSource([newModel]).then(() => {
+                expect(adapter.items.length).toBe(1);
+                expect(adapter.flatOptions.length).toBe(1);
+            });
         });
 
         test('should update data without changing reference', () => {
@@ -376,12 +377,12 @@ describe('MixedAdapter', () => {
             newOption.text = 'Option 3';
             const newModel = new OptionModel({}, newOption);
             
-            adapter.setItems([newModel]);
-            
-            jest.runAllTimers();
-            
-            expect(callback).toHaveBeenCalled();
-            expect(adapter.items.length).toBe(1);
+            adapter.setItems([newModel]).then(() => {
+                jest.runAllTimers();
+                
+                expect(callback).toHaveBeenCalled();
+                expect(adapter.items.length).toBe(1);
+            });
         });
 
         test('should emit changing event before prop changes', () => {

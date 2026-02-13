@@ -2,8 +2,7 @@
  * Unit Tests for EmptyState
  */
 
-import { EmptyState } from "../../../src/ts/components/popup/empty-state";
-import { Libs } from "../../../src/ts/utils/libs";
+import { EmptyState } from "src/ts/components/popup/empty-state";
 
 describe("EmptyState", () => {
     const options = {

@@ -2,12 +2,12 @@
  * @jest-environment jsdom
  */
 
-import { Popup } from "../../../src/ts/components/popup/popup";
-import { Libs } from "../../../src/ts/utils/libs";
-import { ResizeObserverService } from "../../../src/ts/services/resize-observer";
-import { ModelManager } from "../../../src/ts/core/model-manager";
+import { Popup } from "src/ts/components/popup/popup";
+import { Libs } from "src/ts/utils/libs";
+import { ResizeObserverService } from "src/ts/services/resize-observer";
+import { ModelManager } from "src/ts/core/model-manager";
 
-jest.mock("../../../src/ts/utils/libs", () => ({
+jest.mock("src/ts/utils/libs", () => ({
     Libs: {
         mountNode: jest.fn(),
         getBinderMap: jest.fn(),
@@ -16,19 +16,19 @@ jest.mock("../../../src/ts/utils/libs", () => ({
     }
 }));
 
-jest.mock("../../../src/ts/components/option-handle", () => ({
+jest.mock("src/ts/components/option-handle", () => ({
     OptionHandle: jest.fn()
 }));
 
-jest.mock("../../../src/ts/components/empty-state", () => ({
+jest.mock("src/ts/components/popup/empty-state", () => ({
     EmptyState: jest.fn()
 }));
 
-jest.mock("../../../src/ts/components/loading-state", () => ({
+jest.mock("src/ts/components/popup/loading-state", () => ({
     LoadingState: jest.fn()
 }));
 
-jest.mock("../../../src/ts/services/resize-observer", () => ({
+jest.mock("src/ts/services/resize-observer", () => ({
     ResizeObserverService: jest.fn()
 }));
 
@@ -110,8 +110,9 @@ describe("Popup", () => {
             node: document.createElement("div"),
             hide: jest.fn(),
             refresh: jest.fn(),
-            OnSelectAll: jest.fn(),
-            OnDeSelectAll: jest.fn()
+            update: jest.fn(),
+            onSelectAll: jest.fn(),
+            onDeSelectAll: jest.fn()
         };
 
         const emptyStateInstance = {
@@ -126,13 +127,13 @@ describe("Popup", () => {
             hide: jest.fn()
         };
 
-        (require("../../../src/ts/components/option-handle").OptionHandle as jest.Mock)
+        (require("src/ts/components/option-handle").OptionHandle as jest.Mock)
             .mockImplementation(() => optionHandleInstance);
 
-        (require("../../../src/ts/components/empty-state").EmptyState as jest.Mock)
+        (require("src/ts/components/popup/empty-state").EmptyState as jest.Mock)
             .mockImplementation(() => emptyStateInstance);
 
-        (require("../../../src/ts/components/loading-state").LoadingState as jest.Mock)
+        (require("src/ts/components/popup/loading-state").LoadingState as jest.Mock)
             .mockImplementation(() => loadingStateInstance);
 
         (ResizeObserverService as jest.Mock).mockImplementation(() => ({

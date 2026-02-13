@@ -39,8 +39,8 @@ import type { SelectivePlugin } from "./types/plugins/plugin.type";
 import type { EffectorInterface } from "./types/services/effector.type";
 import { Libs } from "./utils/libs";
 
-declare const __LIB_VERSION__: string;
-declare const __LIB_NAME__: string;
+const __LIB_VERSION__ = "LIB_VERSION";
+const __LIB_NAME__ = "LIB_NAME";
 
 declare global {
     var GLOBAL_SEUI: SelectiveUIGlobal;

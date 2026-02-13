@@ -125,12 +125,12 @@ describe("ModelManager", () => {
         manager.createModelResources([opt1]);
         manager.load(document.createElement("div"));
 
-        manager.replace([opt1, opt2]);
-
-        const { adapter, recyclerView } = manager.getResources();
-
-        expect(adapter.syncFromSource).toHaveBeenCalledTimes(1);
-        expect(recyclerView.refresh).toHaveBeenCalled();
+        manager.replace([opt1, opt2]).then(() => {
+            const { adapter, recyclerView } = manager.getResources();
+    
+            expect(adapter.syncFromSource).toHaveBeenCalledTimes(1);
+            expect(recyclerView.refresh).toHaveBeenCalled();
+        });
     });
 
     test("update reuses existing OptionModel by value", () => {

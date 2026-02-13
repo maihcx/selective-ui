@@ -4,16 +4,7 @@
  */
 
 import '@testing-library/jest-dom';
-
-class MockMutationObserver implements MutationObserver {
-    constructor(private callback: MutationCallback) { }
-
-    disconnect(): void { }
-    observe(): void { }
-    takeRecords(): MutationRecord[] {
-        return [];
-    }
-}
+import MutationObserver from 'mutation-observer'
 
 class MockResizeObserver implements ResizeObserver {
     constructor(private callback: ResizeObserverCallback) { }
@@ -41,7 +32,7 @@ class MockIntersectionObserver implements IntersectionObserver {
     }
 }
 
-global.MutationObserver = MockMutationObserver;
+global.MutationObserver = MutationObserver;
 global.ResizeObserver = MockResizeObserver;
 global.IntersectionObserver = MockIntersectionObserver;
 
