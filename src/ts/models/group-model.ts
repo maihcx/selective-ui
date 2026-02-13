@@ -78,6 +78,7 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
     public constructor(options: SelectiveOptions, targetElement?: HTMLOptGroupElement) {
         super(options, targetElement ?? null, null);
         this.label = this.targetElement.label;
+        this.collapsed = Libs.string2Boolean(this.targetElement.dataset?.collapsed);
     }
 
     /**
@@ -95,8 +96,6 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      * @override
      */
     public override init(): void {
-        this.collapsed = Libs.string2Boolean(this.targetElement.dataset?.collapsed);
-
         super.init();
         this.mount();
     }
