@@ -78,15 +78,6 @@ export class ElementAdditionObserver<T extends Element = Element> {
     }
 
     /**
-     * Backward-compatible alias for {@link connect}.
-     *
-     * @param tag - Tag name to watch for.
-     */
-    public start(tag: string): void {
-        this.connect(tag);
-    }
-
-    /**
      * Starts observing the document for additions of elements matching the given tag name.
      *
      * Detection includes:
@@ -151,13 +142,6 @@ export class ElementAdditionObserver<T extends Element = Element> {
         this.isActive = false;
         this.observer?.disconnect();
         this.observer = null;
-    }
-
-    /**
-     * Backward-compatible alias for {@link disconnect}.
-     */
-    public stop(): void {
-        this.disconnect();
     }
 
     /**
