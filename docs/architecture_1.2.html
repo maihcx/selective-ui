@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selective UI - Architecture Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .version {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .diagram-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .diagram-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            font-size: 1.8em;
+        }
+        
+        .diagram-section h3 {
+            color: #764ba2;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .mermaid {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .description {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .description p {
+            margin: 8px 0;
+            color: #333;
+        }
+        
+        .legend {
+            background: #fff9e6;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .legend h4 {
+            color: #f57c00;
+            margin-bottom: 10px;
+        }
+        
+        .legend ul {
+            margin-left: 20px;
+            color: #555;
+        }
+        
+        .legend li {
+            margin: 5px 0;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .diagram-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Selective UI - ARCHITECTURE</h1>
+        <p class="version">Version 1.2 | MIT License</p>
+
+        <!-- KIẾN TRÚC TỔNG THỂ -->
+        <div class="diagram-section">
+            <h2>📐 1. OVERALL ARCHITECTURE</h2>
+            
+            <div class="mermaid">
+graph TB
+    subgraph "PUBLIC API LAYER"
+        A[Public API] --> B[bind]
+        A --> C[find]
+        A --> D[destroy]
+        A --> E[rebind]
+        A --> F[effector]
+    end
+    
+    subgraph "CORE CONTROLLER"
+        G[Selective Class]
+        G --> H[Observer Pattern]
+        G --> I[Instance Manager]
+    end
+    
+    subgraph "COMPONENT LAYER"
+        J[SelectBox Component]
+        J --> K[Lifecycle Manager]
+        J --> L[Event System]
+        J --> M[Container Builder]
+    end
+    
+    subgraph "UTILITY LAYER"
+        N[Libs Utilities]
+        N --> O[DOM Helpers]
+        N --> P[Data Processing]
+        N --> Q[Animation/Effects]
+    end
+    
+    subgraph "STORAGE LAYER"
+        R[iStorage]
+        R --> S[Config Manager]
+        R --> T[Instance Maps]
+        R --> U[Default Options]
+    end
+    
+    subgraph "CALLBACK SYSTEM"
+        V[CallbackScheduler]
+        V --> W[Event Queue]
+        V --> X[Debounce Manager]
+    end
+    
+    B --> G
+    C --> G
+    D --> G
+    E --> G
+    F --> Q
+    
+    G --> J
+    G --> R
+    
+    J --> N
+    J --> V
+    
+    N --> R
+    
+    style A fill:#667eea,stroke:#333,stroke-width:3px,color:#fff
+    style G fill:#764ba2,stroke:#333,stroke-width:2px,color:#fff
+    style J fill:#f093fb,stroke:#333,stroke-width:2px,color:#fff
+    style N fill:#4facfe,stroke:#333,stroke-width:2px,color:#fff
+    style R fill:#43e97b,stroke:#333,stroke-width:2px,color:#fff
+    style V fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Describe:</strong></p>
+                <p>• <strong>Public API Layer:</strong> User interface for interacting with the library</p>
+                <p>• <strong>Core Controller:</strong> Lifecycle management and component coordination</p>
+                <p>• <strong>Component Layer:</strong> Build the UI and handle the display logic</p>
+                <p>• <strong>Utility Layer:</strong> Reusable utility functions</p>
+                <p>• <strong>Storage Layer:</strong> Manage configurations and save instances</p>
+                <p>• <strong>Callback System:</strong> Handling events with the debounce mechanism</p>
+            </div>
+        </div>
+
+        <!-- CLASS DIAGRAM -->
+        <div class="diagram-section">
+            <h2>🏗️ 2. CLASS DIAGRAM</h2>
+            
+            <div class="mermaid">
+classDiagram
+    class iStorage {
+        -Map~Element, BindMap~ bindedMap
+        -Map~Element, UnbindMap~ unbindedMap
+        -Array~string~ bindedCommand
+        -Object defaultConfig
+        +60+ config options
+    }
+    
+    class CallbackScheduler {
+        -Map executeStored
+        -Map timerRunner
+        +on(key, callback, options)
+        +off(key)
+        +run(key, params)
+        +clear(key)
+    }
+    
+    class Libs {
+        -static iStorage _iStorage
+        +jsCopyObject(obj)
+        +randomString(length)
+        +getBinderMap(element)
+        +setBinderMap(element, data)
+        +buildConfig(element, options)
+        +100+ utility methods
+    }
+    
+    class Selective {
+        +bind(query, options)
+        +find(query) ActionAPI
+        +destroy(query)
+        +rebind(query, options)
+        +Observer()
+        -applySelectBox(element, options)
+    }
+    
+    class SelectBox {
+        -HTMLSelectElement element
+        -Selective selective
+        -Container container
+        -CallbackScheduler events
+        +mount()
+        +unmount()
+        +on(event, callback)
+        +getAction() ActionAPI
+    }
+    
+    class ActionAPI {
+        +open()
+        +close()
+        +toggle()
+        +setValue(value)
+        +getValue()
+        +setData(data)
+        +getData()
+        +refresh()
+        +reload()
+        +enable()
+        +disable()
+        +search(query)
+        +isEmpty boolean
+        +isOpen boolean
+    }
+    
+    class Effector {
+        -HTMLElement element
+        +show()
+        +hide()
+        +fadeIn()
+        +fadeOut()
+        +slideUp()
+        +slideDown()
+        +position(config)
+    }
+    
+    Selective --> Libs : uses
+    Selective --> iStorage : manages
+    Selective --> SelectBox : creates
+    SelectBox --> CallbackScheduler : uses
+    SelectBox --> ActionAPI : provides
+    SelectBox --> Libs : uses
+    Libs --> iStorage : accesses
+    Effector --> Libs : uses
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Relationships between Classes:</strong></p>
+                <p>• <strong>Selective:</strong> The main controller coordinates the entire system</p>
+                <p>• <strong>SelectBox:</strong> Component core renders UI for each select element</p>
+                <p>• <strong>Libs:</strong> Utility class provides 100+ helper methods</p>
+                <p>• <strong>iStorage:</strong> Singleton stores configuration and instance maps</p>
+                <p>• <strong>CallbackScheduler:</strong> Manage event callbacks with Debounce</p>
+                <p>• <strong>ActionAPI:</strong> Public interface for controlling select boxes</p>
+            </div>
+        </div>
+
+        <!-- LIFECYCLE FLOW -->
+        <div class="diagram-section">
+            <h2>🔄 3. LIFECYCLE FLOW</h2>
+            
+            <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant API as Public API
+    participant SEL as Selective
+    participant SB as SelectBox
+    participant CB as CallbackScheduler
+    participant DOM
+    
+    User->>API: bind(".my-select", options)
+    API->>SEL: bind(query, options)
+    SEL->>DOM: querySelector(query)
+    DOM-->>SEL: HTMLSelectElement[]
+    
+    loop For each element
+        SEL->>SEL: buildConfig(element, options)
+        SEL->>SB: new SelectBox(element)
+        SB->>CB: Initialize event system
+        SB->>DOM: Create UI container
+        SB->>CB: Trigger "load" event
+        CB-->>User: on.load callbacks
+        SB->>SEL: Return ActionAPI
+        SEL->>SEL: Store in bindedMap
+    end
+    
+    SEL-->>API: Binding complete
+    API-->>User: Ready to use
+    
+    Note over User,DOM: User Interaction Phase
+    
+    User->>DOM: Click select box
+    DOM->>SB: mousedown event
+    SB->>CB: Trigger "beforeShow"
+    CB-->>User: on.beforeShow callbacks
+    SB->>DOM: Toggle panel visibility
+    SB->>CB: Trigger "show"
+    CB-->>User: on.show callbacks
+    
+    User->>DOM: Select option
+    DOM->>SB: click event
+    SB->>CB: Trigger "beforeChange"
+    CB-->>User: on.beforeChange callbacks
+    SB->>SB: Update value
+    SB->>DOM: Update UI
+    SB->>CB: Trigger "change"
+    CB-->>User: on.change callbacks
+    
+    Note over User,DOM: Cleanup Phase
+    
+    User->>API: destroy(".my-select")
+    API->>SEL: destroy(query)
+    SEL->>SB: unmount()
+    SB->>CB: Clear all callbacks
+    SB->>DOM: Remove UI elements
+    SB->>SEL: Remove from bindedMap
+    SEL-->>API: Destroyed
+    API-->>User: Cleanup complete
+            </div>
+
+            <div class="legend">
+                <h4>🎯 Event Lifecycle Order:</h4>
+                <ul>
+                    <li><strong>load</strong> → When creating a SelectBox</li>
+                    <li><strong>beforeShow</strong> → Before opening the dropdown</li>
+                    <li><strong>show</strong> → After opening the dropdown</li>
+                    <li><strong>beforeChange</strong> → Before changing the value</li>
+                    <li><strong>change</strong> → After changing the value</li>
+                    <li><strong>beforeClose</strong> → Before closing the dropdown</li>
+                    <li><strong>close</strong> → After closing the dropdown</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- DATA FLOW -->
+        <div class="diagram-section">
+            <h2>📊 4. DATA FLOW</h2>
+            
+            <div class="mermaid">
+graph LR
+    subgraph "INPUT SOURCES"
+        A[HTML Select Options]
+        B[JSON Array]
+        C[AJAX Response]
+        D[Direct setData]
+    end
+    
+    subgraph "DATA PROCESSING"
+        E[Data Parser]
+        E --> F[Normalize Format]
+        F --> G[Apply Filters]
+        G --> H[Group by Category]
+        H --> I[Sort Items]
+    end
+    
+    subgraph "STORAGE"
+        J[(Internal Data Store)]
+        J --> K[Selected Items]
+        J --> L[Available Options]
+        J --> M[Search Cache]
+    end
+    
+    subgraph "RENDERING"
+        N[Virtual Scroll Engine]
+        N --> O[Calculate Viewport]
+        O --> P[Render Visible Items]
+        P --> Q[Apply Search Highlight]
+    end
+    
+    subgraph "OUTPUT"
+        R[DOM Update]
+        R --> S[Update Select Value]
+        R --> T[Update UI Display]
+        R --> U[Trigger Events]
+    end
+    
+    A --> E
+    B --> E
+    C --> E
+    D --> E
+    
+    I --> J
+    J --> N
+    Q --> R
+    
+    style A fill:#e3f2fd,stroke:#1976d2
+    style B fill:#e3f2fd,stroke:#1976d2
+    style C fill:#e3f2fd,stroke:#1976d2
+    style D fill:#e3f2fd,stroke:#1976d2
+    style J fill:#fff3e0,stroke:#f57c00
+    style R fill:#e8f5e9,stroke:#388e3c
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Data Flow Process:</strong></p>
+                <p>• <strong>Input:</strong> Multiple data sources (HTML, JSON, AJAX)</p>
+                <p>• <strong>Processing:</strong> Normalize, filter, group, sort</p>
+                <p>• <strong>Storage:</strong> Internal storage with search cache</p>
+                <p>• <strong>Rendering:</strong> Virtual scroll only renders visible items</p>
+                <p>• <strong>Output:</strong> Update the DOM and trigger events</p>
+            </div>
+        </div>
+
+        <!-- UI COMPONENT STRUCTURE -->
+        <div class="diagram-section">
+            <h2>🎨 5. UI COMPONENT STRUCTURE</h2>
+            
+            <div class="mermaid">
+graph TD
+    A[.seui-container] --> B[.seui-view]
+    A --> C[.seui-panel]
+    
+    B --> D[.seui-placeholder]
+    B --> E[.seui-accessory]
+    B --> F[.seui-arrow]
+    
+    D --> D1[Selected Text/Image]
+    E --> E1[Multi-select Chips]
+    E --> E2[Deselect Buttons]
+    F --> F1[Dropdown Icon]
+    
+    C --> G[.seui-search]
+    C --> H[.seui-selectall]
+    C --> I[.seui-optionlist]
+    C --> J[.seui-loading]
+    
+    G --> G1[Search Input]
+    G --> G2[Clear Button]
+    
+    H --> H1[Select All Button]
+    H --> H2[Deselect All Button]
+    
+    I --> I1[Virtual Scroll Container]
+    I1 --> I2[.seui-option]
+    I1 --> I3[.seui-group]
+    
+    I2 --> I4[Checkbox/Radio]
+    I2 --> I5[Image Optional]
+    I2 --> I6[Label Text]
+    
+    J --> J1[Loading Spinner]
+    J --> J2[Loading Text]
+    
+    style A fill:#667eea,stroke:#333,stroke-width:3px,color:#fff
+    style B fill:#f093fb,stroke:#333,stroke-width:2px
+    style C fill:#4facfe,stroke:#333,stroke-width:2px
+    style I1 fill:#43e97b,stroke:#333,stroke-width:2px
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Component Hierarchy:</strong></p>
+                <p>• <strong>seui-container:</strong> The main container encloses everything</p>
+                <p>• <strong>seui-view:</strong> The section displaying the selected value (clickable)</p>
+                <p>• <strong>seui-panel:</strong> The dropdown panel contains options</p>
+                <p>• <strong>seui-optionlist:</strong> Options list with virtual scroll</p>
+                <p>• <strong>seui-accessory:</strong> Chips display multi-select items</p>
+            </div>
+        </div>
+
+        <!-- EVENT SYSTEM -->
+        <div class="diagram-section">
+            <h2>⚡ 6. EVENT SYSTEM</h2>
+            
+            <div class="mermaid">
+graph TB
+    subgraph "EVENT REGISTRATION"
+        A[User Code]
+        B[CallbackScheduler]
+        A --> |on.load / on.beforeShow / on.show / on.beforeChange / on.change / on.beforeClose / on.close| B
+    end
+    
+    subgraph "CALLBACK SCHEDULER"
+        B --> C[executeStored Map]
+        C --> D[Key: EventType]
+        D --> E[Array of Callbacks]
+        E --> F[Callback 1]
+        E --> G[Callback 2]
+        E --> H[Callback N]
+    end
+    
+    subgraph "DEBOUNCE SYSTEM"
+        I[timerRunner Map]
+        I --> J[Key: EventType]
+        J --> K[Map Index: TimerID]
+        K --> L[setTimeout]
+    end
+    
+    subgraph "EXECUTION FLOW"
+        M[Trigger Event] --> N{Has Callbacks?}
+        N -->|Yes| O[Schedule with Debounce]
+        N -->|No| P[Skip]
+        O --> Q[Clear Previous Timer]
+        Q --> R[Start New Timer]
+        R --> S[Execute Callback]
+        S --> T{Once Flag?}
+        T -->|Yes| U[Remove Callback]
+        T -->|No| V[Keep for Reuse]
+    end
+    
+    subgraph "EVENT TOKEN"
+        W[EventToken] --> X[isContinue]
+        W --> Y[stopPropagation]
+        W --> Z[preventDefault]
+    end
+    
+    B -.-> I
+    S --> W
+    
+    style B fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+    style I fill:#ffd89b,stroke:#333,stroke-width:2px
+    style M fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style W fill:#43e97b,stroke:#333,stroke-width:2px
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Event System Features:</strong></p>
+                <p>• <strong>Debounce:</strong> Each callback has its own timer (default 50ms)</p>
+                <p>• <strong>Once Flag:</strong> The callback only runs once and then deletes itself</p>
+                <p>• <strong>Event Token:</strong> Control propagation as DOM events</p>
+                <p>• <strong>Async Support:</strong> Callbacks can return Promise</p>
+                <p>• <strong>Order Preservation:</strong> Callbacks run in the order of registration</p>
+            </div>
+        </div>
+
+        <!-- STATE MANAGEMENT -->
+        <div class="diagram-section">
+            <h2>🗄️ 7. STATE MANAGEMENT</h2>
+            
+            <div class="mermaid">
+stateDiagram-v2
+    [*] --> Unbound: Create Element
+    
+    Unbound --> Binding: bind() called
+    Binding --> Bound: SelectBox mounted
+    
+    Bound --> Closed: Initial state
+    
+    Closed --> Opening: User clicks
+    Opening --> Opened: Animation complete
+    
+    Opened --> Searching: User types
+    Searching --> Opened: Search complete
+    
+    Opened --> Selecting: User clicks option
+    Selecting --> Changed: Value updated
+    Changed --> Closed: autoclose=true
+    Changed --> Opened: autoclose=false
+    
+    Opened --> Closing: Click outside / ESC
+    Closing --> Closed: Animation complete
+    
+    Closed --> Disabled: disable() called
+    Disabled --> Closed: enable() called
+    
+    Bound --> Loading: AJAX request
+    Loading --> Bound: Data received
+    
+    Bound --> Unbinding: destroy() called
+    Unbinding --> Unbound: Cleanup complete
+    
+    Unbound --> [*]: Element removed
+    
+    note right of Bound
+        State Properties:
+        - isOpen
+        - isDisabled
+        - isLoading
+        - isEmpty
+        - hasSearch
+        - selectedValues[]
+    end note
+            </div>
+
+            <div class="description">
+                <p><strong>📌 State Transitions:</strong></p>
+                <p>• <strong>Unbound → Bound:</strong> Initialization via bind()</p>
+                <p>• <strong>Closed ↔ Opened:</strong> Toggle dropdown visibility</p>
+                <p>• <strong>Searching:</strong> Active search mode with filter</p>
+                <p>• <strong>Loading:</strong> AJAX data fetching</p>
+                <p>• <strong>Disabled:</strong> No interaction allowed</p>
+                <p>• <strong>Changed:</strong> Value has changed, trigger events</p>
+            </div>
+        </div>
+
+        <!-- VIRTUAL SCROLL -->
+        <div class="diagram-section">
+            <h2>🚀 8. VIRTUAL SCROLL MECHANISM</h2>
+            
+            <div class="mermaid">
+graph TB
+    subgraph "INITIALIZATION"
+        A[Total Items: 10000] --> B[Calculate Item Height]
+        B --> C[Calculate Viewport Height]
+        C --> D[Items Per View = Viewport / ItemHeight]
+    end
+    
+    subgraph "SCROLL CALCULATION"
+        E[Scroll Event] --> F[Get ScrollTop Position]
+        F --> G[Calculate Start Index]
+        G --> H[Calculate End Index]
+        H --> I[Add Buffer Items]
+    end
+    
+    subgraph "RENDERING"
+        I --> J{Items Changed?}
+        J -->|Yes| K[Update Visible Range]
+        J -->|No| L[Skip Update]
+        K --> M[Render Items Start-End]
+        M --> N[Set Top Offset]
+        N --> O[Set Total Height]
+    end
+    
+    subgraph "OPTIMIZATION"
+        P[Debounce Scroll: 16ms]
+        Q[Reuse DOM Elements]
+        R[Minimal Reflows]
+        S[RequestAnimationFrame]
+    end
+    
+    E --> P
+    M --> Q
+    M --> R
+    N --> S
+    
+    style A fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style E fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+    style M fill:#43e97b,stroke:#333,stroke-width:2px
+    style P fill:#ffd89b,stroke:#333,stroke-width:2px
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Virtual Scroll Benefits:</strong></p>
+                <p>• <strong>Performance:</strong> Render only 20-30 items instead of 10,000</p>
+                <p>• <strong>Memory:</strong> Reduce DOM nodes, speed up browser paint</p>
+                <p>• <strong>Smooth:</strong> 60fps scrolling with buffer items</p>
+                <p>• <strong>Dynamic:</strong> Automatic calculation when resizing</p>
+            </div>
+
+            <div class="legend">
+                <h4>🎯 Virtual Scroll Formula:</h4>
+                <ul>
+                    <li><strong>startIndex</strong> = Math.floor(scrollTop / itemHeight)</li>
+                    <li><strong>endIndex</strong> = startIndex + itemsPerView + buffer</li>
+                    <li><strong>topOffset</strong> = startIndex × itemHeight</li>
+                    <li><strong>totalHeight</strong> = totalItems × itemHeight</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- AJAX FLOW -->
+        <div class="diagram-section">
+            <h2>🌐 9. AJAX DATA LOADING FLOW</h2>
+            
+            <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant SB as SelectBox
+    participant AJAX as AJAX Handler
+    participant Server
+    participant UI as UI Renderer
+    
+    User->>SB: Open dropdown
+    SB->>SB: Check ajax config
+    
+    alt AJAX Configured
+        SB->>UI: Show loading state
+        UI-->>User: Display "Processing..."
+        
+        SB->>AJAX: Prepare request
+        AJAX->>AJAX: Build URL + headers
+        AJAX->>Server: fetch(url, options)
+        
+        alt Success Response
+            Server-->>AJAX: JSON data
+            AJAX->>AJAX: dataTransform(response)
+            AJAX->>SB: Normalized data[]
+            SB->>SB: setData(data)
+            SB->>UI: Render options
+            UI-->>User: Display dropdown
+        else Error Response
+            Server-->>AJAX: Error
+            AJAX->>SB: Handle error
+            SB->>UI: Show error message
+            UI-->>User: Display "Error loading"
+        end
+    else No AJAX
+        SB->>SB: Use existing data
+        SB->>UI: Render options
+        UI-->>User: Display dropdown
+    end
+    
+    User->>UI: Select option
+    UI->>SB: Update value
+    SB->>User: Trigger change event
+            </div>
+
+            <div class="description">
+                <p><strong>📌 AJAX Configuration:</strong></p>
+                <p>• <strong>url:</strong> API endpoint</p>
+                <p>• <strong>method:</strong> GET/POST/PUT/DELETE</p>
+                <p>• <strong>headers:</strong> Custom headers (auth, content-type)</p>
+                <p>• <strong>data:</strong> Request payload</p>
+                <p>• <strong>dataTransform:</strong> Function để transform response</p>
+            </div>
+        </div>
+
+        <!-- CONFIGURATION HIERARCHY -->
+        <div class="diagram-section">
+            <h2>⚙️ 10. CONFIGURATION HIERARCHY</h2>
+            
+            <div class="mermaid">
+graph TB
+    A[Default Config<br/>iStorage.defaultConfig] --> B[Merge Priority]
+    C[Data Attributes<br/>data-*] --> B
+    D[bind Options<br/>bind query, options] --> B
+    
+    B --> E[Final Config]
+    
+    subgraph "Default Config Categories"
+        F[Visual<br/>width, height, colors]
+        G[Behavior<br/>multiple, searchable]
+        H[Text/i18n<br/>placeholder, messages]
+        I[Performance<br/>virtualScroll, debounce]
+        J[Events<br/>on.load, on.change...]
+    end
+    
+    E --> K{Priority Order}
+    K -->|1. Highest| D
+    K -->|2. Medium| C
+    K -->|3. Lowest| A
+    
+    E --> L[Apply to SelectBox]
+    
+    style A fill:#e3f2fd,stroke:#1976d2
+    style C fill:#fff3e0,stroke:#f57c00
+    style D fill:#e8f5e9,stroke:#388e3c
+    style E fill:#667eea,stroke:#333,stroke-width:3px,color:#fff
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Config Priority (high → low):</strong></p>
+                <p><strong>1. bind() options</strong> - Highest priority</p>
+                <p><strong>2. data-* attributes</strong> - HTML attributes</p>
+                <p><strong>3. defaultConfig</strong> - Default value</p>
+            </div>
+
+            <div class="legend">
+                <h4>🎯 Key Configuration Options:</h4>
+                <ul>
+                    <li><strong>Visual:</strong> width, height, minWidth, panelHeight, imageMode</li>
+                    <li><strong>Behavior:</strong> multiple, searchable, autoclose, disabled</li>
+                    <li><strong>Selection:</strong> selectall, maxSelected, keepSelected</li>
+                    <li><strong>Text:</strong> placeholder, textLoading, textNotFound</li>
+                    <li><strong>Performance:</strong> virtualScroll, animationtime, delaysearchtime</li>
+                    <li><strong>AJAX:</strong> ajax.url, ajax.method, ajax.dataTransform</li>
+                    <li><strong>Events:</strong> on.load, on.change, on.show, on.close...</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- MEMORY MANAGEMENT -->
+        <div class="diagram-section">
+            <h2>🧹 11. MEMORY MANAGEMENT & CLEANUP</h2>
+            
+            <div class="mermaid">
+graph TB
+    subgraph "BINDING PHASE"
+        A[bind Called] --> B[Create SelectBox]
+        B --> C[Mount DOM Elements]
+        C --> D[Attach Event Listeners]
+        D --> E[Store in bindedMap]
+        E --> F[Add to bindedCommand]
+    end
+    
+    subgraph "RUNTIME PHASE"
+        G[Observer Watching] --> H{DOM Mutation?}
+        H -->|Element Removed| I[Auto Cleanup]
+        H -->|Element Added| J[Auto Rebind]
+    end
+    
+    subgraph "UNBINDING PHASE"
+        K[destroy Called] --> L{Unbind Target}
+        L -->|Specific Query| M[Find Elements]
+        L -->|null All| N[Get All Instances]
+        
+        M --> O[For Each Element]
+        N --> O
+        
+        O --> P[Call unmount]
+        P --> Q[Remove Event Listeners]
+        Q --> R[Clear Callbacks]
+        R --> S[Remove DOM Elements]
+        S --> T[Delete from bindedMap]
+        T --> U[Remove from bindedCommand]
+        U --> V[Store in unbindedMap]
+    end
+    
+    subgraph "GARBAGE COLLECTION"
+        W[Periodic Check] --> X[Clean unbindedMap]
+        X --> Y[Remove Weak References]
+        Y --> Z[Free Memory]
+    end
+    
+    I --> P
+    V --> W
+    
+    style A fill:#43e97b,stroke:#333,stroke-width:2px
+    style K fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+    style G fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style W fill:#ffd89b,stroke:#333,stroke-width:2px
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Memory Management Features:</strong></p>
+                <p>• <strong>Automatic Cleanup:</strong> The Observer automatically detects when an element is removed</p>
+                <p>• <strong>Event Cleanup:</strong> All listeners are removed when destroyed</p>
+                <p>• <strong>Callback Cleanup:</strong> CallbackScheduler clear timers & callbacks</p>
+                <p>• <strong>DOM Cleanup:</strong> Remove all created UI elements</p>
+                <p>• <strong>Map Cleanup:</strong> Remove references from boundedMap/unbindedMap</p>
+            </div>
+        </div>
+
+        <!-- MODULE SYSTEM -->
+        <div class="diagram-section">
+            <h2>📦 12. MODULE SYSTEM & BUILD OUTPUT</h2>
+            
+            <div class="mermaid">
+graph LR
+    subgraph "SOURCE CODE"
+        A[TypeScript/ES6+<br/>Source Files]
+    end
+    
+    subgraph "BUILD PROCESS"
+        B[Compiler<br/>Vite/Rollup]
+        B --> C[Tree Shaking]
+        B --> D[Minification]
+        B --> E[Polyfills]
+    end
+    
+    subgraph "OUTPUT FORMATS"
+        F[ESM<br/>selective-ui.esm.js<br/>419KB]
+        M[ESM<br/>selective-ui.esm.min.js<br/>68KB]
+        G[UMD<br/>selective-ui.umd.js<br/>463KB]
+        N[UMD<br/>selective-ui.min.js<br/>69KB]
+        H[CSS<br/>selective-ui.css]
+        O[CSS<br/>selective-ui.min.css]
+    end
+    
+    subgraph "USAGE"
+        I[ES Module<br/>import from 'selective-ui']
+        J[CommonJS<br/>require 'selective-ui']
+        K[Browser Global<br/>window.SelectiveUI]
+        L[CSS Link<br/>link rel=stylesheet]
+    end
+    
+    A --> B
+
+    C --> F
+    C --> G
+    C --> M
+    C --> N
+
+    D --> M
+    E --> G
+    E --> N
+    D --> N
+    
+    F --> I
+    G --> J
+    G --> K
+    H --> L
+
+    M --> I
+
+    N --> J
+    N --> K
+
+    O --> L
+    
+    style F fill:#43e97b,stroke:#333,stroke-width:2px
+    style M fill:#43e97b,stroke:#333,stroke-width:2px
+    style G fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style N fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style H fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+    style O fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Build Outputs:</strong></p>
+                <p>• <strong>ESM (284KB):</strong> Modern ES modules, tree-shakeable</p>
+                <p>• <strong>UMD (316KB):</strong> Universal format, browser compatible</p>
+                <p>• <strong>CSS:</strong> Component styles, theme variables</p>
+            </div>
+
+            <div class="legend">
+                <h4>🎯 Usage Examples:</h4>
+                <ul>
+                    <li><strong>ES Module:</strong> import { bind } from 'selective-ui'</li>
+                    <li><strong>CommonJS:</strong> const { bind } = require('selective-ui')</li>
+                    <li><strong>Browser:</strong> &lt;script src="selective-ui.min.js"&gt;</li>
+                    <li><strong>CDN:</strong> https://cdn.jsdelivr.net/npm/selective-ui</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#333',
+                primaryBorderColor: '#333',
+                lineColor: '#764ba2',
+                secondaryColor: '#f093fb',
+                tertiaryColor: '#43e97b',
+                fontSize: '14px',
+                fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35
+            }
+        });
+    </script>
+</body>
+</html>
