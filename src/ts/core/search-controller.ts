@@ -410,7 +410,8 @@ export class SearchController extends Lifecycle {
 
         let payload: Record<string, any>;
         if (typeof cfg.data === "function") {
-            payload = cfg.data.bind(this.selectBox.Selective.find(this.selectBox.container.targetElement))(keyword, page);
+            const selectiveInstance = this.selectBox?.Selective?.find(this.selectBox?.container?.targetElement);
+            payload = cfg.data.call(selectiveInstance, keyword, page);
             if (payload && typeof payload.selectedValue === "undefined") payload.selectedValue = selectedValues;
         } else {
             payload = { search: keyword, page, selectedValue: selectedValues, ...(cfg.data ?? {}) };

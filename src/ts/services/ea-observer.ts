@@ -52,7 +52,7 @@ export class ElementAdditionObserver<T extends Element = Element> {
      *
      * @internal
      */
-    private actions: Array<(el: T) => void> = [];
+    private actions: Set<(el: T) => void> = new Set();
 
     /**
      * Registers a callback invoked whenever a matching element is detected as added to the DOM.
@@ -64,7 +64,7 @@ export class ElementAdditionObserver<T extends Element = Element> {
      * @param action - Function executed with the newly detected element.
      */
     public onDetect(action: (el: T) => void): void {
-        this.actions.push(action);
+        this.actions.add(action);
     }
 
     /**
@@ -74,7 +74,16 @@ export class ElementAdditionObserver<T extends Element = Element> {
      * to scan mutations but will not invoke any listeners until new callbacks are registered.
      */
     public clearDetect(): void {
-        this.actions = [];
+        this.actions.clear();
+    }
+
+    /**
+     * Backward-compatible alias for {@link connect}.
+     *
+     * @param tag - Tag name to watch for.
+     */
+    public start(tag: string): void {
+        this.connect(tag);
     }
 
     /**
@@ -145,6 +154,13 @@ export class ElementAdditionObserver<T extends Element = Element> {
     }
 
     /**
+     * Backward-compatible alias for {@link disconnect}.
+     */
+    public stop(): void {
+        this.disconnect();
+    }
+
+    /**
      * Dispatches a detected element to all registered callbacks.
      *
      * Notes:
@@ -156,6 +172,8 @@ export class ElementAdditionObserver<T extends Element = Element> {
      * @internal
      */
     private handle(element: T): void {
-        this.actions.forEach((action) => action(element));
+        for (const action of this.actions) {
+            action(element);
+        }
     }
 }
