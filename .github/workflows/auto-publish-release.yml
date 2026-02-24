@@ -17,34 +17,66 @@ jobs:
   publish:
     if: ${{ github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'preview' && github.event.pull_request.base.ref == 'main' }}
     runs-on: ubuntu-latest
+    env:
+      SKIP_VERSION_UPDATE: ${{ contains(github.event.pull_request.labels.*.name, 'skip-version-update') }}
 
     steps:
-      - name: Update release draft
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Create and publish release
+        id: drafter
         uses: release-drafter/release-drafter@v6
+        with:
+          publish: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish draft release
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { data: releases } = await github.rest.repos.listReleases({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
+      - name: Extract release info
+        run: |
+          VERSION="${{ steps.drafter.outputs.tag_name }}"
+          VERSION="${VERSION#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "BODY<<EOF" >> "$GITHUB_ENV"
+          echo "${{ steps.drafter.outputs.body }}" >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
 
-            const draft = releases.find(r => r.draft);
-            if (!draft) {
-              core.info('No draft release found');
-              return;
-            }
+      - name: Update CHANGELOG.md
+        run: |
+          {
+            echo "## v$VERSION"
+            echo
+            echo "$BODY"
+            echo
+            echo "---"
+            echo
+            cat CHANGELOG.md
+          } > CHANGELOG.tmp
 
-            await github.rest.repos.updateRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: draft.id,
-              draft: false,
-              prerelease: false,
-            });
+          mv CHANGELOG.tmp CHANGELOG.md
 
-            core.info(`Published release ${draft.tag_name}`);
+      - name: Update package.json & lock
+        if: env.SKIP_VERSION_UPDATE != 'true'
+        run: npm version "$VERSION" --no-git-tag-version
+
+      - name: Commit sync
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+          if [ "$SKIP_VERSION_UPDATE" = "true" ]; then
+            echo "Skipping package version update due to 'skip-version-update' label"
+            git add CHANGELOG.md
+            git commit -m "chore(release): v$VERSION (skip version update)" || exit 0
+          else
+            git add CHANGELOG.md package.json package-lock.json
+            git commit -m "chore(release): v$VERSION" || exit 0
+          fi
+
+          git push origin HEAD:${{ github.event.repository.default_branch }}
