@@ -359,17 +359,18 @@ export class SelectBox extends Lifecycle {
         this.optionModelManager = optionModelManager;
 
         // Popup
-        container.popup = new Popup(select, options, optionModelManager);
-        container.popup!.setupEffector(effector);
-        container.popup!.setupInfiniteScroll(searchController, options);
+        const popup = new Popup(select, options, optionModelManager);
+        container.popup = popup
+        popup!.setupEffector(effector);
+        popup!.setupInfiniteScroll(searchController, options);
 
-        container.popup!.onAdapterPropChanged("selected", () => {
+        popup!.onAdapterPropChanged("selected", () => {
             this.getAction()?.change(null, true);
         });
-        container.popup!.onAdapterPropChanged("selected_internal", () => {
+        popup!.onAdapterPropChanged("selected_internal", () => {
             this.getAction()?.change(null, false);
         });
-        container.popup!.onAdapterPropChanging("select", () => {
+        popup!.onAdapterPropChanging("select", () => {
             this.oldValue = this.getAction()?.value ?? "";
         });
 
@@ -435,7 +436,12 @@ export class SelectBox extends Lifecycle {
         select.classList.add("init");
 
         // initial mask
-        this.getAction()?.change(null, false);
+        const action = this.getAction();
+        action?.change?.(null, false);
+
+        if (this.options.preload) {
+            action?.load?.();
+        }
 
         // Call parent lifecycle mount
         super.mount();
@@ -935,28 +941,7 @@ export class SelectBox extends Lifecycle {
                 this.change(false, trigger);
             },
 
-            open() {
-                if (superThis.isOpen) return;
-
-                const findAnother = superThis.Selective?.find?.();
-                if (findAnother && !findAnother.isEmpty) {
-                    const closeToken: IEventToken = findAnother.close();
-                    if (closeToken.isCancel) return;
-                }
-
-                if (this.disabled) return;
-
-                const beforeShowToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeShow);
-                if (beforeShowToken.isCancel) return;
-
-                superThis.isOpen = true;
-                container.directive.setDropdown(true);
-
-                const adapter: MixedAdapter = container.popup.optionAdapter;
-                const selectedOption = adapter.getSelectedItem();
-                if (selectedOption) adapter.setHighlight(selectedOption, false);
-                else adapter.resetHighlight();
-
+            load() {
                 if ((!superThis.hasLoadedOnce || superThis.isBeforeSearch) && bindedOptions?.ajax) {
                     container.searchController.resetPagination();
                     container.popup.showLoading();
@@ -970,10 +955,43 @@ export class SelectBox extends Lifecycle {
                             .then(() => container.popup?.triggerResize?.())
                             .catch((err: unknown) => console.error("Initial ajax load error:", err));
                     }, bindedOptions.animationtime);
-                    container.popup.open(null, false);
+                    container.popup.load();
                 } else {
-                    container.popup.open(null, true);
+                    container.popup.load();
                 }
+            },
+
+            open() {
+                if (superThis.isOpen) return;
+
+                const findAnother = superThis.Selective?.find?.();
+                if (findAnother && !findAnother.isEmpty) {
+                    const closeToken: IEventToken = findAnother.close();
+                    if (closeToken.isCancel) return;
+                }
+
+                if (this.disabled) {
+                    return;
+                }
+
+                const beforeShowToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeShow);
+                if (beforeShowToken.isCancel) {
+                    return;
+                }
+
+                superThis.isOpen = true;
+                container.directive.setDropdown(true);
+
+                const adapter: MixedAdapter = container.popup.optionAdapter;
+                const selectedOption = adapter.getSelectedItem();
+                if (selectedOption) {
+                    adapter.setHighlight(selectedOption, false);
+                } else {
+                    adapter.resetHighlight();
+                }
+
+                this.load();
+                container.popup.open(null, !container.popup.loadingState.isVisible);
 
                 container.searchbox.show();
 
@@ -983,7 +1001,9 @@ export class SelectBox extends Lifecycle {
                 ViewPanel.setAttribute("aria-haspopup", "listbox");
                 ViewPanel.setAttribute("aria-labelledby", bindedOptions.SEID_HOLDER);
 
-                if (bindedOptions.multiple) ViewPanel.setAttribute("aria-multiselectable", "true");
+                if (bindedOptions.multiple) {
+                    ViewPanel.setAttribute("aria-multiselectable", "true");
+                }
 
                 iEvents.callEvent([getInstance()], ...bindedOptions.on.show);
                 if (superThis.pluginContext) {

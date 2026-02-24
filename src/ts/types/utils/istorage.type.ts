@@ -42,6 +42,7 @@ export interface DefaultConfig {
     autofocus?: boolean;             // Focus on input automatically
     searchable?: boolean;            // Enable search functionality
     loadingfield?: boolean;          // Show loading indicator in the field
+    preload?: boolean;               // Preload data on initialization
     visible?: boolean;               // Control visibility of the component
     skipError?: boolean;             // Skip error handling
     customDelimiter?: string;        // Custom delimiter for multiple values

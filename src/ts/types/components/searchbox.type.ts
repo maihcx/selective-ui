@@ -116,6 +116,12 @@ export interface SelectBoxAction {
     setValue(evtToken: unknown | null, value: unknown, trigger?: boolean, force?: boolean): void;
 
     /**
+     * Load options for the SelectBox, typically from an AJAX source.
+     * @param evtToken - Optional event token for tracking.
+     */
+    load(): void;
+
+    /**
      * Open the dropdown.
      * @returns True if opened successfully.
      */
