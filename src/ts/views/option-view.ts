@@ -6,6 +6,7 @@ import type {
     OptionConfig,
     OptionConfigPatch
 } from "../types/views/view.option.type";
+import { SelectiveOptions } from "../types/utils/selective.type";
 
 /**
  * OptionView
@@ -93,6 +94,16 @@ export class OptionView extends View<OptionViewTags> {
     public view: OptionViewResult | null = null;
 
     /**
+     * Parsed configuration (bound from the `<select>` element via binder map).
+     *
+     * Provides feature flags (multiple/disabled/readonly/visible/virtualScroll/ajax/autoclose…),
+     * a11y ids (e.g. `SEID_LIST`, `SEID_HOLDER`) and user callbacks under `options.on`.
+     *
+     * @internal
+     */
+    private options: SelectiveOptions | null = null;
+
+    /**
      * Internal configuration object (Proxy target).
      *
      * Lifecycle:
@@ -146,9 +157,11 @@ export class OptionView extends View<OptionViewTags> {
      *
      * @public
      * @param {HTMLElement} parent - Container element that will host this option view.
+     * @param {SelectiveOptions} options - Optional configuration for this option view.
      */
-    public constructor(parent: HTMLElement) {
+    public constructor(parent: HTMLElement, options?: SelectiveOptions) {
         super(parent);
+        this.options = options;
         this.initialize();
     }
 
@@ -373,7 +386,7 @@ export class OptionView extends View<OptionViewTags> {
     public override mount(): void {
         const viewClass: string[] = ["seui-option-view"];
         const opt_id = Libs.randomString(7);
-        const inputID = `option_${opt_id}`;
+        const inputID = `option_${this.options?.SEID ?? "default"}_${opt_id}`;
 
         if (this.config!.isMultiple) viewClass.push("multiple");
 
@@ -422,7 +435,7 @@ export class OptionView extends View<OptionViewTags> {
             OptionView: {
                 tag: {
                     node: "div",
-                    id: `seui-${opt_id}-option`,
+                    id: `seui-${this.options?.SEID ?? "default"}-${opt_id}-option`,
                     classList: viewClass,
                     role: "option",
                     ariaSelected: "false",
