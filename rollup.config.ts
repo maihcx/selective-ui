@@ -48,6 +48,7 @@ const FIND_PROPERTIES = [
   'selectAll',
   'deSelectAll',
   'setValue',
+  'load',
   'open',
   'close',
   'toggle',

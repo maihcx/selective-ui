@@ -27,6 +27,7 @@ export class iStorage {
         autofocus: true,
         searchable: true,
         loadingfield: true,
+        preload: false,
         visible: true,
         skipError: false,
         customDelimiter: ",",
