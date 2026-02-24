@@ -23,6 +23,12 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org/'
 
+      - name: Align package version to release tag
+        run: |
+          TAG_VERSION="${{ github.event.release.tag_name }}"
+          TAG_VERSION="${TAG_VERSION#v}"
+          npm version "$TAG_VERSION" --no-git-tag-version
+
       - name: Install dependencies
         run: npm ci
 
