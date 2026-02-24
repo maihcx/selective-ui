@@ -1,14 +1,20 @@
 name: Auto publish release
 
 on:
-  push:
+  pull_request:
     branches: [main]
+    types: [closed]
 
 permissions:
   contents: write
 
+concurrency:
+  group: auto-publish-release
+  cancel-in-progress: false
+
 jobs:
   publish:
+    if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
 
     steps:
