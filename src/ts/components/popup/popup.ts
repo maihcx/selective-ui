@@ -173,7 +173,7 @@ export class Popup extends Lifecycle {
         ;
 
         // Load ModelManager resources into the list container
-        this.modelManager.load<VirtualRecyclerOptions>(this.optionsContainer, { isMultiple: options.multiple }, recyclerViewOpt);
+        this.modelManager.load<VirtualRecyclerOptions>(this.optionsContainer, { isMultiple: options.multiple, options: options }, recyclerViewOpt);
 
         const MMResources = this.modelManager.getResources();
 
