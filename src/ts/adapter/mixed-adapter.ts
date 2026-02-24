@@ -188,7 +188,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @override
      */
     override viewHolder(parent: HTMLElement, item: MixedItem): GroupView | OptionView {
-        if (item instanceof GroupModel) return new GroupView(parent);
+        if (item instanceof GroupModel) return new GroupView(parent, this.options);
         return new OptionView(parent, this.options);
     }
 
