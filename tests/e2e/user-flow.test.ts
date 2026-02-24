@@ -316,7 +316,6 @@ describe('E2E User Flows', () => {
             newOption.text = 'Option 2';
             select.appendChild(newOption);
 
-            select.dispatchEvent(new CustomEvent('options:changed'));
             await waitFor(100);
 
             const options = document.querySelectorAll('.seui-option-view');

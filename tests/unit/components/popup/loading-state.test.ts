@@ -2,7 +2,7 @@
  * Unit Tests for LoadingState
  */
 
-import { LoadingState } from "../../../src/ts/components/popup/loading-state";
+import { LoadingState } from "src/ts/components/popup/loading-state";
 
 describe("LoadingState", () => {
     const options = {

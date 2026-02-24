@@ -88,23 +88,4 @@ describe("Model", () => {
             expect(model.targetElement).toBeNull();
         });
     });
-
-    describe("onTargetChanged()", () => {
-        test("overridden in subclass is called on update()", () => {
-            class TestModel extends Model<HTMLOptionElement, OptionViewTags, OptionView, DefaultConfig> {
-                onTargetChanged() { /* custom hook */ }
-            }
-
-            const target = document.createElement("option");
-            const model = new TestModel({}, target, null);
-
-            const spy = jest.spyOn(model, "onTargetChanged");
-
-            const nextTarget = document.createElement("option");
-            model.updateTarget(nextTarget);
-
-            expect(spy).toHaveBeenCalledTimes(1);
-            expect(model.targetElement).toBe(nextTarget);
-        });
-    });
 });

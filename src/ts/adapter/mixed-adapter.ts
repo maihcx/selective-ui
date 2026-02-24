@@ -8,6 +8,7 @@ import { IEventCallback } from "../types/utils/ievents.type";
 import { ImagePosition, LabelHalign, LabelValign } from "../types/views/view.option.type";
 import { Libs } from "../utils/libs";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
+import { Lifecycle } from "../core/base/lifecycle";
 
 /**
  * Mixed (heterogeneous) adapter for rendering and interacting with a list that contains

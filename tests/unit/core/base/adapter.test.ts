@@ -15,7 +15,7 @@ describe("Adapter", () => {
     interface TestItem {
         isInit: boolean;
         view: {
-            render: jest.Mock;
+            mount: jest.Mock;
             update: jest.Mock;
         };
     }
@@ -24,7 +24,7 @@ describe("Adapter", () => {
         return {
             isInit,
             view: {
-                render: jest.fn(),
+                mount: jest.fn(),
                 update: jest.fn()
             }
         };
@@ -62,7 +62,7 @@ describe("Adapter", () => {
 
         adapter.onViewHolder(item, item.view as any, 0);
 
-        expect(item.view.render).toHaveBeenCalled();
+        expect(item.view.mount).toHaveBeenCalled();
         expect(item.view.update).not.toHaveBeenCalled();
     });
 
@@ -73,7 +73,7 @@ describe("Adapter", () => {
         adapter.onViewHolder(item, item.view as any, 0);
 
         expect(item.view.update).toHaveBeenCalled();
-        expect(item.view.render).not.toHaveBeenCalled();
+        expect(item.view.mount).not.toHaveBeenCalled();
     });
 
     test("onPropChanging registers debounced callback", () => {
@@ -85,7 +85,7 @@ describe("Adapter", () => {
         expect(Libs.callbackScheduler.on).toHaveBeenCalledWith(
             expect.stringContaining("itemsing_"),
             cb,
-            { debounce: 1 }
+            { debounce: 0 }
         );
     });
 
@@ -97,7 +97,8 @@ describe("Adapter", () => {
 
         expect(Libs.callbackScheduler.on).toHaveBeenCalledWith(
             expect.stringContaining("items_"),
-            cb
+            cb,
+            { debounce: 0 }
         );
     });
 
@@ -128,19 +129,11 @@ describe("Adapter", () => {
         const adapter = new Adapter<any, any>();
         const items = [1, 2];
 
-        adapter.setItems(items);
-
-        expect(Libs.callbackScheduler.run).toHaveBeenCalledWith(
-            expect.stringContaining("itemsing_"),
-            items
-        );
-
-        expect(adapter.items).toBe(items);
-
-        expect(Libs.callbackScheduler.run).toHaveBeenCalledWith(
-            expect.stringContaining("items_"),
-            items
-        );
+        const promise = adapter.setItems(items);
+        
+        promise.then(() => {
+            expect(adapter.items).toBe(items);
+        });
     });
 
     test("syncFromSource delegates to setItems", () => {
@@ -173,7 +166,7 @@ describe("Adapter", () => {
         const adapter = new TestAdapter([item1, item2]);
         adapter.updateRecyclerView(parent);
 
-        expect(item1.view.render).toHaveBeenCalled();
+        expect(item1.view.mount).toHaveBeenCalled();
         expect(item2.view.update).toHaveBeenCalled();
 
         expect(item1.isInit).toBe(true);

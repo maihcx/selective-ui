@@ -1,0 +1,32 @@
+name: Bump package.json version
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Update package.json
+        run: |
+          npm version "$VERSION" --no-git-tag-version
+
+      - name: Commit bump
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add package.json package-lock.json || true
+          git commit -m "chore: bump version to v$VERSION"
+          git push
