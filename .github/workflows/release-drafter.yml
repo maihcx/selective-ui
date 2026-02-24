@@ -3,7 +3,7 @@ name: Release Drafter
 on:
   pull_request_target:
     branches: [main]
-    types: [opened, reopened, synchronize, edited, closed]
+    types: [closed]
 
 permissions:
   contents: write
@@ -11,9 +11,7 @@ permissions:
 
 jobs:
   update_release_draft:
-    if: |
-      github.event.action != 'closed' ||
-      github.event.pull_request.merged == true
+    if: ${{ github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'preview' && github.event.pull_request.base.ref == 'main' }}
     runs-on: ubuntu-latest
     steps:
       - uses: release-drafter/release-drafter@v6
