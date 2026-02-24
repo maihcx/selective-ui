@@ -1,6 +1,10 @@
 name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 
+template: |
+  ## 🚀 Changelog
+  $CHANGES
+
 include-merged-pull-requests: true
 
 version-resolver:
