@@ -15,10 +15,8 @@ concurrency:
 
 jobs:
   publish:
-    if: ${{ github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'preview' && github.event.pull_request.base.ref == 'main' }}
+    if: ${{ github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'preview' && github.event.pull_request.base.ref == 'main' && !contains(github.event.pull_request.labels.*.name, 'skip-version-update') }}
     runs-on: ubuntu-latest
-    env:
-      SKIP_VERSION_UPDATE: ${{ contains(github.event.pull_request.labels.*.name, 'skip-version-update') }}
 
     steps:
       - uses: actions/checkout@v4
@@ -62,7 +60,6 @@ jobs:
           mv CHANGELOG.tmp CHANGELOG.md
 
       - name: Update package.json & lock
-        if: env.SKIP_VERSION_UPDATE != 'true'
         run: npm version "$VERSION" --no-git-tag-version
 
       - name: Commit sync
@@ -70,13 +67,7 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
 
-          if [ "$SKIP_VERSION_UPDATE" = "true" ]; then
-            echo "Skipping package version update due to 'skip-version-update' label"
-            git add CHANGELOG.md
-            git commit -m "chore(release): v$VERSION (skip version update)" || exit 0
-          else
-            git add CHANGELOG.md package.json package-lock.json
-            git commit -m "chore(release): v$VERSION" || exit 0
-          fi
+          git add CHANGELOG.md package.json package-lock.json
+          git commit -m "chore(release): v$VERSION" || exit 0
 
           git push origin HEAD:${{ github.event.repository.default_branch }}
