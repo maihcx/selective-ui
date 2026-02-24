@@ -26,7 +26,12 @@ jobs:
           echo "${{ github.event.release.body }}" >> "$GITHUB_ENV"
           echo "EOF" >> "$GITHUB_ENV"
 
-      - name: Update CHANGELOG.md
+      - name: Configure git user
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Sync files on default branch
         run: |
           {
             echo "## v$VERSION"
@@ -39,15 +44,38 @@ jobs:
           } > CHANGELOG.tmp
 
           mv CHANGELOG.tmp CHANGELOG.md
-
-      - name: Update package.json & lock
-        run: npm version "$VERSION" --no-git-tag-version
-
-      - name: Commit sync
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          npm version "$VERSION" --no-git-tag-version
 
           git add CHANGELOG.md package.json package-lock.json
           git commit -m "chore(release): v$VERSION" || exit 0
           git push origin HEAD:${{ github.event.repository.default_branch }}
+
+      - name: Sync files on preview branch
+        run: |
+          if ! git ls-remote --exit-code --heads origin preview >/dev/null 2>&1; then
+            echo "preview branch not found, skipping"
+            exit 0
+          fi
+
+          PREVIEW_DIR="$RUNNER_TEMP/preview-sync"
+          rm -rf "$PREVIEW_DIR"
+          git worktree add -B preview-sync "$PREVIEW_DIR" origin/preview
+
+          cd "$PREVIEW_DIR"
+
+          {
+            echo "## v$VERSION"
+            echo
+            echo "$BODY"
+            echo
+            echo "---"
+            echo
+            cat CHANGELOG.md
+          } > CHANGELOG.tmp
+
+          mv CHANGELOG.tmp CHANGELOG.md
+          npm version "$VERSION" --no-git-tag-version
+
+          git add CHANGELOG.md package.json package-lock.json
+          git commit -m "chore(release): v$VERSION" || exit 0
+          git push origin HEAD:preview
