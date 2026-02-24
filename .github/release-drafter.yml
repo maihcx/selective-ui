@@ -1,0 +1,45 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+include-merged-pull-requests: true
+
+version-resolver:
+  major:
+    labels:
+      - breaking
+  minor:
+    labels:
+      - feature
+  patch:
+    labels:
+      - bug
+      - fix
+      - perf
+
+categories:
+  - title: '🚀 Features'
+    labels:
+      - feature
+
+  - title: '🐛 Bug Fixes'
+    labels:
+      - bug
+      - fix
+
+  - title: '⚡ Performance'
+    labels:
+      - perf
+
+  - title: '📚 Documentation'
+    labels:
+      - docs
+
+  - title: '🧹 Maintenance'
+    labels:
+      - chore
+      - refactor
+
+change-template: '- $TITLE (#$NUMBER) — @$AUTHOR'
+
+exclude-labels:
+  - skip-changelog
