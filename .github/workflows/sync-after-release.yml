@@ -1,0 +1,54 @@
+name: Sync after release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract release info
+        id: release
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "BODY<<EOF" >> $GITHUB_ENV
+          echo "${{ github.event.release.body }}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      # --- CHANGELOG.md ---
+      - name: Update CHANGELOG.md
+        run: |
+          {
+            echo "## v$VERSION"
+            echo
+            echo "$BODY"
+            echo
+            echo "---"
+            echo
+            cat CHANGELOG.md
+          } > CHANGELOG.tmp
+
+          mv CHANGELOG.tmp CHANGELOG.md
+
+      # --- package.json & package-lock.json ---
+      - name: Update package.json & lock
+        run: |
+          npm version "$VERSION" --no-git-tag-version
+
+      - name: Commit sync
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+          git add CHANGELOG.md package.json package-lock.json
+          git commit -m "chore(release): v$VERSION" || exit 0
+          git push
