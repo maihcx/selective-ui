@@ -3,6 +3,9 @@ name: Publish NPM Package
 on:
   release:
     types: [published]
+  workflow_run:
+    workflows: ["Auto publish release"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -10,24 +13,20 @@ permissions:
 
 jobs:
   publish:
-    if: ${{ !github.event.release.prerelease }}
+    if: ${{ (github.event_name == 'release' && !github.event.release.prerelease) || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org/'
-
-      - name: Align package version to release tag
-        run: |
-          TAG_VERSION="${{ github.event.release.tag_name }}"
-          TAG_VERSION="${TAG_VERSION#v}"
-          npm version "$TAG_VERSION" --no-git-tag-version
 
       - name: Install dependencies
         run: npm ci
@@ -36,6 +35,7 @@ jobs:
         run: npm run build
 
       - name: Validate version matches release tag
+        if: github.event_name == 'release'
         run: |
           TAG_VERSION="${{ github.event.release.tag_name }}"
           TAG_VERSION="${TAG_VERSION#v}"
@@ -46,7 +46,20 @@ jobs:
             exit 1
           fi
 
+
+      - name: Check if version already exists on NPM
+        id: npm_check
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view "selective-ui@$PACKAGE_VERSION" version >/dev/null 2>&1; then
+            echo "Version $PACKAGE_VERSION already exists on npm; skipping publish."
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to NPM
+        if: steps.npm_check.outputs.should_publish == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance
