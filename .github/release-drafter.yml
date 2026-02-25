@@ -49,3 +49,4 @@ change-template: '- $TITLE (#$NUMBER) — @$AUTHOR'
 
 exclude-labels:
   - skip-changelog
+  - skip-changelogs
