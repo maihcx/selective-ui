@@ -1,3 +1,36 @@
+## v1.3.0
+
+## 🚀 Changelog
+- Updated to new version (#74) — @maihcx
+- Sponsorships (#67) — @maihcx
+- Sponsorships (#66) — @maihcx
+- skip publish job when PR has skip-version-update label (#63) — @maihcx
+- ci: skip publish job when PR has skip-version-update label (#62) — @maihcx
+- fetch changelogs (#60) — @maihcx
+
+## 🚀 Features
+
+- Add load/preload and popup initialization (#72) — @maihcx
+
+## 🐛 Bug Fixes
+
+- Pass options to GroupView and use SEID (#71) — @maihcx
+- Propagate SelectiveOptions to OptionView (#70) — @maihcx
+- Refactor DOM iteration and fix comments (#68) — @maihcx
+
+## 📚 Documentation
+
+- Document preload option and load() method (#73) — @maihcx
+- Update selective-ui CDN to v1.2.7 and add notice (#64) — @maihcx
+
+## 🧹 Maintenance
+
+- Treat 'enhancement' as a feature in release drafts (#69) — @maihcx
+- Refactor DOM iteration and fix comments (#68) — @maihcx
+
+
+---
+
 ## v1.2.7
 
 ## 🚀 Changelog
