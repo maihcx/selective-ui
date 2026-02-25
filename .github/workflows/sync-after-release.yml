@@ -27,6 +27,17 @@ jobs:
             const body = 'Auto pr version';
             const labels = ['skip-version-update', 'skip-changelogs'];
 
+            const { data: comparison } = await github.rest.repos.compareCommitsWithBasehead({
+              owner,
+              repo,
+              basehead: `${base}...${head}`,
+            });
+
+            if (comparison.ahead_by === 0) {
+              core.info(`No changes to sync from ${head} to ${base}; skipping PR creation.`);
+              return;
+            }
+
             const { data: existing } = await github.rest.pulls.list({
               owner,
               repo,
