@@ -173,7 +173,7 @@ export class Popup extends Lifecycle {
         ;
 
         // Load ModelManager resources into the list container
-        this.modelManager.load<VirtualRecyclerOptions>(this.optionsContainer, { isMultiple: options.multiple }, recyclerViewOpt);
+        this.modelManager.load<VirtualRecyclerOptions>(this.optionsContainer, { isMultiple: options.multiple, options: options }, recyclerViewOpt);
 
         const MMResources = this.modelManager.getResources();
 
@@ -317,40 +317,65 @@ export class Popup extends Lifecycle {
     }
 
     /**
+     * Loads and initializes the popup (one-time setup):
+     * - Appends the popup node to `document.body`
+     * - Initializes the resize observer service
+     * - Binds the effect service to the popup element
+     * - Blocks mousedown events inside the popup to prevent auto-close
+     *
+     * Safely no-ops when the popup has already been created
+     * or required dependencies are missing.
+     */
+    public load(): void {
+        if (!this.node || !this.parent || !this.effSvc) return;
+        if (this.isCreated) return;
+
+        document.body.appendChild(this.node);
+        this.isCreated = true;
+
+        this.resizeObser = new ResizeObserverService();
+        this.effSvc.setElement(this.node);
+
+        this.node.addEventListener("mousedown", (e: MouseEvent) => {
+            e.stopPropagation();
+            e.preventDefault();
+        });
+    }
+
+    /**
      * Opens (expands) the popup:
-     * - On first open: appends to `document.body`, sets up resize observer, and blocks outside mousedown
-     * - Synchronizes the OptionHandle visibility and (optionally) the empty state
-     * - Computes placement from the parent anchor and runs the expand animation
-     * - Resumes recycler view after the animation completes
+     * - Ensures the popup is loaded and initialized
+     * - Synchronizes option handle visibility
+     * - Optionally evaluates and applies the empty/not-found state
+     * - Computes placement relative to the parent anchor
+     * - Runs the expand animation
+     * - Connects the resize observer after animation completes
+     * - Resumes the recycler view
+     *
+     * Safely no-ops when required dependencies are missing.
      *
      * @param callback - Optional callback invoked when the opening animation completes.
-     * @param isShowEmptyState - If true, evaluates and applies empty/not-found state before animation.
+     * @param isShowEmptyState - If true, applies the empty/not-found state before animation.
      */
     public open(callback: (() => void) | null = null, isShowEmptyState: boolean): void {
         if (!this.node || !this.options || !this.optionHandle || !this.parent || !this.effSvc) return;
 
-        if (!this.isCreated) {
-            document.body.appendChild(this.node);
-            this.isCreated = true;
+        // Ensure one-time initialization
+        this.load();
 
-            this.resizeObser = new ResizeObserverService();
-            this.effSvc.setElement(this.node);
-
-            // Prevent the popup from closing when clicking inside
-            this.node.addEventListener("mousedown", (e: MouseEvent) => {
-                e.stopPropagation();
-                e.preventDefault();
-            });
-        }
-
+        // Sync option visibility state
         this.optionHandle.update();
+
+        // Apply empty state if requested
         if (isShowEmptyState) {
             this.updateEmptyState();
         }
 
+        // Compute placement based on parent anchor
         const location = this.getParentLocation();
         const { position, top, maxHeight, realHeight } = this.calculatePosition(location);
 
+        // Run expand animation
         this.effSvc.expand({
             duration: this.options.animationtime,
             display: "flex",
@@ -363,15 +388,17 @@ export class Popup extends Lifecycle {
             onComplete: () => {
                 if (!this.resizeObser || !this.parent) return;
 
+                // Recompute position on parent resize to keep behavior consistent
                 this.resizeObser.onChanged = (_metrics: ElementMetrics) => {
-                    // Recompute from parent each time to keep behavior identical.
                     const loc = this.getParentLocation();
                     this.handleResize(loc);
                 };
 
                 this.resizeObser.connect(this.parent.container.tags.ViewPanel);
+
                 callback?.();
-                
+
+                // Resume recycler view rendering after animation
                 const rv: any = this.recyclerView;
                 rv?.resume?.();
             },

@@ -9,6 +9,7 @@ import { ImagePosition, LabelHalign, LabelValign } from "../types/views/view.opt
 import { Libs } from "../utils/libs";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
 import { Lifecycle } from "../core/base/lifecycle";
+import { SelectiveOptions } from "../types/utils/selective.type";
 
 /**
  * Mixed (heterogeneous) adapter for rendering and interacting with a list that contains
@@ -62,6 +63,16 @@ import { Lifecycle } from "../core/base/lifecycle";
 export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
     /** Whether the adapter operates in multi-selection mode. */
     public isMultiple = false;
+
+    /**
+     * Parsed configuration (bound from the `<select>` element via binder map).
+     *
+     * Provides feature flags (multiple/disabled/readonly/visible/virtualScroll/ajax/autoclose…),
+     * a11y ids (e.g. `SEID_LIST`, `SEID_HOLDER`) and user callbacks under `options.on`.
+     *
+     * @internal
+     */
+    public options: SelectiveOptions | null = null;
 
     /**
      * Subscribers for aggregated visibility statistics.
@@ -177,8 +188,8 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @override
      */
     override viewHolder(parent: HTMLElement, item: MixedItem): GroupView | OptionView {
-        if (item instanceof GroupModel) return new GroupView(parent);
-        return new OptionView(parent);
+        if (item instanceof GroupModel) return new GroupView(parent, this.options);
+        return new OptionView(parent, this.options);
     }
 
     /**
@@ -257,7 +268,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
         groupModel.items.forEach((optionModel, idx) => {
             let optionViewer = optionModel.view;
             if (!optionModel.isInit || !optionViewer) {
-                optionViewer = new OptionView(itemsContainer);
+                optionViewer = new OptionView(itemsContainer, this.options);
             }
 
             this.handleOptionView(optionModel, optionViewer, idx);

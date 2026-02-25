@@ -435,8 +435,7 @@ export class Libs {
         tmp.querySelectorAll("script, style, iframe, object, embed, link").forEach((n) => n.remove());
 
         tmp.querySelectorAll("*").forEach((n) => {
-            for (const k in n.attributes) {
-                const a = n.attributes[k];
+            for (const a of Array.from(n.attributes)) {
                 const name = a.name ?? "";
                 const value = a.value ?? "";
     
@@ -482,27 +481,35 @@ export class Libs {
     }
 
     /**
-     * Parse select element to array (including optgroups)
-     * @param {HTMLSelectElement} selectElement
-     * @returns {Array<HTMLOptGroupElement|HTMLOptionElement>}
+     * Flattens a `<select>` element into an ordered array that includes optgroups
+     * and their child options.
+     *
+     * Notes:
+     * - Keeps original DOM order.
+     * - Adds a non-standard `__parentGroup` pointer on options inside optgroups.
+     *
+     * @param {HTMLSelectElement} selectElement - The source select element.
+     * @returns {Array<HTMLOptGroupElement | HTMLOptionElement>} Flattened node list.
      */
     public static parseSelectToArray(selectElement: HTMLSelectElement): Array<HTMLOptGroupElement | HTMLOptionElement> {
         const result: Array<HTMLOptGroupElement | HTMLOptionElement> = [];
-        const children = Array.from(selectElement.children);
+        const children = selectElement.children;
 
-        children.forEach((child) => {
+        for (let childIndex = 0; childIndex < children.length; childIndex++) {
+            const child = children[childIndex];
             if (child.tagName === "OPTGROUP") {
                 const group = child as HTMLOptGroupElement;
                 result.push(group);
 
-                Array.from(group.children).forEach((option) => {
+                for (let optionIndex = 0; optionIndex < group.children.length; optionIndex++) {
+                    const option = group.children[optionIndex];
                     option["__parentGroup"] = group;
                     result.push(option as HTMLOptionElement);
-                });
+                };
             } else if (child.tagName === "OPTION") {
                 result.push(child as HTMLOptionElement);
             }
-        });
+        };
 
         return result;
     }

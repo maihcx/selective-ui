@@ -1,6 +1,7 @@
 import { View } from "../core/base/view";
 import { Libs } from "../utils/libs";
 import type { GroupViewTags, GroupViewResult } from "../types/views/view.group.type";
+import { SelectiveOptions } from "../types/utils/selective.type";
 
 /**
  * GroupView
@@ -69,13 +70,38 @@ export class GroupView extends View<GroupViewTags> {
     public view: GroupViewResult | null = null;
 
     /**
+     * Parsed configuration (bound from the `<select>` element via binder map).
+     *
+     * Provides feature flags (multiple/disabled/readonly/visible/virtualScroll/ajax/autoclose…),
+     * a11y ids (e.g. `SEID_LIST`, `SEID_HOLDER`) and user callbacks under `options.on`.
+     *
+     * @internal
+     */
+    private options: SelectiveOptions | null = null;
+
+    /**
+     * Creates a new GroupView bound to the given parent element.
+     *
+     * Initialization flow:
+     * 1. Calls `super(parent)` (View base constructor).
+     *
+     * @public
+     * @param {HTMLElement} parent - Container element that will host this group view.
+     * @param {SelectiveOptions} options - Optional configuration for this group view.
+     */
+    public constructor(parent: HTMLElement, options?: SelectiveOptions) {
+        super(parent);
+        this.options = options;
+    }
+
+    /**
      * Mounts the group view into the DOM.
      *
      * Creation flow:
      * 1. Generates unique group ID (7-character random string).
      * 2. Creates DOM structure via {@link Libs.mountNode}:
-     *    - Root: `<div role="group" aria-labelledby="seui-{id}-header">`
-     *    - Header: `<div role="presentation" id="seui-{id}-header">`
+     *    - Root: `<div role="group" aria-labelledby="seui-{this.options?.SEID || default}-{id}-header">`
+     *    - Header: `<div role="presentation" id="seui-{this.options?.SEID || default}-{id}-header">`
      *    - Items: `<div role="group">` (nested group for child items)
      * 3. Appends root to {@link parent} container.
      * 4. Transitions `INITIALIZED → MOUNTED` via `super.mount()`.
@@ -102,8 +128,8 @@ export class GroupView extends View<GroupViewTags> {
                     node: "div",
                     classList: ["seui-group"],
                     role: "group",
-                    ariaLabelledby: `seui-${group_id}-header`,
-                    id: `seui-${group_id}-group`,
+                    ariaLabelledby: `seui-${this.options?.SEID || "default"}-${group_id}-header`,
+                    id: `seui-${this.options?.SEID || "default"}-${group_id}-group`,
                 },
                 child: {
                     GroupHeader: {
@@ -111,7 +137,7 @@ export class GroupView extends View<GroupViewTags> {
                             node: "div",
                             classList: ["seui-group-header"],
                             role: "presentation",
-                            id: `seui-${group_id}-header`,
+                            id: `seui-${this.options?.SEID || "default"}-${group_id}-header`,
                         },
                     },
                     GroupItems: {
