@@ -1,3 +1,13 @@
+## v1.3.1
+
+## 🚀 Changelog
+## 🐛 Bug Fixes
+
+- The ellipsis for the placeholder is not displaying as expected (#82) — @maihcx
+
+
+---
+
 ## v1.3.0
 
 ## 🚀 Changelog
