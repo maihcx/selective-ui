@@ -867,6 +867,23 @@ export class SelectBox extends Lifecycle {
                 this.change(false, trigger);
             },
 
+            deSelectByDataset(_evtToken?: IEventCallback, dataset?: any, trigger: boolean = true) {
+                if (dataset) {
+                    superThis.getModelOption().forEach(optionModel => {
+                        if (optionModel.dataset) {
+                            for (let searchKey in dataset) {
+                                let value = dataset[searchKey];
+                                !Array.isArray(value) && (value = [value]);
+                                if (value.includes(optionModel.dataset[searchKey])) {
+                                    optionModel.selectedNonTrigger = false;
+                                }
+                            }
+                        }
+                    });
+                    this.change(false, trigger);
+                }
+            },
+
             setValue(_evtToken: IEventCallback | null = null, value: any, trigger: boolean = true, force: boolean = false) {
                 if (!Array.isArray(value)) value = [value];
                 value = value.filter((v: any) => v !== "" && v != null);
