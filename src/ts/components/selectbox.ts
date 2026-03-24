@@ -916,18 +916,15 @@ export class SelectBox extends Lifecycle {
                                 const result = await container.searchController.loadByValues(missing);
                                 if (result.success && result.items.length > 0) {
                                     result.items.forEach((it: any) => {
-                                        if (missing.includes(it.value)) it.selected = true;
+                                        if (missing.includes(it.value) || missing.includes(it.text)) it.selected = true;
                                     });
 
-                                    // keep legacy private hook access
-                                    container.searchController.applyAjaxResult?.(result.items, true, true);
-
+                                    container.searchController.applyAjaxResult?.(result.items, false, false);
+                                    
                                     setTimeout(() => {
-                                        superThis.getModelOption().forEach((m) => {
-                                            m.selectedNonTrigger = value.some((v: any) => v == m.value);
-                                        });
-                                        this.change(false, false);
-                                    }, 100);
+                                        container.searchController.resetPagination();
+                                        this.change(false, trigger);
+                                    }, 200);
                                 } else if (missing.length > 0) {
                                     console.warn(`Could not load ${missing.length} values:`, missing);
                                 }
