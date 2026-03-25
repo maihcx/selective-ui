@@ -1,3 +1,23 @@
+## v1.4.0
+
+## 🚀 Changelog
+- Removed workflow: Sync after release (#84) — @maihcx
+
+## 🚀 Features
+
+- API support: deSelectByDataset (#88) — @maihcx
+
+## 🐛 Bug Fixes
+
+- Bug fix: Ajax API data selection function setValue is not working (#89) — @maihcx
+
+## 📚 Documentation
+
+- Update architecture (#87) — @maihcx
+
+
+---
+
 ## v1.3.1
 
 ## 🚀 Changelog
