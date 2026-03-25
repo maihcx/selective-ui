@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selective UI - Architecture Diagrams v1.3</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .version {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .tagline {
+            text-align: center;
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 30px;
+            font-size: 1em;
+            font-style: italic;
+        }
+
+        .diagram-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .diagram-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            font-size: 1.8em;
+        }
+
+        .diagram-section h3 {
+            color: #764ba2;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .mermaid {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .description {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .description p { margin: 8px 0; color: #333; }
+
+        .legend {
+            background: #fff9e6;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .legend h4 { color: #f57c00; margin-bottom: 10px; }
+        .legend ul { margin-left: 20px; color: #555; }
+        .legend li { margin: 5px 0; }
+
+        .highlight-box {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #43a047;
+        }
+
+        .highlight-box p { margin: 6px 0; color: #1b5e20; }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            h1 { font-size: 1.8em; }
+            .diagram-section { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Selective UI — ARCHITECTURE</h1>
+        <p class="version">Version 1.3 | MIT License | CRV-UI Engine</p>
+        <p class="tagline">"Render less. Control more."</p>
+
+        <!-- 1. CRV-UI ENGINE OVERVIEW -->
+        <div class="diagram-section">
+            <h2>📐 1. CRV-UI ENGINE — OVERALL ARCHITECTURE</h2>
+
+            <div class="mermaid">
+graph TB
+
+    subgraph PUBLIC_API
+        A["SelectiveUIGlobal
+GLOBAL_SEUI singleton"]
+
+        B[bind]
+        C[find]
+        D[destroy]
+        E[rebind]
+        F[effector]
+        G[registerPlugin]
+        H[unregisterPlugin]
+
+        A --> B
+        A --> C
+        A --> D
+        A --> E
+        A --> F
+        A --> G
+        A --> H
+    end
+
+
+    subgraph CORE_ORCHESTRATOR
+        SEL["Selective
+Lifecycle FSM"]
+
+        EAO["ElementAdditionObserver
+MutationObserver auto-rebind"]
+
+        BQ["bindedQueries Map
+selector -> options"]
+
+        PLG["Plugin registry
+id -> SelectivePlugin"]
+
+        SEL --> EAO
+        SEL --> BQ
+        SEL --> PLG
+    end
+
+
+    subgraph COMPONENT_LAYER
+        SB["SelectBox
+UI coordinator"]
+
+        PH[PlaceHolder]
+        DIR[Directive]
+        SRCH[SearchBox]
+        POP[Popup]
+        ACC[AccessoryBox]
+        EFF[Effector]
+        REF[Refresher]
+
+        SB --> PH
+        SB --> DIR
+        SB --> SRCH
+        SB --> POP
+        SB --> ACC
+        SB --> EFF
+        SB --> REF
+    end
+
+
+    subgraph MODEL_ADAPTER_RENDER
+        MM["ModelManager
+DOM -> Models"]
+
+        MA["MixedAdapter
+Group + Option"]
+
+        RV["VirtualRecyclerView"]
+
+        GV[GroupView]
+        OV[OptionView]
+
+        MM --> MA
+        MA --> RV
+        RV --> GV
+        RV --> OV
+    end
+
+
+    subgraph SERVICES
+        SC["SearchController"]
+        SO["SelectObserver"]
+        DO["DatasetObserver"]
+        RSZO["ResizeObserver"]
+    end
+
+
+    subgraph UTILITIES
+        LIBS["Libs utilities"]
+        CBS["CallbackScheduler"]
+        IEVT["iEvents"]
+        FW["Fenwick Tree"]
+    end
+
+
+    B --> SEL
+    C --> SEL
+    D --> SEL
+    E --> SEL
+
+    SEL --> SB
+    SB --> MM
+
+    SB --> SC
+    SB --> SO
+    SB --> DO
+
+    RV --> RSZO
+    RV --> FW
+
+    SEL --> LIBS
+    MM --> CBS
+    SEL --> IEVT
+
+
+    style A fill:#667eea,stroke:#333,stroke-width:3px,color:#fff
+    style SEL fill:#764ba2,stroke:#333,stroke-width:2px,color:#fff
+    style SB fill:#f093fb,stroke:#333,stroke-width:2px,color:#fff
+    style MM fill:#4facfe,stroke:#333,stroke-width:2px,color:#fff
+    style RV fill:#43e97b,stroke:#333,stroke-width:2px,color:#fff
+    style FW fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+            </div>
+
+            <div class="description">
+                <p><strong>📌 CRV-UI Engine:</strong></p>
+                <p>• <strong>Contract-Driven:</strong> All communication occurs through TypeScript interfaces — views do not depend on concrete implementations</p>
+                <p>• <strong>Retained DOM:</strong> DOM nodes are created once and updated incrementally, without Virtual DOM or diffing</p>
+                <p>• <strong>Virtualized Rendering:</strong> Fenwick Tree + windowing for 10k+ items with O(log n) height updates</p>
+                <p>• <strong>GLOBAL_SEUI singleton:</strong> The new version uses <code>globalThis.GLOBAL_SEUI</code> to prevent duplicate script tag loading ()</p>
+            </div>
+
+            <div class="highlight-box">
+                <p><strong>🆕 v1.3 Changes so with v1.2:</strong></p>
+                <p>• Public API currently routed through <code>globalThis.GLOBAL_SEUI</code> singleton instead of module-level SECLASS</p>
+                <p>• Added <code>registerPlugin</code> / <code>unregisterPlugin</code> to the Public API</p>
+                <p>• Official FSM Lifecycle: NEW → INITIALIZED → MOUNTED → UPDATED → DESTROYED</p>
+                <p>• SelectBox now composes VirtualRecyclerView (virtual scroll) or RecyclerView</p>
+                <p>• Fenwick Tree replaces the previous simple scroll calculation</p>
+            </div>
+        </div>
+
+        <!-- 2. CLASS DIAGRAM -->
+        <div class="diagram-section">
+            <h2>🏗️ 2. CLASS DIAGRAM (Core Hierarchy)</h2>
+
+            <div class="mermaid">
+classDiagram
+    class Lifecycle {
+        #state: LifecycleState
+        -hooks: Map~HookName, Set~Callback~~
+        +init()
+        +mount()
+        +update()
+        +destroy()
+        +on(hook, fn) this
+        +off(hook, fn) this
+        +is(state) boolean
+        +getState() LifecycleState
+        #emit(hook, prevState)
+    }
+
+    class Selective {
+        -EAObserver: ElementAdditionObserver
+        -bindedQueries: Map~string, SelectiveOptions~
+        -plugins: Map~string, SelectivePlugin~
+        +bind(query, options)
+        +find(query) SelectiveActionApi
+        +destroy(target)
+        +rebind(query, options)
+        +Observer()
+        +registerPlugin(plugin)
+        +unregisterPlugin(id)
+        +getPlugin(id)
+        -applySelectBox(el, options) boolean
+        -destroyAll()
+        -destroyByQuery(query)
+        -destroyElement(el)
+        -buildGetSetAction(...)
+        -buildFuntionAction(...)
+    }
+
+    class SelectBox {
+        -element: HTMLSelectElement
+        -selective: Selective
+        +container: ContainerRuntime
+        -modelManager: ModelManager
+        -searchController: SearchController
+        -selectObserver: SelectObserver
+        -datasetObserver: DatasetObserver
+        +mount()
+        +deInit()
+        +destroy()
+        +on(hook, fn)
+        +getAction() SelectBoxAction
+    }
+
+    class ModelManager {
+        -privModelList: MixedItem[]
+        -privAdapterHandle: TAdapter
+        -privRecyclerViewHandle: RecyclerViewContract
+        -options: SelectiveOptions
+        +setupAdapter(cls)
+        +setupRecyclerView(cls)
+        +createModelResources(data) Models
+        +load(viewEl, adapterOpt, recyclerOpt)
+        +replace(modelData)
+        +updateModel(modelData)
+        +refresh(isUpdate)
+        +triggerChanging(event) Promise
+        +triggerChanged(event) Promise
+        +getResources()
+        +skipEvent(value)
+    }
+
+    class Adapter {
+        +items: TItem[]
+        +adapterKey: string
+        +isSkipEvent: boolean
+        +recyclerView: any
+        +onViewHolder(item, viewer, pos)
+        +onPropChanging(prop, cb)
+        +onPropChanged(prop, cb)
+        +changeProp(prop) Promise
+        +changingProp(prop) Promise
+        +setItems(items) Promise
+        +syncFromSource(items) Promise
+        +viewHolder(parent, item) TViewer
+        +updateRecyclerView(parent)
+        +updateData(items)
+    }
+
+    class MixedAdapter {
+        +isMultiple: boolean
+        +options: SelectiveOptions
+        +groups: GroupModel[]
+        +flatOptions: OptionModel[]
+        -currentHighlightIndex: number
+        -selectedItemSingle: OptionModel
+        +getSelectedItems() OptionModel[]
+        +highlightNext()
+        +highlightPrev()
+        +onVisibilityChanged(cb)
+        +checkAll()
+        +uncheckAll()
+    }
+
+    class RecyclerView {
+        +viewElement: HTMLDivElement
+        +adapter: TAdapter
+        +setAdapter(adapter)
+        +clear()
+        +render()
+        +refresh(isUpdate)
+        +destroy()
+    }
+
+    class VirtualRecyclerView {
+        -opts: VirtualOptions
+        -PadTop: HTMLDivElement
+        -ItemsHost: HTMLDivElement
+        -PadBottom: HTMLDivElement
+        -fenwick: Fenwick
+        -heightCache: number[]
+        -created: Map~int, HTMLElement~
+        +configure(opts)
+        +setAdapter(adapter)
+        +refresh(isUpdate)
+        +ensureRendered(index, opt)
+        +scrollToIndex(index)
+        +suspend()
+        +resume()
+        +refreshItem()
+        +dispose()
+        -updateWindowInternal()
+        -mountRange(start, end)
+        -unmountOutside(start, end)
+    }
+
+    class Fenwick {
+        -bit: number[]
+        -stackNum: number
+        +initialize(n)
+        +reset(n)
+        +add(i, delta)
+        +sum(i) number
+        +rangeSum(l, r) number
+        +buildFrom(arr)
+        +lowerBoundPrefix(target) number
+    }
+
+    class Model {
+        +targetElement: TTarget
+        +options: TOptions
+        +view: TView
+        +position: number
+        +isInit: boolean
+        +isRemoved: boolean
+        +value: string
+        +updateTarget(el)
+        +destroy()
+    }
+
+    class Effector {
+        +element: HTMLElement
+        +isAnimating: boolean
+        +setElement(query)
+        +expand(config)
+        +collapse(config)
+        +resize(config)
+        +swipe(config)
+        +cancel()
+    }
+
+    Lifecycle <|-- Selective
+    Lifecycle <|-- SelectBox
+    Lifecycle <|-- ModelManager
+    Lifecycle <|-- Adapter
+    Lifecycle <|-- RecyclerView
+    Lifecycle <|-- Model
+    Lifecycle <|-- Fenwick
+
+    Adapter <|-- MixedAdapter
+    RecyclerView <|-- VirtualRecyclerView
+
+    Selective --> SelectBox : creates
+    SelectBox --> ModelManager : owns
+    ModelManager --> MixedAdapter : instantiates
+    ModelManager --> RecyclerView : or VirtualRecyclerView
+    VirtualRecyclerView --> Fenwick : uses
+    SelectBox --> Effector : uses
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Actual hierarchy:</strong></p>
+                <p>• <strong>Lifecycle</strong> is the common base class for all components — strict FSM with Set‑based hooks</p>
+                <p>• <strong>Selective</strong> is the main orchestrator: manages bindings, plugins, and the ElementAdditionObserver</p>
+                <p>• <strong>SelectBox</strong> is the root UI component: composes all components and services</p>
+                <p>• <strong>ModelManager</strong> headless: DOM → GroupModel/OptionModel → Adapter → RecyclerView</p>
+                <p>• <strong>MixedAdapter</strong> xử lý heterogeneous list (group + option), navigation, visibility, selection</p>
+                <p>• <strong>VirtualRecyclerView + Fenwick</strong>: virtualization với dynamic heights, adaptive estimator</p>
+            </div>
+        </div>
+
+        <!-- 3. LIFECYCLE FSM -->
+        <div class="diagram-section">
+            <h2>🔄 3. LIFECYCLE FSM (Finite State Machine)</h2>
+
+            <div class="mermaid">
+stateDiagram-v2
+    [*] --> NEW: Constructor
+
+    NEW --> INITIALIZED: init()
+    note right of INITIALIZED
+        bindedQueries = new Map()
+        plugins = new Map()
+        hooks containers created
+    end note
+
+    INITIALIZED --> MOUNTED: mount()
+    note right of MOUNTED
+        First successful bind()
+        Active bound elements exist
+        Ready for interactions
+    end note
+
+    MOUNTED --> UPDATED: update()
+    UPDATED --> UPDATED: update() repeatable
+
+    note right of UPDATED
+        Triggered by:
+        - bind() when already mounted
+        - destroy() partial teardown
+        - rebind() re-registration
+        - Observer() new element detected
+    end note
+
+    MOUNTED --> DESTROYED: destroyAll()
+    UPDATED --> DESTROYED: destroyAll()
+    INITIALIZED --> DESTROYED: destroyAll()
+
+    note right of DESTROYED
+        bindedQueries cleared
+        plugins cleared
+        EAObserver disconnected
+        All hooks cleared
+    end note
+
+    DESTROYED --> [*]
+            </div>
+
+            <div class="description">
+                <p><strong>📌 FSM Guards (Idempotency):</strong></p>
+                <p>• <strong>init()</strong>: no‑op if the state is not NEW</p>
+                <p>• <strong>mount()</strong>: only transitions INITIALIZED → MOUNTED; otherwise a no‑op</p>
+                <p>• <strong>update()</strong>: allowed in MOUNTED and UPDATED states; always emits onUpdate</p>
+                <p>• <strong>destroy()</strong>: idempotent if already DESTROYED; clears all hooks</p>
+                <p>• Hook exceptions are caught by <code>handleHookError()</code> — without breaking the lifecycle flow</p>
+            </div>
+        </div>
+
+        <!-- 4. BINDING FLOW -->
+        <div class="diagram-section">
+            <h2>⚙️ 4. BINDING FLOW (bind → applySelectBox → mount)</h2>
+
+            <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant API as GLOBAL_SEUI
+    participant SEL as Selective
+    participant SB as SelectBox
+    participant MM as ModelManager
+    participant MA as MixedAdapter
+    participant RV as VirtualRecyclerView
+    participant CBS as CallbackScheduler
+
+    User->>API: bind(".my-select", options)
+    API->>SEL: bind(query, options)
+    SEL->>SEL: mergeConfig(defaults, options)
+    SEL->>SEL: bindedQueries.set(query, merged)
+    SEL->>SEL: getElements(query) -> HTMLSelectElement[]
+
+    loop For each select
+        SEL->>SEL: applySelectBox(element, options)
+        SEL->>SEL: generate SEID values
+        SEL->>SEL: buildConfig merge dataset
+        SEL->>SB: new SelectBox
+        SB->>SB: onMount wireMouseUp
+        SEL->>SB: mount
+        SB->>MM: new ModelManager
+        MM->>MM: setupAdapter MixedAdapter
+        MM->>MM: setupRecyclerView VirtualRecyclerView
+        MM->>MM: createModelResources
+        MM->>MA: new MixedAdapter
+        MM->>RV: new VirtualRecyclerView
+        RV->>MA: setAdapter
+        MA->>RV: set recyclerView reference
+        RV->>RV: build scaffold
+        RV->>RV: attachScrollListener and ResizeObserver
+        RV->>RV: refresh initial render
+        SB-->>SEL: getAction ActionAPI
+        SEL->>SEL: save bindMap
+    end
+
+    SEL->>SEL: mount if first bind
+    SEL->>CBS: run doneToken
+    CBS-->>User: on.load callbacks
+    SEL-->>User: binding complete
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Binding Flow Details:</strong></p>
+                <p>• <strong>SEID</strong>: unique 8-character ID per instance — used for <code>seui-{SEID}-optionlist</code>, <code>seui-{SEID}-placeholder</code></p>
+                <p>• <strong>buildConfig</strong>: merges dataset attributes into options (medium priority)</p>
+                <p>• <strong>onMount hook</strong>: wires mouseup on the view to trigger toggle()</p>
+                <p>• <strong>VirtualRecyclerView</strong>: scaffold 3 nodes (PadTop, ItemsHost, PadBottom) + ResizeObserver</p>
+                <p>• <strong>on.load callbacks</strong>: invoked asynchronously via CallbackScheduler after all elements are processed</p>
+            </div>
+        </div>
+
+        <!-- 5. DATA FLOW: DOM → MODELS → VIEWS -->
+        <div class="diagram-section">
+            <h2>📊 5. DATA FLOW: DOM → Models → Adapter → Views</h2>
+
+            <div class="mermaid">
+graph LR
+
+    subgraph INPUT_SOURCES
+        A["HTML select
+option / optgroup"]
+        B["setData or reload
+JSON Array"]
+        C["AJAX Response
+fetch + dataTransform"]
+    end
+
+    subgraph MODEL_MANAGER
+        D["createModelResources
+DOM to GroupModel / OptionModel"]
+        D --> E["updateModel
+Diff + reconcile in-place"]
+        E --> F["replace
+Full dataset swap"]
+    end
+
+    subgraph MODELS
+        G["GroupModel
+label items visible"]
+        H["OptionModel
+value text selected visible highlighted"]
+        G --> H
+    end
+
+    subgraph MIXED_ADAPTER
+        I["flatOptions
+flattened navigation index"]
+        J["groups
+group model refs"]
+        K["Visibility aggregation
+visibleCount totalCount"]
+        L["Selection tracking
+selectedItem"]
+    end
+
+    subgraph RECYCLER_RENDERING
+        M["VirtualRecyclerView
+windowing start-end"]
+        M --> N["Fenwick Tree
+O(log n) prefix sums"]
+        N --> O["mountRange start end
+visible window only"]
+        O --> P["GroupView OptionView
+DOM nodes"]
+    end
+
+    subgraph SEARCH_CONTROLLER
+        Q["SearchController
+filter + AJAX"]
+        Q --> R["updateModel
+visibility flags"]
+        R --> S["adapter.onVisibilityChanged
+refreshItem"]
+    end
+
+    A --> D
+    B --> F
+    C --> Q
+    D --> G
+    D --> H
+    G --> I
+    H --> I
+    I --> M
+    Q --> R
+    S --> M
+
+    style A fill:#e3f2fd,stroke:#1976d2
+    style B fill:#e3f2fd,stroke:#1976d2
+    style C fill:#e3f2fd,stroke:#1976d2
+    style M fill:#43e97b,stroke:#333,stroke-width:2px
+    style N fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+    style Q fill:#fff3e0,stroke:#f57c00
+            </div>
+
+            <div class="description">
+                <p><strong>📌 New Data Flow compared to v1.2:</strong></p>
+                <p>• <strong>ModelManager</strong> replaces direct DOM manipulation — headless, test-friendly</p>
+                <p>• <strong>updateModel()</strong>: The diff strategy preserves model instances (keyed by value::text), avoiding destruction/recreation</p>
+                <p>• <strong>MixedAdapter.flatOptions[]</strong>: flattened index for keyboard navigation independent of group structure</p>
+                <p>• <strong>onVisibilityChanged</strong>: when search filter changes → VirtualRecyclerView.refreshItem() → rebuild Fenwick</p>
+                <p>• <strong>Fenwick Tree</strong>: dynamic heights with adaptive estimator (running average of measured items)</p>
+            </div>
+        </div>
+
+        <!-- 6. VIRTUAL SCROLL + FENWICK -->
+        <div class="diagram-section">
+            <h2>🚀 6. VIRTUAL SCROLL + FENWICK TREE</h2>
+
+            <div class="mermaid">
+graph TB
+
+    subgraph INITIALIZATION
+        A[setAdapter called] --> B["Build scaffold nodes
+PadTop / ItemsHost / PadBottom"]
+        B --> C["Probe index 0 height
+seed estimateItemHeight"]
+        C --> D["buildFrom arr
+Fenwick O(n log n)"]
+        D --> E["scheduleUpdateWindow
+requestAnimationFrame"]
+    end
+
+    subgraph SCROLL_EVENTS
+        F["scroll event
+passive listener"] --> G["scheduleUpdateWindow
+rAF debounced"]
+        H["ResizeObserver
+ItemsHost mutations"] --> I["measureVisibleAndUpdate
+rAF debounced"]
+    end
+
+    subgraph WINDOW_UPDATE
+        G --> J[updateWindowInternal]
+        J --> K["containerTopInScroll
+relative offset"]
+        K --> L["findFirstVisibleIndex
+fenwick lowerBoundPrefix"]
+        L --> M["Compute start end
+overscan estimate"]
+        M --> N{Window changed}
+        N -->|No| O[Skip update]
+        N -->|Yes| P["mountRange start end"]
+        P --> Q["unmountOutside start end"]
+        Q --> R["measureVisibleAndUpdate
+updateHeightAt log n"]
+        R --> S["Update PadTop
+Update PadBottom"]
+        S --> T["Anchor correction
+prevent scroll jump"]
+    end
+
+    subgraph FENWICK
+        U["add i delta
+log n update"]
+        V["sum i
+log n prefix"]
+        W["lowerBoundPrefix
+log n search"]
+        X["rangeSum l r
+log n"]
+        Y["buildFrom arr
+n log n"]
+    end
+
+    subgraph SUSPEND_RESUME
+        Z["suspend
+cancel rAF and scroll listener
+disconnect ResizeObserver"]
+        AA["resume
+reattach and scheduleUpdateWindow"]
+    end
+
+    I --> R
+    U -.-> V
+    V -.-> W
+
+    style A fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style J fill:#764ba2,stroke:#333,stroke-width:2px,color:#fff
+    style P fill:#43e97b,stroke:#333,stroke-width:2px
+    style U fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+    style Z fill:#ffd89b,stroke:#333,stroke-width:2px
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Advanced Virtual Scroll compared to v1.2:</strong></p>
+                <p>• <strong>Fenwick Tree</strong>: simple formula replacement — supports dynamic/variable heights</p>
+                <p>• <strong>Adaptive estimator</strong>: uses running average of measured items instead of fixed estimateItemHeight</p>
+                <p>• <strong>Anchor correction</strong>: maintains scroll position stability when heights change after measurement</p>
+                <p>• <strong>Suspend/Resume</strong>: batch operations can pause virtualization to avoid feedback loops</p>
+                <p>• <strong>Re-entrancy guard</strong>: the <code>updating</code> flag prevents recursive calls to updateWindowInternal</p>
+            </div>
+
+            <div class="legend">
+                <h4>🎯 Fenwick Tree Formulas:</h4>
+                <ul>
+                    <li><strong>offsetTopOf(i)</strong> = fenwick.sum(i) → prefix sum of heights[0..i-1]</li>
+                    <li><strong>findFirstVisible(scrollTop)</strong> = fenwick.lowerBoundPrefix(scrollTop)</li>
+                    <li><strong>overscanPx</strong> = opts.overscan × getEstimate()</li>
+                    <li><strong>adaptiveEstimate</strong> = measuredSum / measuredCount (khi measuredCount > 0)</li>
+                    <li><strong>totalHeight(count)</strong> = fenwick.sum(count)</li>
+                    <li><strong>windowHeight(s,e)</strong> = fenwick.rangeSum(s+1, e+1)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 7. UI COMPONENT STRUCTURE -->
+        <div class="diagram-section">
+            <h2>🎨 7. UI COMPONENT STRUCTURE</h2>
+
+            <div class="mermaid">
+graph TD
+    A[.seui-container<br>SelectBox root wrapper] --> B[.seui-view<br>PlaceHolder + Directive]
+    A --> C[.seui-panel / Popup<br>dropdown container]
+
+    B --> D[.seui-placeholder<br>selected value display]
+    B --> E[.seui-directive<br>arrow + caret indicator]
+    B --> F[.seui-accessorybox<br>multi-select chips]
+
+    D --> D1[Text / Image<br>selected display]
+    F --> F1[Chip per selected item]
+    F1 --> F2[Remove button per chip]
+
+    C --> G[.seui-option-handle<br>SearchBox + SelectAll]
+    C --> H[.seui-optionlist<br>RecyclerView host]
+    C --> I[.seui-empty-state<br>EmptyState component]
+    C --> J[.seui-loading-state<br>LoadingState component]
+
+    G --> G1[.seui-search<br>search input + clear btn]
+    G --> G2[.seui-selectall<br>Select All / Deselect All]
+
+    H --> K[VirtualRecyclerView scaffold]
+    K --> K1[seui-virtual-pad-top]
+    K --> K2[seui-virtual-items<br>ItemsHost]
+    K --> K3[seui-virtual-pad-bottom]
+
+    K2 --> L[.seui-group<br>GroupView]
+    K2 --> M[.seui-option<br>OptionView]
+
+    L --> L1[Group label]
+    L --> L2[Nested .seui-option items]
+
+    M --> M1[Checkbox / Radio]
+    M --> M2[Image optional]
+    M --> M3[Label text]
+    M --> M4[highlighted / selected states]
+
+    style A fill:#667eea,stroke:#333,stroke-width:3px,color:#fff
+    style B fill:#f093fb,stroke:#333,stroke-width:2px
+    style C fill:#4facfe,stroke:#333,stroke-width:2px
+    style K fill:#43e97b,stroke:#333,stroke-width:2px
+    style K2 fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Component Actual hierarchy:</strong></p>
+                <p>• <strong>seui-container:</strong> SelectBox root — wraps native <code>&lt;select&gt;</code> (hidden)</p>
+                <p>• <strong>PlaceHolder:</strong> Display the selected value, image, or "no selection" text</p>
+                <p>• <strong>Directive:</strong> arrow/caret indicator, not seui-arrow anymore</p>
+                <p>• <strong>AccessoryBox:</strong> chips display for multi-select (separate component)</p>
+                <p>• <strong>VirtualRecyclerView scaffold:</strong> PadTop + ItemsHost + PadBottom — not in v1.2</p>
+                <p>• <strong>EmptyState / LoadingState:</strong> separate into popup sub-components</p>
+            </div>
+        </div>
+
+        <!-- 8. SEARCH + AJAX FLOW -->
+        <div class="diagram-section">
+            <h2>🔍 8. SEARCH CONTROLLER + AJAX FLOW</h2>
+
+            <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant SB as SearchBox
+    participant SC as SearchController
+    participant MM as ModelManager
+    participant MA as MixedAdapter
+    participant RV as VirtualRecyclerView
+    participant Server
+
+    User->>SB: Type in search input
+    SB->>SC: search(query)
+    SC->>SC: Check ajax config
+
+    alt AJAX configured
+        SC->>MA: changingProp("select") - pre-change
+        SC->>MM: Show LoadingState
+        SC->>Server: fetch(url + params)
+        Server-->>SC: JSON response
+        SC->>SC: dataTransform(response) → normalized data
+        SC->>MM: replace(normalizedData)
+        MM->>MA: syncFromSource(models)
+        MA->>MA: setItems(items) → changingProp + changeProp
+        MA->>RV: onPropChanged("items") → render()
+        RV->>RV: refresh(false) → full rebuild
+        SC->>MA: changeProp("selected") - post-change
+    else No AJAX — local filter
+        SC->>MM: updateModel with filtered data
+        MM->>MA: updateData(newModels)
+        MA->>MA: Update visibility flags on OptionModels
+        MA->>MA: onVisibilityChanged callbacks
+        MA->>RV: refreshItem() - hard reset window
+        RV->>RV: suspend → resetState → rebuildFenwick → resume
+    end
+
+    RV-->>User: Updated dropdown display
+
+    User->>SB: Press Enter / Arrow keys
+    SB->>SC: Emit navigation event
+    SC->>MA: highlightNext() / highlightPrev()
+    MA->>MA: Update currentHighlightIndex
+    MA->>RV: ensureRendered(index, scrollIntoView)
+    RV->>RV: mountIndexOnce + scrollToIndex
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Search / AJAX detailed:</strong></p>
+                <p>• <strong>Local filter:</strong> update <code>OptionModel.visible</code> → onVisibilityChanged → VirtualRecyclerView.refreshItem()</p>
+                <p>• <strong>refreshItem()</strong>: suspend + resetState + rebuildFenwick + resume — hard reset completely</p>
+                <p>• <strong>AJAX:</strong> <code>dataTransform(response)</code> normalize to standard format before inserting into ModelManager</p>
+                <p>• <strong>Keyboard navigation:</strong> MixedAdapter.flatOptions[] flat index → ensureRendered() ensures item is mounted</p>
+            </div>
+        </div>
+
+        <!-- 9. EVENT SYSTEM + PLUGIN SYSTEM -->
+        <div class="diagram-section">
+            <h2>⚡ 9. EVENT SYSTEM + PLUGIN SYSTEM</h2>
+
+            <div class="mermaid">
+graph TB
+
+    subgraph CALLBACK_SCHEDULER
+        A[CallbackScheduler]
+        A --> B["executeStored Map
+key -> callback array"]
+        A --> C["timerRunner Map
+key -> debounce timer"]
+        B --> D["Callback 1 ... Callback N"]
+        C --> E["setTimeout debounce"]
+    end
+
+    subgraph USER_EVENT_REGISTRATION
+        F["on.load callback"]
+        G["on.beforeShow / on.show"]
+        H["on.beforeChange / on.change"]
+        I["on.beforeClose / on.close"]
+        J["on.search"]
+    end
+
+    subgraph IEVENTS_FLOW
+        K["iEvents buildEventToken"]
+        K --> L["token.isContinue"]
+        K --> M["callback.stopPropagation"]
+        K --> N["callback.cancel"]
+        L --> O["Stop iteration across elements"]
+    end
+
+    subgraph ADAPTER_PROPERTY_PIPELINE
+        P["changingProp propName
+pre-change subscribers"]
+        Q["changeProp propName
+post-change subscribers"]
+        P --> R["select property before user selection"]
+        Q --> S["selected property after user selection"]
+        Q --> T["selected internal"]
+        Q --> U["items after setItems or sync"]
+    end
+
+    subgraph LIFECYCLE_HOOKS
+        V["Lifecycle hooks
+onInit onMount onUpdate onDestroy"]
+        V --> W["Set callback per hook"]
+        W --> X["Deduplicated by reference"]
+        X --> Y["Insertion order execution"]
+        Y --> Z["handleHookError catches exceptions"]
+    end
+
+    subgraph PLUGIN_HOOKS
+        AA["SelectivePlugin interface"]
+        AA --> AB["onBind context"]
+        AA --> AC["onOpen context"]
+        AA --> AD["onClose context"]
+        AA --> AE["onChange context"]
+        AA --> AF["init destroy onDestroy"]
+        AB --> AG["PluginContext
+selectBox options adapter recycler viewTags actions"]
+    end
+
+    F --> A
+    G --> A
+    H --> A
+    I --> A
+    J --> A
+
+    style A fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+    style K fill:#43e97b,stroke:#333,stroke-width:2px
+    style P fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style V fill:#764ba2,stroke:#333,stroke-width:2px,color:#fff
+    style AA fill:#4facfe,stroke:#333,stroke-width:2px
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Actual Event System:</strong></p>
+                <p>• <strong>CallbackScheduler</strong>: debounce per-key — each callback has its own timer</p>
+                <p>• <strong>iEvents + EventToken</strong>: flow control is like DOM events — stopPropagation stops iteration through elements</p>
+                <p>• <strong>Adapter Property Pipeline</strong>: 2-phase (changingProp / changeProp) for "select", "selected", "items"</p>
+                <p>• <strong>Plugin System (new in v1.3):</strong> <code>SelectivePlugin</code> interface with hooks onBind/onOpen/onClose/onChange</p>
+                <p>• <strong>PluginContext</strong>: passes selectBox, adapter, recycler, viewTags, actions to every plugin hook</p>
+            </div>
+        </div>
+
+        <!-- 10. SELECTIVE FSM + DESTRUCTION -->
+        <div class="diagram-section">
+            <h2>🧹 10. MEMORY MANAGEMENT & CLEANUP</h2>
+
+            <div class="mermaid">
+graph TB
+    subgraph "BINDING PHASE"
+        A[bind called] --> B[applySelectBox<br>generates SEID]
+        B --> C[Mount DOM wrapper<br>hide native select]
+        C --> D[Wire events via Lifecycle hooks]
+        D --> E[setBinderMap element → BinderMap]
+        E --> F[getBindedCommand.push query]
+    end
+
+    subgraph "OBSERVER AUTO-BIND"
+        G[ElementAdditionObserver<br>MutationObserver on body] --> H{New select added?}
+        H -->|Matches query| I[applySelectBox<br>auto-bind new element]
+        H -->|No match| J[Skip]
+        I --> K[Selective.update]
+    end
+
+    subgraph "PARTIAL DESTROY"
+        L[destroy query] --> M[destroyByQuery]
+        M --> N[For each element<br>destroyElement]
+        N --> O[Disconnect EAObserver temporarily]
+        O --> P[selectBox.deInit<br>sub-component teardown]
+        P --> Q[DOM unwrap<br>restore native select]
+        Q --> R[removeBinderMap]
+        R --> S[Reconnect EAObserver<br>if bindings remain]
+        S --> T[selectBox.destroy<br>lifecycle teardown]
+        T --> U[Selective.update]
+    end
+
+    subgraph "GLOBAL DESTROY"
+        V[destroy null] --> W[destroyAll]
+        W --> X[destroyByQuery × all queries]
+        X --> Y[bindedQueries.clear]
+        Y --> Z[plugins forEach → destroy + onDestroy]
+        Z --> AA[EAObserver.disconnect]
+        AA --> AB[super.destroy → DESTROYED state]
+    end
+
+    subgraph "VIRTUAL RECYCLER CLEANUP"
+        AC[VirtualRecyclerView.destroy] --> AD[cancelFrames rAF]
+        AD --> AE[removeScrollListener]
+        AE --> AF[resizeObs.disconnect]
+        AF --> AG[created.forEach remove]
+        AG --> AH[PadTop/ItemsHost/PadBottom.remove]
+        AH --> AI[super.destroy]
+    end
+
+    style A fill:#43e97b,stroke:#333,stroke-width:2px
+    style L fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+    style V fill:#f44336,stroke:#333,stroke-width:2px,color:#fff
+    style G fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style AC fill:#ff9800,stroke:#333,stroke-width:2px
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Detailed Memory Management:</strong></p>
+                <p>• <strong>EAObserver disconnect</strong>: Pause in destroyElement to avoid re-bind when the DOM changes</p>
+                <p>• <strong>deInit()</strong> vs <strong>destroy()</strong>: deInit is SelectBox-specific cleanup, destroy is Lifecycle teardown</p>
+                <p>• <strong>Plugin teardown</strong>: calls both <code>plugin.destroy()</code> and <code>plugin.onDestroy()</code></p>
+                <p>• <strong>VirtualRecyclerView</strong>: cancel rAF, remove scroll listener, disconnect ResizeObserver, remove scaffold nodes</p>
+                <p>• <strong>BinderMap</strong>: removed from WeakMap after destroy — GC can reclaim references</p>
+            </div>
+        </div>
+
+        <!-- 11. CONFIGURATION HIERARCHY -->
+        <div class="diagram-section">
+            <h2>⚙️ 11. CONFIGURATION HIERARCHY</h2>
+
+            <div class="mermaid">
+graph TB
+    A[iStorage.defaultConfig<br>Priority 3 - Lowest] --> D[Libs.mergeConfig]
+    B[element.dataset data-*<br>Priority 2 - Medium<br>buildConfig] --> D
+    C[bind options arg<br>Priority 1 - Highest] --> D
+
+    D --> E[Final SelectiveOptions]
+
+    subgraph "SelectiveOptions = DefaultConfig + IDs"
+        F[SEID unique 8-char]
+        G[SEID_LIST seui-SEID-optionlist]
+        H[SEID_HOLDER seui-SEID-placeholder]
+    end
+
+    E --> F
+    E --> G
+    E --> H
+
+    subgraph "DefaultConfig Categories"
+        I[Visual<br>width, height, panelHeight<br>imageMode, imagePosition]
+        J[Behavior<br>multiple, searchable, autoclose<br>disabled, readonly, visible]
+        K[Selection<br>selectall, maxSelected<br>keepSelected]
+        L[Text / i18n<br>placeholder, textLoading<br>textNotFound, textSelectAll]
+        M[Performance<br>virtualScroll, animationtime<br>delaysearchtime, overscan<br>estimateItemHeight]
+        N[AJAX<br>ajax.url, ajax.method<br>ajax.headers, ajax.data<br>ajax.dataTransform]
+        O[Events / on.*<br>load, beforeShow, show<br>beforeChange, change<br>beforeClose, close, search]
+        P[Plugin hooks<br>passed via PluginContext]
+    end
+
+    E --> I
+    E --> J
+    E --> K
+    E --> L
+    E --> M
+    E --> N
+    E --> O
+
+    style A fill:#e3f2fd,stroke:#1976d2
+    style B fill:#fff3e0,stroke:#f57c00
+    style C fill:#e8f5e9,stroke:#388e3c
+    style E fill:#667eea,stroke:#333,stroke-width:3px,color:#fff
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Config Priority (high → low):</strong></p>
+                <p><strong>1. bind() options</strong> — highest priority, direct API call</p>
+                <p><strong>2. data-* attributes</strong> — HTML element dataset, medium</p>
+                <p><strong>3. defaultConfig</strong> — fallback defaults from iStorage</p>
+                <p>• <strong>SEID, SEID_LIST, SEID_HOLDER</strong>: generated at bind time, not in defaultConfig</p>
+                <p>• <strong>VirtualScroll options:</strong> <code>overscan</code>, <code>estimateItemHeight</code>, <code>dynamicHeights</code>, <code>adaptiveEstimate</code> is new</p>
+            </div>
+        </div>
+
+        <!-- 12. MODULE SYSTEM & BUILD OUTPUT -->
+        <div class="diagram-section">
+            <h2>📦 12. MODULE SYSTEM & BUILD OUTPUT</h2>
+
+            <div class="mermaid">
+graph LR
+
+    subgraph SOURCE
+        A["src/ts/index.ts
+ESM entry"]
+        B["src/ts/global.ts
+UMD global entry"]
+    end
+
+    subgraph BUILD_ROLLUP
+        C[Tree Shaking]
+        D[Minification]
+        E[CSS extraction]
+        F[Source maps]
+    end
+
+    subgraph OUTPUT_DIST
+        G["selective-ui.esm.js"]
+        GM["selective-ui.esm.min.js"]
+        H["selective-ui.umd.js"]
+        NM["selective-ui.min.js"]
+
+        I["selective-ui.css"]
+        O["selective-ui.min.css"]
+    end
+
+    subgraph USAGE
+        subgraph ESM_ENV
+            J["ES Module
+import bind from 'selective-ui'"]
+        end
+
+        subgraph BROWSER_ENV
+            K["Browser Global
+window.SelectiveUI"]
+            M["GLOBAL_SEUI
+globalThis.GLOBAL_SEUI"]
+        end
+
+        subgraph STYLE
+            L["CSS
+link selective-ui.min.css"]
+        end
+    end
+
+    A --> C
+    B --> C
+
+    C --> G
+    C --> GM
+    C --> H
+    C --> NM
+
+    D --> GM
+    D --> NM
+
+    E --> I
+    E --> O
+
+    F --> G
+    F --> H
+
+    G --> J
+    GM --> J
+
+    H --> K
+    NM --> K
+    NM --> M
+
+    I --> L
+    O --> L
+
+    style G fill:#43e97b,stroke:#333,stroke-width:2px
+    style GM fill:#43e97b,stroke:#333,stroke-width:2px
+    style H fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style NM fill:#667eea,stroke:#333,stroke-width:2px,color:#fff
+    style I fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+    style O fill:#fa709a,stroke:#333,stroke-width:2px,color:#fff
+            </div>
+
+            <div class="description">
+                <p><strong>📌 Build Outputs:</strong></p>
+                <p>• <strong>ESM (index.ts):</strong> module-level SECLASS, tree-shakeable, used for bundlers</p>
+                <p>• <strong>UMD (global.ts):</strong> globalThis.GLOBAL_SEUI pattern — prevents duplicate loading when including multiple times</p>
+                <p>• <strong>Brotli .br files:</strong> pre-compressed for CDN serving, reduces ~70% compared to raw</p>
+                <p>• <strong>TypeScript declarations (.d.ts):</strong> full type safety for consumers</p>
+            </div>
+
+            <div class="legend">
+                <h4>🎯 Usage Examples:</h4>
+                <ul>
+                    <li><strong>ES Module:</strong> <code>import { bind, find, destroy } from 'selective-ui'</code></li>
+                    <li><strong>Browser UMD:</strong> <code>window.GLOBAL_SEUI.bind(".my-select", options)</code></li>
+                    <li><strong>Plugin:</strong> <code>registerPlugin({ id: "myPlugin", onBind(ctx) {...} })</code></li>
+                    <li><strong>CDN:</strong> <code>https://cdn.jsdelivr.net/npm/selective-ui/dist/selective-ui.min.js</code></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#333',
+                primaryBorderColor: '#333',
+                lineColor: '#764ba2',
+                secondaryColor: '#f093fb',
+                tertiaryColor: '#43e97b',
+                fontSize: '14px',
+                fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35
+            }
+        });
+    </script>
+</body>
+</html>
