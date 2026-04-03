@@ -161,8 +161,8 @@ describe("GroupView (rewritten)", () => {
             const root = view.getView();
             const header = view.view!.tags.GroupHeader;
 
-            expect(root.id).toBe("seui-ABC1234-group");
-            expect(header.id).toBe("seui-ABC1234-header");
+            expect(root.id).toBe("seui-default-ABC1234-group");
+            expect(header.id).toBe("seui-default-ABC1234-header");
 
             const rootToken = root.id
                 .replace(/^seui-/, "")
