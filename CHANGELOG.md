@@ -1,3 +1,26 @@
+## v1.4.1
+
+## 🚀 Changelog
+- Updated new version (#99) — @maihcx
+
+## 🐛 Bug Fixes
+
+- chore(ci): update release workflow with build and separated publish steps (#96) — @maihcx
+- Updated some unit test components to be compatible with the current timeframe (#94) — @maihcx
+
+## 📚 Documentation
+
+- Update fixed CDN to Dynamic CDN @latest (#97) — @maihcx
+
+## 🧹 Maintenance
+
+- Use optional properties and tidy TypeScript formatting (#98) — @maihcx
+- chore(ci): update release workflow with build and separated publish steps (#96) — @maihcx
+- Update dependencies (#95) — @maihcx
+
+
+---
+
 ## v1.4.0
 
 ## 🚀 Changelog
