@@ -1,4 +1,8 @@
-import { StoredEntry, TimerKey, TimerOptions } from "../types/utils/callback-scheduler.type";
+import {
+    StoredEntry,
+    TimerKey,
+    TimerOptions,
+} from "../types/utils/callback-scheduler.type";
 
 /**
  * CallbackScheduler
@@ -82,14 +86,14 @@ export class CallbackScheduler {
      *
      * @public
      * @param {TimerKey} key - Group identifier for callbacks.
-     * @param {(payload: any[] | null) => void} callback - Function to execute after debounce timeout.
+     * @param {(payload?: any[]) => void} callback - Function to execute after debounce timeout.
      * @param {TimerOptions} [options={}] - Scheduling options (`debounce`, `once`).
      * @returns {void}
      */
     public on(
         key: TimerKey,
-        callback: (payload: any[] | null) => void,
-        options: TimerOptions = {}
+        callback: (payload?: any[]) => void,
+        options: TimerOptions = {},
     ): void {
         const timeout = options.debounce ?? 50;
         const once = options.once ?? false;
@@ -176,13 +180,14 @@ export class CallbackScheduler {
                 const timer = setTimeout(async () => {
                     try {
                         const resp = entry.callback(
-                            params.length > 0 ? params : null
+                            params.length > 0 ? params : null,
                         ) as any;
 
                         if (resp instanceof Promise) {
                             await resp;
                         }
-                    } catch {} finally {
+                    } catch {
+                    } finally {
                         if (entry.once) {
                             executes[i] = undefined;
 

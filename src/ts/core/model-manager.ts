@@ -50,17 +50,19 @@ import { Lifecycle } from "./base/lifecycle";
  */
 export class ModelManager<
     TModel extends MixedItem,
-    TAdapter extends Adapter<MixedItem, ViewContract<any>>
+    TAdapter extends Adapter<MixedItem, ViewContract<any>>,
 > extends Lifecycle {
     private privModelList: Array<MixedItem> = [];
 
     private privAdapter!: new (...args: any[]) => TAdapter;
 
-    private privAdapterHandle: TAdapter | null = null;
+    private privAdapterHandle?: TAdapter;
 
-    private privRecyclerView!: new (...args: any[]) => RecyclerViewContract<TAdapter>;
+    private privRecyclerView!: new (
+        ...args: any[]
+    ) => RecyclerViewContract<TAdapter>;
 
-    private privRecyclerViewHandle: RecyclerViewContract<TAdapter> | null = null;
+    private privRecyclerViewHandle?: RecyclerViewContract<TAdapter>;
 
     private options: SelectiveOptions = null;
 
@@ -97,7 +99,9 @@ export class ModelManager<
      * @param {new (...args: any[]) => RecyclerViewContract<TAdapter>} recyclerView - The recycler view constructor.
      * @returns {void}
      */
-    public setupRecyclerView(recyclerView: new (...args: any[]) => RecyclerViewContract<TAdapter>): void {
+    public setupRecyclerView(
+        recyclerView: new (...args: any[]) => RecyclerViewContract<TAdapter>,
+    ): void {
         this.privRecyclerView = recyclerView;
     }
 
@@ -113,7 +117,9 @@ export class ModelManager<
      * @param {Array<HTMLOptGroupElement | HTMLOptionElement>} modelData - Parsed DOM elements from the source `<select>`.
      * @returns {Array<GroupModel | OptionModel>} The ordered list of group and option models.
      */
-    public createModelResources(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): Array<GroupModel | OptionModel> {
+    public createModelResources(
+        modelData: Array<HTMLOptGroupElement | HTMLOptionElement>,
+    ): Array<GroupModel | OptionModel> {
         if (this.is(LifecycleState.INITIALIZED)) {
             this.mount();
         }
@@ -123,14 +129,26 @@ export class ModelManager<
 
         modelData.forEach((data) => {
             if (data.tagName === "OPTGROUP") {
-                currentGroup = new GroupModel(this.options, data as HTMLOptGroupElement);
+                currentGroup = new GroupModel(
+                    this.options,
+                    data as HTMLOptGroupElement,
+                );
                 this.privModelList.push(currentGroup);
             } else if (data.tagName === "OPTION") {
-                const optionModel = new OptionModel(this.options, data as HTMLOptionElement);
+                const optionModel = new OptionModel(
+                    this.options,
+                    data as HTMLOptionElement,
+                );
 
-                const parentGroup = data["__parentGroup"] as HTMLOptGroupElement | undefined;
+                const parentGroup = data["__parentGroup"] as
+                    | HTMLOptGroupElement
+                    | undefined;
 
-                if (parentGroup && currentGroup && parentGroup === currentGroup.targetElement) {
+                if (
+                    parentGroup &&
+                    currentGroup &&
+                    parentGroup === currentGroup.targetElement
+                ) {
                     currentGroup.addItem(optionModel);
                     optionModel.group = currentGroup;
                 } else {
@@ -155,7 +173,9 @@ export class ModelManager<
      * @returns {Promise<void>} Resolves when the adapter (if any) completes syncing.
      * @see Adapter#syncFromSource
      */
-    public async replace(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): Promise<void> {
+    public async replace(
+        modelData: Array<HTMLOptGroupElement | HTMLOptionElement>,
+    ): Promise<void> {
         this.createModelResources(modelData);
 
         if (this.privAdapterHandle) {
@@ -199,9 +219,9 @@ export class ModelManager<
     public load<TExtra extends object = {}>(
         viewElement: HTMLElement,
         adapterOpt: Partial<TAdapter> = {},
-        recyclerViewOpt: Partial<RecyclerViewContract<TAdapter>> & TExtra = {} as any
+        recyclerViewOpt: Partial<RecyclerViewContract<TAdapter>> &
+            TExtra = {} as any,
     ): void {
-
         this.privAdapterHandle = new this.privAdapter(this.privModelList);
         Object.assign(this.privAdapterHandle, adapterOpt);
 
@@ -230,7 +250,9 @@ export class ModelManager<
      * @returns {void}
      * @see Adapter#updateData
      */
-    public updateModel(modelData: Array<HTMLOptGroupElement | HTMLOptionElement>): void {
+    public updateModel(
+        modelData: Array<HTMLOptGroupElement | HTMLOptionElement>,
+    ): void {
         const oldModels = this.privModelList;
         const newModels: Array<MixedItem> = [];
 
@@ -256,9 +278,10 @@ export class ModelManager<
 
                 if (existingGroup) {
                     // Label is used as key; keep original behavior.
-                    const hasLabelChange = existingGroup.label !== dataVset.label;
+                    const hasLabelChange =
+                        existingGroup.label !== dataVset.label;
                     if (hasLabelChange) {
-                        existingGroup.updateTarget(dataVset)
+                        existingGroup.updateTarget(dataVset);
                     }
 
                     existingGroup.position = position;
@@ -283,7 +306,9 @@ export class ModelManager<
                     existingOption.updateTarget(dataVset);
                     existingOption.position = position;
 
-                    const parentGroup = dataVset["__parentGroup"] as HTMLOptGroupElement;
+                    const parentGroup = dataVset[
+                        "__parentGroup"
+                    ] as HTMLOptGroupElement;
 
                     if (parentGroup && currentGroup) {
                         currentGroup.addItem(existingOption);
@@ -298,7 +323,9 @@ export class ModelManager<
                     const newOption = new OptionModel(this.options, dataVset);
                     newOption.position = position;
 
-                    const parentGroup = dataVset["__parentGroup"] as HTMLOptGroupElement;
+                    const parentGroup = dataVset[
+                        "__parentGroup"
+                    ] as HTMLOptGroupElement;
 
                     if (parentGroup && currentGroup) {
                         currentGroup.addItem(newOption);

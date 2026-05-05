@@ -1,6 +1,9 @@
 import { Libs } from "../../utils/libs";
 import { OptionHandle } from "../option-handle";
-import type { EffectorInterface, DimensionObject } from "../../types/services/effector.type";
+import type {
+    EffectorInterface,
+    DimensionObject,
+} from "../../types/services/effector.type";
 import { ModelManager } from "../../core/model-manager";
 import { EmptyState } from "./empty-state";
 import { LoadingState } from "./loading-state";
@@ -8,9 +11,17 @@ import { MixedAdapter } from "../../adapter/mixed-adapter";
 import type { RecyclerViewContract } from "../../types/core/base/recyclerview.type";
 import { ResizeObserverService } from "../../services/resize-observer";
 import { ElementMetrics } from "../../types/services/resize-observer.type";
-import { MixedItem, VisibilityStats } from "../../types/core/base/mixed-adapter.type";
+import {
+    MixedItem,
+    VisibilityStats,
+} from "../../types/core/base/mixed-adapter.type";
 import { SelectiveOptions } from "../../types/utils/selective.type";
-import { ParentBinderMapLike, VirtualRecyclerOptions } from "../../types/components/popup.type";
+import {
+    ParentBinderMapLike,
+    PopupLocaltion,
+    PopupPosition,
+    VirtualRecyclerOptions,
+} from "../../types/components/popup.type";
 import { Lifecycle } from "../../core/base/lifecycle";
 import { LifecycleState } from "../../types/core/base/lifecycle.type";
 import { MountViewResult } from "src/ts/types/utils/libs.type";
@@ -36,49 +47,50 @@ import { MountViewResult } from "src/ts/types/utils/libs.type";
  */
 export class Popup extends Lifecycle {
     /** ModelManager reference used to provide adapter and recycler view resources */
-    private modelManager: ModelManager<MixedItem, MixedAdapter> | null;
-
-    /** Active configuration for the popup behavior and text labels */
-    private options: SelectiveOptions | null = null;
+    private modelManager?: ModelManager<
+        MixedItem,
+        MixedAdapter
+    >; /** Active configuration for the popup behavior and text labels */
+    private options?: SelectiveOptions;
 
     /** Indicates whether the popup DOM has been attached to the document body at least once */
     private isCreated = false;
 
     /** Mixed adapter handling items/models and visibility stats */
-    public optionAdapter: MixedAdapter | null = null;
+    public optionAdapter?: MixedAdapter;
 
     /** Root popup container (the floating panel) */
-    public node: HTMLDivElement | null = null;
+    public node?: HTMLDivElement;
 
     /** Effector service used to measure/animate the popup */
-    private effSvc: EffectorInterface | null = null;
+    private effSvc?: EffectorInterface;
 
     /** Resize observer to react to parent panel size changes */
-    private resizeObser: ResizeObserverService | null = null;
+    private resizeObser?: ResizeObserverService;
 
     /** Binder map for parent elements (anchors to compute placement from) */
-    private parent: ParentBinderMapLike | null = null;
+    private parent?: ParentBinderMapLike;
 
     /** Header control exposing "Select All / Deselect All" actions */
-    public optionHandle: OptionHandle | null = null;
+    public optionHandle?: OptionHandle;
 
     /** "Empty / Not found" feedback component */
-    public emptyState: EmptyState | null = null;
+    public emptyState?: EmptyState;
 
     /** Loading indicator component */
-    public loadingState: LoadingState | null = null;
+    public loadingState?: LoadingState;
 
     /** Virtualized recycler view for performant lists */
-    public recyclerView: RecyclerViewContract<MixedAdapter> | null = null;
+    public recyclerView?: RecyclerViewContract<MixedAdapter>;
 
     /** Container that holds the list of options */
-    private optionsContainer: HTMLDivElement | null = null;
+    private optionsContainer?: HTMLDivElement;
 
     /** Scroll handler used by infinite scroll */
-    private scrollListener: (() => Promise<void>) | null = null;
+    private scrollListener?: () => Promise<void>;
 
     /** Handle to defer hiding the loading indicator */
-    private hideLoadHandle: ReturnType<typeof setTimeout> | null = null;
+    private hideLoadHandle?: ReturnType<typeof setTimeout>;
 
     /** Default virtual scroll configuration (tuned for typical option heights) */
     private virtualScrollConfig = {
@@ -87,7 +99,7 @@ export class Popup extends Lifecycle {
         /** Number of extra items to render above/below the viewport */
         overscan: 8,
         /** Whether the list contains items with dynamic (non-uniform) heights */
-        dynamicHeights: true
+        dynamicHeights: true,
     };
 
     /**
@@ -100,9 +112,9 @@ export class Popup extends Lifecycle {
      * @param modelManager - Model manager that supplies the adapter and recycler view.
      */
     public constructor(
-        select: HTMLSelectElement | null = null,
-        options: SelectiveOptions | null = null,
-        modelManager: ModelManager<MixedItem, MixedAdapter> | null = null
+        select?: HTMLSelectElement,
+        options?: SelectiveOptions,
+        modelManager?: ModelManager<MixedItem, MixedAdapter>,
     ) {
         super();
         this.modelManager = modelManager;
@@ -123,8 +135,12 @@ export class Popup extends Lifecycle {
      * @param options - Panel configuration (dimensions, IDs, labels, flags).
      * @throws Error if a ModelManager is not provided.
      */
-    private initialize(select: HTMLSelectElement, options: SelectiveOptions): void {
-        if (!this.modelManager) throw new Error("Popup requires a ModelManager instance.");
+    private initialize(
+        select: HTMLSelectElement,
+        options: SelectiveOptions,
+    ): void {
+        if (!this.modelManager)
+            throw new Error("Popup requires a ModelManager instance.");
 
         this.optionHandle = new OptionHandle(options);
         this.emptyState = new EmptyState(options);
@@ -153,27 +169,32 @@ export class Popup extends Lifecycle {
                     },
                 },
             },
-            null
+            null,
         );
 
         this.node = nodeMounted.view as HTMLDivElement;
-        this.optionsContainer = nodeMounted.tags.OptionsContainer as HTMLDivElement;
+        this.optionsContainer = nodeMounted.tags
+            .OptionsContainer as HTMLDivElement;
 
         this.parent = Libs.getBinderMap<ParentBinderMapLike>(select);
         this.options = options;
         this.init();
-        
-        const recyclerViewOpt = options.virtualScroll
-            ? { 
-                scrollEl: this.node, 
-                estimateItemHeight: this.virtualScrollConfig.estimateItemHeight, 
-                overscan: this.virtualScrollConfig.overscan, 
-                dynamicHeights: this.virtualScrollConfig.dynamicHeights }
-            : {}
-        ;
 
+        const recyclerViewOpt = options.virtualScroll
+            ? {
+                  scrollEl: this.node,
+                  estimateItemHeight:
+                      this.virtualScrollConfig.estimateItemHeight,
+                  overscan: this.virtualScrollConfig.overscan,
+                  dynamicHeights: this.virtualScrollConfig.dynamicHeights,
+              }
+            : {};
         // Load ModelManager resources into the list container
-        this.modelManager.load<VirtualRecyclerOptions>(this.optionsContainer, { isMultiple: options.multiple, options: options }, recyclerViewOpt);
+        this.modelManager.load<VirtualRecyclerOptions>(
+            this.optionsContainer,
+            { isMultiple: options.multiple, options: options },
+            recyclerViewOpt,
+        );
 
         const MMResources = this.modelManager.getResources();
 
@@ -203,7 +224,14 @@ export class Popup extends Lifecycle {
      * - Triggers a resize to accommodate layout changes
      */
     public async showLoading(): Promise<void> {
-        if (!this.options || !this.loadingState || !this.optionHandle || !this.optionAdapter || !this.modelManager) return;
+        if (
+            !this.options ||
+            !this.loadingState ||
+            !this.optionHandle ||
+            !this.optionAdapter ||
+            !this.modelManager
+        )
+            return;
 
         if (this.hideLoadHandle) clearTimeout(this.hideLoadHandle);
         this.modelManager.skipEvent(true);
@@ -211,7 +239,9 @@ export class Popup extends Lifecycle {
         if (Libs.string2Boolean(this.options.loadingfield) === false) return;
 
         this.emptyState.hide();
-        this.loadingState.show(this.optionAdapter.getVisibilityStats().hasVisible);
+        this.loadingState.show(
+            this.optionAdapter.getVisibilityStats().hasVisible,
+        );
         this.triggerResize();
     }
 
@@ -222,7 +252,13 @@ export class Popup extends Lifecycle {
      * Debounce: Uses `animationtime` as a short delay before hiding the loading indicator.
      */
     public async hideLoading(): Promise<void> {
-        if (!this.options || !this.loadingState || !this.optionAdapter || !this.modelManager) return;
+        if (
+            !this.options ||
+            !this.loadingState ||
+            !this.optionAdapter ||
+            !this.modelManager
+        )
+            return;
 
         if (this.hideLoadHandle) clearTimeout(this.hideLoadHandle);
 
@@ -268,7 +304,13 @@ export class Popup extends Lifecycle {
      * @param stats - Optionally provide precomputed visibility stats.
      */
     private updateEmptyState(stats?: VisibilityStats): void {
-        if (!this.optionAdapter || !this.emptyState || !this.optionHandle || !this.optionsContainer) return;
+        if (
+            !this.optionAdapter ||
+            !this.emptyState ||
+            !this.optionHandle ||
+            !this.optionsContainer
+        )
+            return;
 
         const s = stats ?? this.optionAdapter.getVisibilityStats();
 
@@ -293,7 +335,10 @@ export class Popup extends Lifecycle {
      * @param propName - Adapter property name to observe.
      * @param callback - Handler invoked before the property changes.
      */
-    public onAdapterPropChanging(propName: string, callback: (...args: unknown[]) => void): void {
+    public onAdapterPropChanging(
+        propName: string,
+        callback: (...args: unknown[]) => void,
+    ): void {
         this.optionAdapter?.onPropChanging(propName, callback);
     }
 
@@ -303,7 +348,10 @@ export class Popup extends Lifecycle {
      * @param propName - Adapter property name to observe.
      * @param callback - Handler invoked after the property changes.
      */
-    public onAdapterPropChanged(propName: string, callback: (...args: unknown[]) => void): void {
+    public onAdapterPropChanged(
+        propName: string,
+        callback: (...args: unknown[]) => void,
+    ): void {
         this.optionAdapter?.onPropChanged(propName, callback);
     }
 
@@ -357,8 +405,15 @@ export class Popup extends Lifecycle {
      * @param callback - Optional callback invoked when the opening animation completes.
      * @param isShowEmptyState - If true, applies the empty/not-found state before animation.
      */
-    public open(callback: (() => void) | null = null, isShowEmptyState: boolean): void {
-        if (!this.node || !this.options || !this.optionHandle || !this.parent || !this.effSvc) return;
+    public open(callback?: () => void, isShowEmptyState?: boolean): void {
+        if (
+            !this.node ||
+            !this.options ||
+            !this.optionHandle ||
+            !this.parent ||
+            !this.effSvc
+        )
+            return;
 
         // Ensure one-time initialization
         this.load();
@@ -373,7 +428,8 @@ export class Popup extends Lifecycle {
 
         // Compute placement based on parent anchor
         const location = this.getParentLocation();
-        const { position, top, maxHeight, realHeight } = this.calculatePosition(location);
+        const { position, top, maxHeight, realHeight } =
+            this.calculatePosition(location);
 
         // Run expand animation
         this.effSvc.expand({
@@ -415,8 +471,14 @@ export class Popup extends Lifecycle {
      *
      * @param callback - Optional callback invoked when the closing animation completes.
      */
-    public close(callback: (() => void) | null = null): void {
-        if (!this.isCreated || !this.options || !this.resizeObser || !this.effSvc) return;
+    public close(callback?: () => void): void {
+        if (
+            !this.isCreated ||
+            !this.options ||
+            !this.resizeObser ||
+            !this.effSvc
+        )
+            return;
         const rv: any = this.recyclerView;
         rv?.suspend?.();
 
@@ -445,10 +507,14 @@ export class Popup extends Lifecycle {
      */
     public setupInfiniteScroll(
         searchController: {
-            getPaginationState(): { isPaginationEnabled: boolean; isLoading: boolean; hasMore: boolean };
+            getPaginationState(): {
+                isPaginationEnabled: boolean;
+                isLoading: boolean;
+                hasMore: boolean;
+            };
             loadMore(): Promise<{ success: boolean; message?: string }>;
         },
-        _options?: SelectiveOptions
+        _options?: SelectiveOptions,
     ): void {
         if (!this.node) return;
 
@@ -475,7 +541,7 @@ export class Popup extends Lifecycle {
 
         this.node.addEventListener("scroll", this.scrollListener);
     }
-    
+
     /**
      * Completely tears down the popup and releases all resources.
      *
@@ -522,7 +588,7 @@ export class Popup extends Lifecycle {
                 this.node.remove();
             }
         }
-        
+
         this.node = null;
         this.optionsContainer = null;
         this.modelManager = null;
@@ -544,14 +610,7 @@ export class Popup extends Lifecycle {
      * Computes the parent panel's location and box metrics
      * (size, position, padding, border). Accounts for iOS visual viewport offsets.
      */
-    private getParentLocation(): {
-        width: number;
-        height: number;
-        top: number;
-        left: number;
-        padding: { top: number; right: number; bottom: number; left: number };
-        border: { top: number; right: number; bottom: number; left: number };
-    } {
+    private getParentLocation(): PopupLocaltion {
         const viewPanel = this.parent!.container.tags.ViewPanel;
         const rect = viewPanel.getBoundingClientRect();
         const style = window.getComputedStyle(viewPanel);
@@ -584,13 +643,7 @@ export class Popup extends Lifecycle {
      *
      * Returns the final placement, top offset, and computed heights.
      */
-    private calculatePosition(location: { width: number; height: number; top: number; left: number }): {
-        position: "top" | "bottom";
-        top: number;
-        maxHeight: number;
-        realHeight: number;
-        contentHeight: number;
-    } {
+    private calculatePosition(location: PopupLocaltion): PopupPosition {
         const vv = window.visualViewport;
         const is_ios = Libs.IsIOS();
 
@@ -599,13 +652,17 @@ export class Popup extends Lifecycle {
         const gap = 3;
         const safeMargin = 15;
 
-        const dimensions: DimensionObject = this.effSvc!.getHiddenDimensions("flex");
+        const dimensions: DimensionObject =
+            this.effSvc!.getHiddenDimensions("flex");
         const contentHeight = dimensions.scrollHeight;
 
-        const configMaxHeight = parseFloat(this.options?.panelHeight ?? "220") || 220;
-        const configMinHeight = parseFloat(this.options?.panelMinHeight ?? "100") || 100;
+        const configMaxHeight =
+            parseFloat(this.options?.panelHeight ?? "220") || 220;
+        const configMinHeight =
+            parseFloat(this.options?.panelMinHeight ?? "100") || 100;
 
-        const spaceBelow = viewportHeight - (location.top + location.height) - gap;
+        const spaceBelow =
+            viewportHeight - (location.top + location.height) - gap;
         const spaceAbove = location.top - gap;
 
         let position: "top" | "bottom" = "bottom";
@@ -614,7 +671,11 @@ export class Popup extends Lifecycle {
 
         const heightOri = spaceBelow - safeMargin;
 
-        if (realHeight >= configMinHeight ? heightOri >= configMinHeight : heightOri >= realHeight) {
+        if (
+            realHeight >= configMinHeight
+                ? heightOri >= configMinHeight
+                : heightOri >= realHeight
+        ) {
             position = "bottom";
             maxHeight = Math.min(spaceBelow - safeMargin, configMaxHeight);
         } else if (spaceAbove >= Math.max(realHeight, configMinHeight)) {
@@ -633,7 +694,7 @@ export class Popup extends Lifecycle {
         realHeight = Math.min(contentHeight, maxHeight);
 
         const viewportOffsetY = vv && is_ios ? vv.offsetTop : 0;
-        
+
         const top =
             position === "bottom"
                 ? location.top + location.height + gap + viewportOffsetY
@@ -646,10 +707,11 @@ export class Popup extends Lifecycle {
      * Handles parent resize by recalculating placement and dimensions,
      * then animates the popup to the new size and position.
      */
-    private handleResize(location: { width: number; height: number; top: number; left: number }): void {
+    private handleResize(location: PopupLocaltion): void {
         if (!this.options || !this.effSvc) return;
 
-        const { position, top, maxHeight, realHeight } = this.calculatePosition(location);
+        const { position, top, maxHeight, realHeight } =
+            this.calculatePosition(location);
 
         this.effSvc.resize({
             duration: this.options.animationtime,

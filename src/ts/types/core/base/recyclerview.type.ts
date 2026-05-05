@@ -6,18 +6,20 @@ import { AdapterContract } from "./adapter.type";
  *
  * @template TAdapter - A concrete adapter type that implements AdapterContract.
  */
-export interface RecyclerViewContract<TAdapter extends AdapterContract<any>> extends Lifecycle {
+export interface RecyclerViewContract<
+    TAdapter extends AdapterContract<any>,
+> extends Lifecycle {
     /**
      * The container element that hosts all item views.
      * Can be null until `setView` is called.
      */
-    viewElement: HTMLElement | null;
+    viewElement?: HTMLElement;
 
     /**
      * The adapter instance responsible for providing and binding item views.
      * Can be null until `setAdapter` is called.
      */
-    adapter: TAdapter | null;
+    adapter?: TAdapter;
 
     /**
      * Attach an adapter and refresh the view accordingly.
@@ -42,7 +44,7 @@ export interface RecyclerViewContract<TAdapter extends AdapterContract<any>> ext
     /**
      * Refresh the rendered views to reflect current adapter data/state.
      * May perform diffing, partial updates, or full re-binding.
-     * 
+     *
      * @param isUpdate - Indicates if this refresh is due to an update operation.
      */
     refresh(isUpdate: boolean): void;

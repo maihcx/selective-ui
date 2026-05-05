@@ -98,7 +98,7 @@ export function find(query: string): SelectiveActionApi {
  * // Destroy all instances
  * destroy();
  */
-export function destroy(query: string | null = null): void {
+export function destroy(query?: string): void {
     SECLASS.destroy(query);
 }
 
@@ -161,7 +161,7 @@ function init(): void {
         const sels = Libs.getBindedCommand();
         if (sels.length > 0) {
             const actionApi = SECLASS.find(
-                sels.join(", ")
+                sels.join(", "),
             ) as SelectiveActionApi;
             if (!actionApi.isEmpty) actionApi.close();
         }

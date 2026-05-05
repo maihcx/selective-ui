@@ -1,4 +1,3 @@
-
 import { Lifecycle } from "src/ts/core/base/lifecycle";
 import { MountViewResult } from "../../utils/libs.type";
 
@@ -20,8 +19,9 @@ import { MountViewResult } from "../../utils/libs.type";
  * }
  * ```
  */
-export interface ViewContract<TTags extends Record<string, HTMLElement>> extends Lifecycle {
-
+export interface ViewContract<
+    TTags extends Record<string, HTMLElement>,
+> extends Lifecycle {
     /**
      * The parent DOM element into which the view is mounted.
      *
@@ -29,7 +29,7 @@ export interface ViewContract<TTags extends Record<string, HTMLElement>> extends
      * - `null` before the view is mounted
      * - Set once the view is attached to the DOM
      */
-    parent: HTMLElement | null;
+    parent?: HTMLElement;
 
     /**
      * Internal representation of the mounted view returned by `mountNode`.
@@ -40,7 +40,7 @@ export interface ViewContract<TTags extends Record<string, HTMLElement>> extends
      *
      * Will be `null` if the view has not been mounted yet.
      */
-    view: MountViewResult<TTags> | null;
+    view?: MountViewResult<TTags>;
 
     /**
      * Returns the root HTMLElement of the mounted view.

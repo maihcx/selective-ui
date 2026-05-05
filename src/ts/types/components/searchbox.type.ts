@@ -14,8 +14,8 @@ import { OptionModel } from "src/ts/models/option-model";
  * Represents the DOM elements used in the SearchBox component.
  */
 export type SearchBoxTags = {
-    SearchBox: HTMLDivElement;      // Container for the search box
-    SearchInput: HTMLInputElement;  // Input field for search queries
+    SearchBox: HTMLDivElement; // Container for the search box
+    SearchInput: HTMLInputElement; // Input field for search queries
 };
 
 /**
@@ -35,7 +35,7 @@ export type NavigateHandler = (direction: 1 | -1) => void;
  * Represents the DOM elements used in the SelectBox component.
  */
 export type SelectBoxTags = {
-    ViewPanel: HTMLDivElement;  // Panel that displays selectable options
+    ViewPanel: HTMLDivElement; // Panel that displays selectable options
 };
 
 /**
@@ -43,46 +43,46 @@ export type SelectBoxTags = {
  * Combines mounted view result with additional services and components.
  */
 export type ContainerRuntime = MountViewResult<SelectBoxTags> & {
-    placeholder: PlaceHolder;           // Placeholder manager
-    directive: Directive;               // Directive handler for dynamic behavior
-    searchbox: SearchBox;               // Search box component
-    popup: Popup;                       // Popup component for dropdown
-    effector: EffectorInterface;        // Effector for state management
-    targetElement: HTMLSelectElement;   // Original select element
-    accessorybox: AccessoryBox;         // Accessory box for extra UI elements
+    placeholder: PlaceHolder; // Placeholder manager
+    directive: Directive; // Directive handler for dynamic behavior
+    searchbox: SearchBox; // Search box component
+    popup: Popup; // Popup component for dropdown
+    effector: EffectorInterface; // Effector for state management
+    targetElement: HTMLSelectElement; // Original select element
+    accessorybox: AccessoryBox; // Accessory box for extra UI elements
     searchController: SearchController; // Controller for search logic
-    selectObserver: SelectObserver;     // Observer for selection changes
-    datasetObserver: DatasetObserver;   // Observer for dataset updates
+    selectObserver: SelectObserver; // Observer for selection changes
+    datasetObserver: DatasetObserver; // Observer for dataset updates
 };
 
 /**
  * Interface defining actions and properties for the SelectBox component.
  */
 export interface SelectBoxAction {
-    targetElement: HTMLSelectElement;     // Target Select element
+    targetElement: HTMLSelectElement; // Target Select element
 
-    placeholder: string;           // Placeholder text
-    oldValue: unknown;             // Previous value before change
+    placeholder: string; // Placeholder text
+    oldValue: unknown; // Previous value before change
 
-    value: string | string[];      // Current selected value(s)
-    valueArray: string[];          // Selected values as an array
-    valueString: string;           // Selected values as a single string
+    value: string | string[]; // Current selected value(s)
+    valueArray: string[]; // Selected values as an array
+    valueString: string; // Selected values as a single string
 
-    valueOptions: OptionModel[];   // Selected option models
-    mask: string[];                // Masked values for filtering
-    valueText: string | string[];  // Display text for selected values
+    valueOptions: OptionModel[]; // Selected option models
+    mask: string[]; // Masked values for filtering
+    valueText: string | string[]; // Display text for selected values
 
-    isOpen: boolean;               // Indicates if the dropdown is open
+    isOpen: boolean; // Indicates if the dropdown is open
 
-    disabled: boolean;             // Indicates if the component is disabled
-    readonly: boolean;             // Indicates if the component is read-only
-    visible: boolean;              // Indicates if the component is visible
+    disabled: boolean; // Indicates if the component is disabled
+    readonly: boolean; // Indicates if the component is read-only
+    visible: boolean; // Indicates if the component is visible
 
     /**
      * Get parent of self
      * @param evtToken - Optional event token for tracking.
      */
-    getParent(evtToken?: unknown): HTMLElement
+    getParent(evtToken?: unknown): HTMLElement;
 
     /**
      * Get dataset from selected options
@@ -90,7 +90,11 @@ export interface SelectBoxAction {
      * @param strDataset - Property to find
      * @param isArray - Keep array or return once
      */
-    valueDataset(evtToken?: unknown, strDataset?: string, isArray?: boolean): any[] | string
+    valueDataset(
+        evtToken?: unknown,
+        strDataset?: string,
+        isArray?: boolean,
+    ): any[] | string;
 
     /**
      * Select all available options.
@@ -113,7 +117,12 @@ export interface SelectBoxAction {
      * @param trigger - Whether to trigger change events.
      * @param force - Whether to force the update.
      */
-    setValue(evtToken: unknown | null, value: unknown, trigger?: boolean, force?: boolean): void;
+    setValue(
+        evtToken?: unknown,
+        value?: unknown,
+        trigger?: boolean,
+        force?: boolean,
+    ): void;
 
     /**
      * Load options for the SelectBox, typically from an AJAX source.
@@ -156,7 +165,11 @@ export interface SelectBoxAction {
      * @param evtName - Name of the event.
      * @param handle - Callback function for the event.
      */
-    on(evtToken: unknown, evtName: string, handle: (...args: any[]) => any): void;
+    on(
+        evtToken: unknown,
+        evtName: string,
+        handle: (...args: any[]) => any,
+    ): void;
 
     /**
      * Perform an AJAX request.

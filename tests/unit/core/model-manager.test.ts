@@ -46,15 +46,17 @@ function createGroup(label: string): HTMLOptGroupElement {
 }
 
 beforeAll(() => {
-    jest.spyOn(OptionModel.prototype, "updateTarget")
-        .mockImplementation(function (this: OptionModel, el: HTMLOptionElement | null) {
+    jest.spyOn(OptionModel.prototype, "updateTarget").mockImplementation(
+        function (this: OptionModel, el: HTMLOptionElement | null) {
             (this as any).targetElement = el;
-        });
+        },
+    );
 
-    jest.spyOn(GroupModel.prototype, "updateTarget")
-        .mockImplementation(function (this: GroupModel, el: HTMLElement) {
+    jest.spyOn(GroupModel.prototype, "updateTarget").mockImplementation(
+        function (this: GroupModel, el: HTMLElement) {
             (this as any).targetElement = el;
-        });
+        },
+    );
 });
 
 describe("ModelManager", () => {
@@ -127,7 +129,7 @@ describe("ModelManager", () => {
 
         manager.replace([opt1, opt2]).then(() => {
             const { adapter, recyclerView } = manager.getResources();
-    
+
             expect(adapter.syncFromSource).toHaveBeenCalledTimes(1);
             expect(recyclerView.refresh).toHaveBeenCalled();
         });
@@ -208,8 +210,9 @@ describe("ModelManager", () => {
 
         manager.triggerChanging("select");
 
-        expect(manager.getResources().adapter.changingProp)
-            .toHaveBeenCalledWith("select");
+        expect(
+            manager.getResources().adapter.changingProp,
+        ).toHaveBeenCalledWith("select");
     });
 
     test("triggerChanged delegates to adapter", () => {
@@ -219,8 +222,9 @@ describe("ModelManager", () => {
 
         manager.triggerChanged("select");
 
-        expect(manager.getResources().adapter.changeProp)
-            .toHaveBeenCalledWith("select");
+        expect(manager.getResources().adapter.changeProp).toHaveBeenCalledWith(
+            "select",
+        );
     });
 });
 

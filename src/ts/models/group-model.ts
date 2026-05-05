@@ -43,7 +43,12 @@ import { LifecycleState } from "../types/core/base/lifecycle.type";
  * @see {@link OptionModel}
  * @see {@link GroupView}
  */
-export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupView, SelectiveOptions> {
+export class GroupModel extends Model<
+    HTMLOptGroupElement,
+    GroupViewTags,
+    GroupView,
+    SelectiveOptions
+> {
     /** Group label (mirrors `HTMLSelectOptGroupElement.label`). */
     public label = "";
 
@@ -67,7 +72,13 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      * Subscribers invoked when collapsed state changes.
      * Callbacks are invoked through {@link iEvents.callEvent}.
      */
-    private privOnCollapsedChanged: Array<(evtToken: IEventCallback, model: GroupModel, collapsed: boolean) => void> = [];
+    private privOnCollapsedChanged: Array<
+        (
+            evtToken: IEventCallback,
+            model: GroupModel,
+            collapsed: boolean,
+        ) => void
+    > = [];
 
     /**
      * Creates a group model from configuration and an optional `<optgroup>` element.
@@ -75,10 +86,15 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      * @param {SelectiveOptions} options - Shared configuration for models/views.
      * @param {HTMLOptGroupElement} [targetElement] - Backing `<optgroup>` element (when available).
      */
-    public constructor(options: SelectiveOptions, targetElement?: HTMLOptGroupElement) {
+    public constructor(
+        options: SelectiveOptions,
+        targetElement?: HTMLOptGroupElement,
+    ) {
         super(options, targetElement ?? null, null);
         this.label = this.targetElement.label;
-        this.collapsed = Libs.string2Boolean(this.targetElement.dataset?.collapsed);
+        this.collapsed = Libs.string2Boolean(
+            this.targetElement.dataset?.collapsed,
+        );
     }
 
     /**
@@ -189,7 +205,7 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
             return;
         }
 
-        this.items.forEach(item => {
+        this.items.forEach((item) => {
             item.destroy();
         });
 
@@ -206,7 +222,13 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
      * Listener invoked with `(evtToken, model, collapsed)`.
      * @returns {void}
      */
-    public onCollapsedChanged(callback: (evtToken: IEventCallback, model: GroupModel, collapsed: boolean) => void): void {
+    public onCollapsedChanged(
+        callback: (
+            evtToken: IEventCallback,
+            model: GroupModel,
+            collapsed: boolean,
+        ) => void,
+    ): void {
         this.privOnCollapsedChanged.push(callback);
     }
 
@@ -224,7 +246,10 @@ export class GroupModel extends Model<HTMLOptGroupElement, GroupViewTags, GroupV
         this.collapsed = !this.collapsed;
         this.view?.setCollapsed(this.collapsed);
 
-        iEvents.callEvent<[GroupModel, boolean]>([this, this.collapsed], ...this.privOnCollapsedChanged);
+        iEvents.callEvent<[GroupModel, boolean]>(
+            [this, this.collapsed],
+            ...this.privOnCollapsedChanged,
+        );
     }
 
     /**

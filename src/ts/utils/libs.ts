@@ -8,7 +8,7 @@ import { SelectiveOptions } from "../types/utils/selective.type";
  * @class
  */
 export class Libs {
-    private static _iStorage: iStorage | null = null;
+    private static _iStorage?: iStorage;
 
     /**
      * Retrieves the shared iStorage instance (lazy-initialized singleton).
@@ -52,10 +52,13 @@ export class Libs {
      */
     public static randomString(length: number = 6): string {
         let result = "";
-        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        const characters =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         const charactersLength = characters.length;
         for (let i = 0; i < length; i++) {
-            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            result += characters.charAt(
+                Math.floor(Math.random() * charactersLength),
+            );
         }
         return result;
     }
@@ -75,12 +78,13 @@ export class Libs {
             | HTMLElement
             | ArrayLike<HTMLElement>
             | null
-            | undefined
+            | undefined,
     ): T {
         if (!queryCommon) return [] as T;
 
         if (typeof queryCommon === "string") {
-            const nodeList = document.querySelectorAll<HTMLElement>(queryCommon);
+            const nodeList =
+                document.querySelectorAll<HTMLElement>(queryCommon);
             return Array.from(nodeList) as T;
         }
 
@@ -102,9 +106,15 @@ export class Libs {
      * @param {NodeSpec} data - Specification describing the element to create.
      * @returns {HTMLElement} - The created element.
      */
-    public static nodeCreator<T extends HTMLElement>(data: Partial<NodeSpec> = {}): T {
+    public static nodeCreator<T extends HTMLElement>(
+        data: Partial<NodeSpec> = {},
+    ): T {
         const nodeName = (data.node ?? "div") as string;
-        return this.nodeCloner<T>(document.createElement(nodeName), data as NodeSpec, true);
+        return this.nodeCloner<T>(
+            document.createElement(nodeName),
+            data as NodeSpec,
+            true,
+        );
     }
 
     /**
@@ -116,10 +126,16 @@ export class Libs {
      * @param {boolean} systemNodeCreate - If true, do not clone; use original node.
      * @returns {HTMLElement} - The processed element.
      */
-    public static nodeCloner<T extends HTMLElement>(node: HTMLElement = document.documentElement, _nodeOption: NodeSpec | null = null, systemNodeCreate = false): T {
+    public static nodeCloner<T extends HTMLElement>(
+        node: HTMLElement = document.documentElement,
+        _nodeOption?: NodeSpec,
+        systemNodeCreate = false,
+    ): T {
         const nodeOption: Record<string, unknown> = { ...(_nodeOption ?? {}) };
 
-        const element_creation: T = systemNodeCreate ? node as T : node.cloneNode(true) as T;
+        const element_creation: T = systemNodeCreate
+            ? (node as T)
+            : (node.cloneNode(true) as T);
 
         const classList = nodeOption.classList;
         if (typeof classList === "string") {
@@ -142,32 +158,52 @@ export class Libs {
             delete nodeOption.role;
         }
         if (nodeOption.ariaLive) {
-            element_creation.setAttribute("aria-live", String(nodeOption.ariaLive));
+            element_creation.setAttribute(
+                "aria-live",
+                String(nodeOption.ariaLive),
+            );
             delete nodeOption.ariaLive;
         }
         if (nodeOption.ariaLabelledby) {
-            element_creation.setAttribute("aria-labelledby", String(nodeOption.ariaLabelledby));
+            element_creation.setAttribute(
+                "aria-labelledby",
+                String(nodeOption.ariaLabelledby),
+            );
             delete nodeOption.ariaLabelledby;
         }
         if (nodeOption.ariaControls) {
-            element_creation.setAttribute("aria-controls", String(nodeOption.ariaControls));
+            element_creation.setAttribute(
+                "aria-controls",
+                String(nodeOption.ariaControls),
+            );
             delete nodeOption.ariaControls;
         }
         if (nodeOption.ariaHaspopup) {
-            element_creation.setAttribute("aria-haspopup", String(nodeOption.ariaHaspopup));
+            element_creation.setAttribute(
+                "aria-haspopup",
+                String(nodeOption.ariaHaspopup),
+            );
             delete nodeOption.ariaHaspopup;
         }
         if (nodeOption.ariaMultiselectable) {
-            element_creation.setAttribute("aria-multiselectable", String(nodeOption.ariaMultiselectable));
+            element_creation.setAttribute(
+                "aria-multiselectable",
+                String(nodeOption.ariaMultiselectable),
+            );
             delete nodeOption.ariaMultiselectable;
         }
         if (nodeOption.ariaAutocomplete) {
-            element_creation.setAttribute("aria-autocomplete", String(nodeOption.ariaAutocomplete));
+            element_creation.setAttribute(
+                "aria-autocomplete",
+                String(nodeOption.ariaAutocomplete),
+            );
             delete nodeOption.ariaAutocomplete;
         }
 
         if (nodeOption.event && typeof nodeOption.event === "object") {
-            Object.entries(nodeOption.event as Record<string, EventListener>).forEach(([key, value]) => {
+            Object.entries(
+                nodeOption.event as Record<string, EventListener>,
+            ).forEach(([key, value]) => {
                 element_creation.addEventListener(key, value);
             });
             delete nodeOption.event;
@@ -198,21 +234,29 @@ export class Libs {
      */
     public static mountNode<TTags extends Record<string, any>>(
         rawObj: Record<string, any>,
-        parentE: HTMLElement | null = null,
+        parentE?: HTMLElement,
         isPrepend = false,
         isRecusive = false,
-        recursiveTemp: any = {}
+        recursiveTemp: any = {},
     ): TTags {
         let view: HTMLElement | null = null;
 
         for (const key in rawObj) {
             const singleObj = rawObj[key];
-            const tag: HTMLElement =
-                singleObj?.tag?.tagName ? (singleObj.tag as HTMLElement) : (this.nodeCreator(singleObj.tag) as HTMLElement);
+            const tag: HTMLElement = singleObj?.tag?.tagName
+                ? (singleObj.tag as HTMLElement)
+                : (this.nodeCreator(singleObj.tag) as HTMLElement);
 
             recursiveTemp[key] = tag;
 
-            if (singleObj?.child) this.mountNode<TTags>(singleObj.child, tag, false, false, recursiveTemp);
+            if (singleObj?.child)
+                this.mountNode<TTags>(
+                    singleObj.child,
+                    tag,
+                    false,
+                    false,
+                    recursiveTemp,
+                );
 
             if (parentE) {
                 if (isPrepend) parentE.prepend(tag);
@@ -240,7 +284,10 @@ export class Libs {
      * @param {SelectiveOptions} options - Default configuration to be merged.
      * @returns {SelectiveOptions} - Final configuration after element overrides.
      */
-    public static buildConfig(element: HTMLElement, options: SelectiveOptions): SelectiveOptions {
+    public static buildConfig(
+        element: HTMLElement,
+        options: SelectiveOptions,
+    ): SelectiveOptions {
         const myOptions = this.jsCopyObject<SelectiveOptions>(options);
 
         for (const optionKey in myOptions) {
@@ -248,13 +295,14 @@ export class Libs {
             if (propValue) {
                 if (typeof myOptions[optionKey] === "boolean") {
                     myOptions[optionKey] = this.string2Boolean(propValue);
-                }
-                else {
+                } else {
                     myOptions[optionKey] = propValue;
                 }
             } else if (typeof element?.dataset?.[optionKey] !== "undefined") {
                 if (typeof myOptions[optionKey] === "boolean") {
-                    myOptions[optionKey] = this.string2Boolean(element.dataset[optionKey]);
+                    myOptions[optionKey] = this.string2Boolean(
+                        element.dataset[optionKey],
+                    );
                 } else {
                     myOptions[optionKey] = element.dataset[optionKey];
                 }
@@ -271,7 +319,9 @@ export class Libs {
      * @param {...object} params - Config objects in priority order (leftmost is base).
      * @returns {object} - Merged configuration object.
      */
-    public static mergeConfig<T extends Record<string, any>>(...params: T[]): T {
+    public static mergeConfig<T extends Record<string, any>>(
+        ...params: T[]
+    ): T {
         if (params.length === 0) return {} as T;
         if (params.length === 1) return this.jsCopyObject(params[0]);
 
@@ -338,7 +388,9 @@ export class Libs {
      * @param {HTMLElement} item - HTMLElement key whose binder map is requested.
      * @returns {BinderMap | any} - The stored binder map value or undefined if absent.
      */
-    public static getBinderMap<T extends BinderMap | any>(item: HTMLElement): T {
+    public static getBinderMap<T extends BinderMap | any>(
+        item: HTMLElement,
+    ): T {
         return this.iStorage.bindedMap.get(item) as T;
     }
 
@@ -425,26 +477,34 @@ export class Libs {
                 .replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, "")
                 .replace(/<(object|embed|link)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
             s = s.replace(/\son[a-z]+\s*=\s*(['"]).*?\1/gi, "");
-            s = s.replace(/\s([a-z-:]+)\s*=\s*(['"])\s*javascript:[^'"]*\2/gi, "");
+            s = s.replace(
+                /\s([a-z-:]+)\s*=\s*(['"])\s*javascript:[^'"]*\2/gi,
+                "",
+            );
             return s;
         }
 
         const tmp = doc.createElement("div");
         tmp.innerHTML = s;
 
-        tmp.querySelectorAll("script, style, iframe, object, embed, link").forEach((n) => n.remove());
+        tmp.querySelectorAll(
+            "script, style, iframe, object, embed, link",
+        ).forEach((n) => n.remove());
 
         tmp.querySelectorAll("*").forEach((n) => {
             for (const a of Array.from(n.attributes)) {
                 const name = a.name ?? "";
                 const value = a.value ?? "";
-    
+
                 if (/^on/i.test(name)) {
                     n.removeAttribute(name);
                     return;
                 }
-    
-                if (/^(href|src|xlink:href)$/i.test(name) && /^javascript:/i.test(value)) {
+
+                if (
+                    /^(href|src|xlink:href)$/i.test(name) &&
+                    /^javascript:/i.test(value)
+                ) {
                     n.removeAttribute(name);
                 }
             }
@@ -476,7 +536,10 @@ export class Libs {
      */
     public static string2normalize(str: unknown): string {
         if (str == null) return "";
-        const s = String(str).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const s = String(str)
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
         return s.replace(/đ/g, "d").replace(/Đ/g, "d");
     }
 
@@ -491,7 +554,9 @@ export class Libs {
      * @param {HTMLSelectElement} selectElement - The source select element.
      * @returns {Array<HTMLOptGroupElement | HTMLOptionElement>} Flattened node list.
      */
-    public static parseSelectToArray(selectElement: HTMLSelectElement): Array<HTMLOptGroupElement | HTMLOptionElement> {
+    public static parseSelectToArray(
+        selectElement: HTMLSelectElement,
+    ): Array<HTMLOptGroupElement | HTMLOptionElement> {
         const result: Array<HTMLOptGroupElement | HTMLOptionElement> = [];
         const children = selectElement.children;
 
@@ -501,15 +566,19 @@ export class Libs {
                 const group = child as HTMLOptGroupElement;
                 result.push(group);
 
-                for (let optionIndex = 0; optionIndex < group.children.length; optionIndex++) {
+                for (
+                    let optionIndex = 0;
+                    optionIndex < group.children.length;
+                    optionIndex++
+                ) {
                     const option = group.children[optionIndex];
                     option["__parentGroup"] = group;
                     result.push(option as HTMLOptionElement);
-                };
+                }
             } else if (child.tagName === "OPTION") {
                 result.push(child as HTMLOptionElement);
             }
-        };
+        }
 
         return result;
     }
@@ -522,7 +591,10 @@ export class Libs {
      */
     public static IsIOS(): boolean {
         const ua = navigator.userAgent;
-        return /iP(hone|ad|od)/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        return (
+            /iP(hone|ad|od)/.test(ua) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+        );
     }
 
     /**
@@ -535,15 +607,22 @@ export class Libs {
     public static any2px(value: string): string {
         const v = String(value).trim();
         if (v.endsWith("px")) return v;
-        if (v.endsWith("vh")) return (window.innerHeight * parseFloat(v)) / 100 + "px";
-        if (v.endsWith("vw")) return (window.innerWidth * parseFloat(v)) / 100 + "px";
+        if (v.endsWith("vh"))
+            return (window.innerHeight * parseFloat(v)) / 100 + "px";
+        if (v.endsWith("vw"))
+            return (window.innerWidth * parseFloat(v)) / 100 + "px";
 
         // rem/em: use computed font-size of document root
-        const fs = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        const fs = parseFloat(
+            getComputedStyle(document.documentElement).fontSize,
+        );
         if (v.endsWith("rem")) return fs * parseFloat(v) + "px";
 
         // fallback: DOM measure
-        const el = this.nodeCreator({ node: "div", style: { height: v, opacity: "0" } });
+        const el = this.nodeCreator({
+            node: "div",
+            style: { height: v, opacity: "0" },
+        });
         document.body.appendChild(el);
         const px = el.offsetHeight + "px";
         el.remove();

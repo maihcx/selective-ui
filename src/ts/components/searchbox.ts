@@ -1,6 +1,10 @@
 import { Libs } from "../utils/libs";
 import { MountViewResult } from "../types/utils/libs.type";
-import { NavigateHandler, SearchBoxTags, SearchHandler } from "../types/components/searchbox.type";
+import {
+    NavigateHandler,
+    SearchBoxTags,
+    SearchHandler,
+} from "../types/components/searchbox.type";
 import { SelectiveOptions } from "../types/utils/selective.type";
 import { Lifecycle } from "../core/base/lifecycle";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
@@ -59,7 +63,7 @@ export class SearchBox extends Lifecycle {
      *
      * @param options - Configuration such as placeholder, accessibility IDs, and flags.
      */
-    constructor(options: SelectiveOptions | null = null) {
+    constructor(options?: SelectiveOptions) {
         super();
         this.options = options;
         if (options) this.initialize(options);
@@ -73,7 +77,7 @@ export class SearchBox extends Lifecycle {
      *
      * @internal
      */
-    private nodeMounted: MountViewResult<SearchBoxTags> | null = null;
+    private nodeMounted?: MountViewResult<SearchBoxTags>;
 
     /**
      * Root container node of this component.
@@ -81,7 +85,7 @@ export class SearchBox extends Lifecycle {
      * Created during {@link initialize} and removed during {@link destroy}.
      * Visibility is controlled by adding/removing the `hide` class.
      */
-    public node: HTMLDivElement | null = null;
+    public node?: HTMLDivElement;
 
     /**
      * The `<input type="search">` element used to capture user queries.
@@ -91,7 +95,7 @@ export class SearchBox extends Lifecycle {
      *
      * @internal
      */
-    private SearchInput: HTMLInputElement | null = null;
+    private SearchInput?: HTMLInputElement;
 
     /**
      * External "search changed" hook.
@@ -102,7 +106,7 @@ export class SearchBox extends Lifecycle {
      * Ownership:
      * - Implementations typically filter adapter/model state and refresh the list.
      */
-    public onSearch: SearchHandler | null = null;
+    public onSearch?: SearchHandler;
 
     /**
      * Options snapshot used for behavior toggles and attributes.
@@ -116,7 +120,7 @@ export class SearchBox extends Lifecycle {
      *
      * @internal
      */
-    private options: SelectiveOptions | null = null;
+    private options?: SelectiveOptions;
 
     /**
      * External navigation hook for list traversal.
@@ -127,21 +131,21 @@ export class SearchBox extends Lifecycle {
      *
      * Typical consumers update highlight/active option in Adapter/RecyclerView.
      */
-    public onNavigate: NavigateHandler | null = null;
+    public onNavigate?: NavigateHandler;
 
     /**
      * External "commit" hook (Enter key).
      *
      * Typical consumers confirm selection of the highlighted option or submit the current state.
      */
-    public onEnter: (() => void) | null = null;
-    
+    public onEnter?: () => void;
+
     /**
      * External "cancel" hook (Escape key).
      *
      * Typical consumers close the popup, clear highlight, or reset interaction mode.
      */
-    public onEsc: (() => void) | null = null;
+    public onEsc?: () => void;
 
     /**
      * Initializes DOM, ARIA attributes, and interaction listeners.
@@ -353,7 +357,7 @@ export class SearchBox extends Lifecycle {
         if (this.is(LifecycleState.DESTROYED)) {
             return;
         }
-                
+
         this.node?.remove();
         this.nodeMounted = null;
         this.node = null;

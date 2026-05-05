@@ -3,7 +3,7 @@
  * Typically includes width and height of an element.
  */
 export interface SizeObject {
-    width: number;  // Element width in pixels
+    width: number; // Element width in pixels
     height: number; // Element height in pixels
 }
 
@@ -12,8 +12,8 @@ export interface SizeObject {
  * Includes scrollable height for overflow calculations.
  */
 export interface DimensionObject {
-    width: number;        // Element width in pixels
-    height: number;       // Element height in pixels
+    width: number; // Element width in pixels
+    height: number; // Element height in pixels
     scrollHeight: number; // Total scrollable height of the element
 }
 
@@ -87,45 +87,45 @@ export interface EffectorInterface {
  * Configuration options for expanding an element.
  */
 export type ExpandConfig = {
-    duration?: number;           // Animation duration in milliseconds
-    display?: string;            // CSS display property during expansion
-    width: number;               // Target width in pixels
-    left: number;                // Target left position
-    top: number;                 // Target top position
-    maxHeight: number;           // Maximum height allowed
-    realHeight: number;          // Actual height of the content
+    duration?: number; // Animation duration in milliseconds
+    display?: string; // CSS display property during expansion
+    width: number; // Target width in pixels
+    left: number; // Target left position
+    top: number; // Target top position
+    maxHeight: number; // Maximum height allowed
+    realHeight: number; // Actual height of the content
     position?: "top" | "bottom"; // Positioning reference
-    onComplete?: () => void;     // Callback after expansion completes
+    onComplete?: () => void; // Callback after expansion completes
 };
 
 /**
  * Configuration options for collapsing an element.
  */
 export type CollapseConfig = {
-    duration?: number;           // Animation duration in milliseconds
-    onComplete?: () => void;     // Callback after collapse completes
+    duration?: number; // Animation duration in milliseconds
+    onComplete?: () => void; // Callback after collapse completes
 };
 
 /**
  * Configuration options for swipe animations.
  */
 export type SwipeConfig = {
-    duration?: number;           // Animation duration in milliseconds
-    display?: string;            // CSS display property during swipe
-    onComplete?: () => void;     // Callback after swipe completes
+    duration?: number; // Animation duration in milliseconds
+    display?: string; // CSS display property during swipe
+    onComplete?: () => void; // Callback after swipe completes
 };
 
 /**
  * Configuration options for resizing an element.
  */
 export type ResizeConfig = {
-    duration?: number;           // Animation duration in milliseconds
-    width: number;               // Target width in pixels
-    left: number;                // Target left position
-    top: number;                 // Target top position
-    maxHeight: number;           // Maximum height allowed
-    realHeight: number;          // Actual height of the content
+    duration?: number; // Animation duration in milliseconds
+    width: number; // Target width in pixels
+    left: number; // Target left position
+    top: number; // Target top position
+    maxHeight: number; // Maximum height allowed
+    realHeight: number; // Actual height of the content
     position?: "top" | "bottom"; // Positioning reference
-    animate?: boolean;           // Whether to animate the resize
-    onComplete?: () => void;     // Callback after resize completes
+    animate?: boolean; // Whether to animate the resize
+    onComplete?: () => void; // Callback after resize completes
 };

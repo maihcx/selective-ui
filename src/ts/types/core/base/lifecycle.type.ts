@@ -1,4 +1,3 @@
-
 /**
  * Enumerates the finite lifecycle states used across core classes (e.g., View/Model).
  *

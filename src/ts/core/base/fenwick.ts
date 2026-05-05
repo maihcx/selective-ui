@@ -131,7 +131,8 @@ export class Fenwick extends Lifecycle {
      * Returns 0 if the first element already exceeds `target`.
      */
     public lowerBoundPrefix(target: number): number {
-        let idx = 0, bitMask = 1;
+        let idx = 0,
+            bitMask = 1;
         while (bitMask << 1 <= this.stackNum) bitMask <<= 1;
 
         let cur = 0;

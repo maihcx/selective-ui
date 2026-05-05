@@ -4,7 +4,12 @@ import { GroupModel } from "../models/group-model";
 import { OptionModel } from "../models/option-model";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
 import { MixedItem } from "../types/core/base/mixed-adapter.type";
-import { AjaxConfig, NormalizedAjaxItem, PaginationState, ParseResponseResult } from "../types/core/search-controller.type";
+import {
+    AjaxConfig,
+    NormalizedAjaxItem,
+    PaginationState,
+    ParseResponseResult,
+} from "../types/core/search-controller.type";
 import { Libs } from "../utils/libs";
 import { Lifecycle } from "./base/lifecycle";
 import { ModelManager } from "./model-manager";
@@ -52,13 +57,13 @@ export class SearchController extends Lifecycle {
      * AJAX configuration; when `null`, {@link search} falls back to local filtering.
      * @see {@link setAjax}
      */
-    private ajaxConfig: AjaxConfig | null = null;
+    private ajaxConfig?: AjaxConfig;
 
     /** Abort handle used to cancel an in-flight AJAX request when a newer request starts. */
-    private abortController: AbortController | null = null;
+    private abortController?: AbortController;
 
     /** Optional popup handle used for showing/hiding loading UI during remote operations. */
-    private popup: Popup | null = null;
+    private popup?: Popup;
 
     /**
      * SelectBox handle used by custom data builder functions that require Selective context.
@@ -88,7 +93,11 @@ export class SearchController extends Lifecycle {
      * @param {ModelManager<MixedItem, any>} modelManager - Manager responsible for model resources and rendering refresh.
      * @param {SelectBox} selectBox - SelectBox handle used by configured AJAX data builders.
      */
-    public constructor(selectElement: HTMLSelectElement, modelManager: ModelManager<MixedItem, any>, selectBox: SelectBox) {
+    public constructor(
+        selectElement: HTMLSelectElement,
+        modelManager: ModelManager<MixedItem, any>,
+        selectBox: SelectBox,
+    ) {
         super();
         this.initialize(selectElement, modelManager, selectBox);
     }
@@ -102,7 +111,11 @@ export class SearchController extends Lifecycle {
      * @param {SelectBox} selectBox - SelectBox handle.
      * @returns {void}
      */
-    private initialize(selectElement: HTMLSelectElement, modelManager: ModelManager<MixedItem, any>, selectBox: SelectBox): void {
+    private initialize(
+        selectElement: HTMLSelectElement,
+        modelManager: ModelManager<MixedItem, any>,
+        selectBox: SelectBox,
+    ): void {
         this.select = selectElement;
         this.modelManager = modelManager;
         this.selectBox = selectBox;
@@ -137,9 +150,17 @@ export class SearchController extends Lifecycle {
      * - When AJAX is not configured, resolves with `{ success: false, ... }`.
      * - This method does not mutate the `<select>`; it only returns normalized items.
      */
-    async loadByValues(values: string | string[]): Promise<{ success: boolean; items: NormalizedAjaxItem[]; message?: string }> {
+    async loadByValues(values: string | string[]): Promise<{
+        success: boolean;
+        items: NormalizedAjaxItem[];
+        message?: string;
+    }> {
         if (!this.ajaxConfig) {
-            return { success: false, items: [], message: "Ajax not configured" };
+            return {
+                success: false,
+                items: [],
+                message: "Ajax not configured",
+            };
         }
 
         const valuesArray = Array.isArray(values) ? values : [values];
@@ -156,8 +177,12 @@ export class SearchController extends Lifecycle {
                     values: valuesArray.join(","),
                     load_by_values: "1",
                     ...(typeof cfg.data === "function"
-                        ? cfg.data.bind(this.selectBox.Selective.find(this.selectBox.container.targetElement))("", 0)
-                        : cfg.data ?? {}),
+                        ? cfg.data.bind(
+                              this.selectBox.Selective.find(
+                                  this.selectBox.container.targetElement,
+                              ),
+                          )("", 0)
+                        : (cfg.data ?? {})),
                 };
             }
 
@@ -165,18 +190,23 @@ export class SearchController extends Lifecycle {
 
             if ((cfg.method ?? "GET") === "POST") {
                 const formData = new URLSearchParams();
-                Object.keys(payload).forEach((key) => formData.append(key, String(payload[key])));
+                Object.keys(payload).forEach((key) =>
+                    formData.append(key, String(payload[key])),
+                );
                 response = await fetch(cfg.url, {
                     method: "POST",
                     body: formData,
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
                 });
             } else {
                 const params = new URLSearchParams(payload).toString();
                 response = await fetch(`${cfg.url}?${params}`);
             }
 
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok)
+                throw new Error(`HTTP error! status: ${response.status}`);
 
             const data = await response.json();
             const result = this.parseResponse(data);
@@ -197,7 +227,10 @@ export class SearchController extends Lifecycle {
      * @param {string[]} values - Values to check.
      * @returns {{ existing: string[]; missing: string[] }} Partitioned result.
      */
-    public checkMissingValues(values: string[]): { existing: string[]; missing: string[] } {
+    public checkMissingValues(values: string[]): {
+        existing: string[];
+        missing: string[];
+    } {
         const allOptions = Array.from(this.select.options);
         const existingValues = allOptions.map((opt) => opt.value);
 
@@ -211,10 +244,10 @@ export class SearchController extends Lifecycle {
      * Configures AJAX settings used for remote searching and pagination.
      * Setting `null` disables AJAX mode and causes {@link search} to use local filtering.
      *
-     * @param {AjaxConfig | null} config - AJAX configuration (endpoint, method, data builders, keepSelected, ...).
+     * @param {AjaxConfig} config - AJAX configuration (endpoint, method, data builders, keepSelected, ...).
      * @returns {void}
      */
-    public setAjax(config: AjaxConfig | null): void {
+    public setAjax(config?: AjaxConfig): void {
         this.ajaxConfig = config;
     }
 
@@ -272,7 +305,8 @@ export class SearchController extends Lifecycle {
 
         for (const m of modelList) {
             if (m instanceof OptionModel) flatOptions.push(m);
-            else if (m instanceof GroupModel && Array.isArray(m.items)) flatOptions.push(...m.items);
+            else if (m instanceof GroupModel && Array.isArray(m.items))
+                flatOptions.push(...m.items);
         }
 
         flatOptions.forEach((opt) => {
@@ -289,7 +323,10 @@ export class SearchController extends Lifecycle {
      * @param {boolean} [append=false] - AJAX mode only: append results (next page) instead of replacing.
      * @returns {Promise<any>} Implementation-specific result object from the underlying strategy.
      */
-    public async search(keyword: string, append: boolean = false): Promise<any> {
+    public async search(
+        keyword: string,
+        append: boolean = false,
+    ): Promise<any> {
         if (this.ajaxConfig) return this.ajaxSearch(keyword, append);
         return this.localSearch(keyword);
     }
@@ -305,10 +342,14 @@ export class SearchController extends Lifecycle {
      * @returns {Promise<any>} Result of the paginated request, or an error object when not applicable.
      */
     public async loadMore(): Promise<any> {
-        if (!this.ajaxConfig) return { success: false, message: "Ajax not enabled" };
-        if (this.paginationState.isLoading) return { success: false, message: "Already loading" };
-        if (!this.paginationState.isPaginationEnabled) return { success: false, message: "Pagination not enabled" };
-        if (!this.paginationState.hasMore) return { success: false, message: "No more data" };
+        if (!this.ajaxConfig)
+            return { success: false, message: "Ajax not enabled" };
+        if (this.paginationState.isLoading)
+            return { success: false, message: "Already loading" };
+        if (!this.paginationState.isPaginationEnabled)
+            return { success: false, message: "Pagination not enabled" };
+        if (!this.paginationState.hasMore)
+            return { success: false, message: "No more data" };
 
         this.paginationState.currentPage++;
         return this.ajaxSearch(this.paginationState.currentKeyword, true);
@@ -329,8 +370,11 @@ export class SearchController extends Lifecycle {
      * @returns {Promise<{ success: boolean; hasResults: boolean; isEmpty: boolean }>}
      * Summary result for UI consumers.
      */
-    private async localSearch(keyword: string): Promise<{ success: boolean; hasResults: boolean; isEmpty: boolean }> {
-        if (this.compareSearchTrigger(keyword)) this.paginationState.currentKeyword = keyword;
+    private async localSearch(
+        keyword: string,
+    ): Promise<{ success: boolean; hasResults: boolean; isEmpty: boolean }> {
+        if (this.compareSearchTrigger(keyword))
+            this.paginationState.currentKeyword = keyword;
 
         const lower = String(keyword ?? "").toLowerCase();
         const lowerNA = Libs.string2normalize(lower);
@@ -340,7 +384,8 @@ export class SearchController extends Lifecycle {
         const flatOptions: OptionModel[] = [];
         for (const m of modelList) {
             if (m instanceof OptionModel) flatOptions.push(m);
-            else if (m instanceof GroupModel && Array.isArray(m.items)) flatOptions.push(...m.items);
+            else if (m instanceof GroupModel && Array.isArray(m.items))
+                flatOptions.push(...m.items);
         }
 
         let hasVisibleItems = false;
@@ -388,7 +433,10 @@ export class SearchController extends Lifecycle {
      * @param {boolean} [append=false] - Whether to append results (true = next page).
      * @returns {Promise<any>} Implementation-specific result object with pagination flags.
      */
-    private async ajaxSearch(keyword: string, append: boolean = false): Promise<any> {
+    private async ajaxSearch(
+        keyword: string,
+        append: boolean = false,
+    ): Promise<any> {
         const cfg = this.ajaxConfig!;
         if (this.compareSearchTrigger(keyword)) {
             this.resetPagination();
@@ -410,11 +458,19 @@ export class SearchController extends Lifecycle {
 
         let payload: Record<string, any>;
         if (typeof cfg.data === "function") {
-            const selectiveInstance = this.selectBox?.Selective?.find(this.selectBox?.container?.targetElement);
+            const selectiveInstance = this.selectBox?.Selective?.find(
+                this.selectBox?.container?.targetElement,
+            );
             payload = cfg.data.call(selectiveInstance, keyword, page);
-            if (payload && typeof payload.selectedValue === "undefined") payload.selectedValue = selectedValues;
+            if (payload && typeof payload.selectedValue === "undefined")
+                payload.selectedValue = selectedValues;
         } else {
-            payload = { search: keyword, page, selectedValue: selectedValues, ...(cfg.data ?? {}) };
+            payload = {
+                search: keyword,
+                page,
+                selectedValue: selectedValues,
+                ...(cfg.data ?? {}),
+            };
         }
 
         try {
@@ -422,16 +478,22 @@ export class SearchController extends Lifecycle {
 
             if ((cfg.method ?? "GET") === "POST") {
                 const formData = new URLSearchParams();
-                Object.keys(payload).forEach((key) => formData.append(key, String(payload[key])));
+                Object.keys(payload).forEach((key) =>
+                    formData.append(key, String(payload[key])),
+                );
                 response = await fetch(cfg.url, {
                     method: "POST",
                     body: formData,
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
                     signal: this.abortController.signal,
                 });
             } else {
                 const params = new URLSearchParams(payload).toString();
-                response = await fetch(`${cfg.url}?${params}`, { signal: this.abortController.signal });
+                response = await fetch(`${cfg.url}?${params}`, {
+                    signal: this.abortController.signal,
+                });
             }
 
             const data = await response.json();
@@ -466,7 +528,8 @@ export class SearchController extends Lifecycle {
             this.paginationState.isLoading = false;
             this.popup?.hideLoading();
 
-            if (error?.name === "AbortError") return { success: false, message: "Request aborted" };
+            if (error?.name === "AbortError")
+                return { success: false, message: "Request aborted" };
 
             console.error("Ajax search error:", error);
             return { success: false, message: error?.message };
@@ -502,7 +565,10 @@ export class SearchController extends Lifecycle {
             if (typeof data.page !== "undefined") {
                 hasPagination = true;
                 page = parseInt(data.page ?? 0, 10);
-                totalPages = parseInt(data.totalPages ?? data.total_page ?? 1, 10);
+                totalPages = parseInt(
+                    data.totalPages ?? data.total_page ?? 1,
+                    10,
+                );
                 hasMore = page < totalPages - 1;
             }
         } else if (data.data && Array.isArray(data.data)) {
@@ -510,8 +576,11 @@ export class SearchController extends Lifecycle {
             if (typeof data.page !== "undefined") {
                 hasPagination = true;
                 page = parseInt(data.page ?? 0, 10);
-                totalPages = parseInt(data.totalPages ?? data.total_page ?? 1, 10);
-                hasMore = data.hasMore ?? (page < totalPages - 1);
+                totalPages = parseInt(
+                    data.totalPages ?? data.total_page ?? 1,
+                    10,
+                );
+                hasMore = data.hasMore ?? page < totalPages - 1;
             }
         } else if (Array.isArray(data)) {
             items = data;
@@ -520,25 +589,53 @@ export class SearchController extends Lifecycle {
             if (data.pagination) {
                 hasPagination = true;
                 page = parseInt(data.pagination.page ?? 0, 10);
-                totalPages = parseInt(data.pagination.totalPages ?? data.pagination.total_page ?? 1, 10);
-                hasMore = data.pagination.hasMore ?? (page < totalPages - 1);
+                totalPages = parseInt(
+                    data.pagination.totalPages ??
+                        data.pagination.total_page ??
+                        1,
+                    10,
+                );
+                hasMore = data.pagination.hasMore ?? page < totalPages - 1;
             }
         }
 
         const normalized: NormalizedAjaxItem[] = items.map((item: any) => {
-            if (item instanceof HTMLOptionElement || item instanceof HTMLOptGroupElement) return item;
+            if (
+                item instanceof HTMLOptionElement ||
+                item instanceof HTMLOptGroupElement
+            )
+                return item;
 
-            if (item.type === "optgroup" || item.isGroup || item.group || item.label) {
+            if (
+                item.type === "optgroup" ||
+                item.isGroup ||
+                item.group ||
+                item.label
+            ) {
                 const label = item.label ?? item.name ?? item.title ?? "";
                 const dataObj = item.data ?? {};
-                const opts = (item.options ?? item.items ?? []).map((opt: any) => ({
-                    value: opt.value ?? opt.id ?? opt.key ?? "",
-                    text: opt.text ?? opt.label ?? opt.name ?? opt.title ?? "",
-                    selected: opt.selected ?? false,
-                    data: opt.data ?? (opt.imgsrc ? { imgsrc: opt.imgsrc } : {}),
-                }));
+                const opts = (item.options ?? item.items ?? []).map(
+                    (opt: any) => ({
+                        value: opt.value ?? opt.id ?? opt.key ?? "",
+                        text:
+                            opt.text ??
+                            opt.label ??
+                            opt.name ??
+                            opt.title ??
+                            "",
+                        selected: opt.selected ?? false,
+                        data:
+                            opt.data ??
+                            (opt.imgsrc ? { imgsrc: opt.imgsrc } : {}),
+                    }),
+                );
 
-                return { type: "optgroup", label, data: dataObj, options: opts };
+                return {
+                    type: "optgroup",
+                    label,
+                    data: dataObj,
+                    options: opts,
+                };
             }
 
             const dataObj = item.data ?? {};
@@ -574,19 +671,34 @@ export class SearchController extends Lifecycle {
      * @param {boolean} [append=false] - Append to existing options instead of replacing.
      * @returns {void}
      */
-    public applyAjaxResult(items: NormalizedAjaxItem[], keepSelected: boolean, append: boolean = false): void {
+    public applyAjaxResult(
+        items: NormalizedAjaxItem[],
+        keepSelected: boolean,
+        append: boolean = false,
+    ): void {
         const select = this.select;
 
         let oldSelected: string[] = [];
-        if (keepSelected) oldSelected = Array.from(select.selectedOptions).map((o) => o.value);
+        if (keepSelected)
+            oldSelected = Array.from(select.selectedOptions).map(
+                (o) => o.value,
+            );
 
         if (!append) select.innerHTML = "";
 
         items.forEach((item: any) => {
             // Skip empty item (defensive guard)
-            if ((item["type"] === "option" || !item["type"]) && item["value"] === "" && item["text"] === "") return;
+            if (
+                (item["type"] === "option" || !item["type"]) &&
+                item["value"] === "" &&
+                item["text"] === ""
+            )
+                return;
 
-            if (item instanceof HTMLOptionElement || item instanceof HTMLOptGroupElement) {
+            if (
+                item instanceof HTMLOptionElement ||
+                item instanceof HTMLOptGroupElement
+            ) {
                 select.appendChild(item);
                 return;
             }
@@ -613,7 +725,10 @@ export class SearchController extends Lifecycle {
                             });
                         }
 
-                        if (opt.selected || (keepSelected && oldSelected.includes(option.value))) {
+                        if (
+                            opt.selected ||
+                            (keepSelected && oldSelected.includes(option.value))
+                        ) {
                             option.selected = true;
                         }
 
@@ -633,7 +748,10 @@ export class SearchController extends Lifecycle {
                     });
                 }
 
-                if (item.selected || (keepSelected && oldSelected.includes(option.value))) {
+                if (
+                    item.selected ||
+                    (keepSelected && oldSelected.includes(option.value))
+                ) {
                     option.selected = true;
                 }
 

@@ -39,13 +39,16 @@ import { LifecycleState } from "src/ts/types/core/base/lifecycle.type";
  * @see {@link ViewContract}
  * @see {@link LifecycleState}
  */
-export class View<TTags extends Record<string, HTMLElement>> extends Lifecycle implements ViewContract<TTags> {
+export class View<TTags extends Record<string, HTMLElement>>
+    extends Lifecycle
+    implements ViewContract<TTags>
+{
     /**
      * Host container element into which this view's root element is rendered/attached.
      *
      * This reference is captured at construction time and cleared on {@link destroy}.
      */
-    public parent: HTMLElement | null = null;
+    public parent?: HTMLElement;
 
     /**
      * Mounted view result containing:
@@ -54,7 +57,7 @@ export class View<TTags extends Record<string, HTMLElement>> extends Lifecycle i
      *
      * This is expected to be assigned by subclasses (or a mount helper) before {@link getView} is called.
      */
-    public view: MountViewResult<TTags> | null = null;
+    public view?: MountViewResult<TTags>;
 
     /**
      * Creates a View bound to the specified parent container and initializes lifecycle state.
@@ -79,7 +82,9 @@ export class View<TTags extends Record<string, HTMLElement>> extends Lifecycle i
      */
     public getView(): HTMLElement {
         if (!this.view?.view) {
-            throw new Error("View is not mounted. Did you forget to set this.view?");
+            throw new Error(
+                "View is not mounted. Did you forget to set this.view?",
+            );
         }
         return this.view.view;
     }

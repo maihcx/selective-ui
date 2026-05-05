@@ -2,7 +2,10 @@ import { ModelContract } from "src/ts/types/core/base/model.type";
 import { RecyclerView } from "./recyclerview";
 import { AdapterContract } from "src/ts/types/core/base/adapter.type";
 import { Libs } from "src/ts/utils/libs";
-import { VirtualOptions, VirtualRecyclerViewTags } from "src/ts/types/core/base/virtual-recyclerview.type";
+import {
+    VirtualOptions,
+    VirtualRecyclerViewTags,
+} from "src/ts/types/core/base/virtual-recyclerview.type";
 import { Lifecycle } from "./lifecycle";
 import { LifecycleState } from "src/ts/types/core/base/lifecycle.type";
 import { Fenwick } from "./fenwick";
@@ -58,7 +61,7 @@ import { Fenwick } from "./fenwick";
  */
 export class VirtualRecyclerView<
     TItem extends ModelContract<any, any>,
-    TAdapter extends AdapterContract<TItem>
+    TAdapter extends AdapterContract<TItem>,
 > extends RecyclerView<TItem, TAdapter> {
     /**
      * Virtualization settings (materialized to `Required<VirtualOptions>`).
@@ -109,8 +112,8 @@ export class VirtualRecyclerView<
     private resizeObs?: ResizeObserver;
 
     /** Pending animation frame ids for window and measurement. */
-    private rafId: number | null = null;
-    private measureRaf: number | null = null;
+    private rafId?: number;
+    private measureRaf?: number;
 
     /** Re-entrancy/suspension flags used to prevent feedback loops. */
     private updating = false;
@@ -138,9 +141,9 @@ export class VirtualRecyclerView<
      *
      * Note: The virtualization scaffold is built when an adapter is set via {@link setAdapter}.
      *
-     * @param {HTMLDivElement | null} [viewElement=null] - Optional root container for the recycler view.
+     * @param {HTMLDivElement} [viewElement=null] - Optional root container for the recycler view.
      */
-    constructor(viewElement: HTMLDivElement | null = null) {
+    constructor(viewElement?: HTMLDivElement) {
         super(viewElement);
     }
 
@@ -187,24 +190,37 @@ export class VirtualRecyclerView<
 
         this.viewElement.replaceChildren();
 
-        const nodeMounted = Libs.mountNode({
-            PadTop:   { tag: { node: "div", classList: "seui-virtual-pad-top" } },
-            ItemsHost:{ tag: { node: "div", classList: "seui-virtual-items" } },
-            PadBottom:{ tag: { node: "div", classList: "seui-virtual-pad-bottom" } },
-        }, this.viewElement) as VirtualRecyclerViewTags;
+        const nodeMounted = Libs.mountNode<VirtualRecyclerViewTags>(
+            {
+                PadTop: {
+                    tag: { node: "div", classList: "seui-virtual-pad-top" },
+                },
+                ItemsHost: {
+                    tag: { node: "div", classList: "seui-virtual-items" },
+                },
+                PadBottom: {
+                    tag: { node: "div", classList: "seui-virtual-pad-bottom" },
+                },
+            },
+            this.viewElement,
+        );
 
         this.PadTop = nodeMounted.PadTop;
         this.ItemsHost = nodeMounted.ItemsHost;
         this.PadBottom = nodeMounted.PadBottom;
 
-        this.scrollEl = this.opts.scrollEl
-            ?? (this.viewElement.closest(".seui-popup") as HTMLElement)
-            ?? (this.viewElement.parentElement as HTMLElement);
+        this.scrollEl =
+            this.opts.scrollEl ??
+            (this.viewElement.closest(".seui-popup") as HTMLElement) ??
+            (this.viewElement.parentElement as HTMLElement);
 
-        if (!this.scrollEl) throw new Error("VirtualRecyclerView: scrollEl not found");
+        if (!this.scrollEl)
+            throw new Error("VirtualRecyclerView: scrollEl not found");
 
         this.boundOnScroll = this.onScroll.bind(this);
-        this.scrollEl.addEventListener("scroll", this.boundOnScroll, { passive: true });
+        this.scrollEl.addEventListener("scroll", this.boundOnScroll, {
+            passive: true,
+        });
 
         this.refresh(false);
         this.attachResizeObserverOnce();
@@ -249,7 +265,9 @@ export class VirtualRecyclerView<
         this.suspended = false;
 
         if (this.scrollEl && this.boundOnScroll) {
-            this.scrollEl.addEventListener("scroll", this.boundOnScroll, { passive: true });
+            this.scrollEl.addEventListener("scroll", this.boundOnScroll, {
+                passive: true,
+            });
         }
 
         if (this.resumeResizeAfter) {
@@ -310,7 +328,10 @@ export class VirtualRecyclerView<
      * @param {{ scrollIntoView?: boolean }} [opt] - Optional behavior controls.
      * @returns {void}
      */
-    public ensureRendered(index: number, opt?: { scrollIntoView?: boolean }): void {
+    public ensureRendered(
+        index: number,
+        opt?: { scrollIntoView?: boolean },
+    ): void {
         this.mountRange(index, index);
         if (opt?.scrollIntoView) this.scrollToIndex(index);
     }
@@ -334,7 +355,10 @@ export class VirtualRecyclerView<
         const topInContainer = this.offsetTopOf(index);
         const containerTop = this.containerTopInScroll();
         const target = containerTop + topInContainer;
-        const maxScroll = Math.max(0, this.scrollEl.scrollHeight - this.scrollEl.clientHeight);
+        const maxScroll = Math.max(
+            0,
+            this.scrollEl.scrollHeight - this.scrollEl.clientHeight,
+        );
 
         this.scrollEl.scrollTop = Math.min(Math.max(0, target), maxScroll);
     }
@@ -358,7 +382,7 @@ export class VirtualRecyclerView<
         }
 
         this.resizeObs?.disconnect();
-        this.created.forEach(el => el.remove());
+        this.created.forEach((el) => el.remove());
         this.created.clear();
     }
 
@@ -442,7 +466,7 @@ export class VirtualRecyclerView<
      * @returns {void}
      */
     private resetState(): void {
-        this.created.forEach(el => el.remove());
+        this.created.forEach((el) => el.remove());
         this.created.clear();
         this.heightCache = [];
         this.fenwick.reset(0);
@@ -557,7 +581,9 @@ export class VirtualRecyclerView<
         const now = performance.now();
         if (now - this.stickyCacheTick < 16) return this.stickyCacheVal;
 
-        const sticky = this.scrollEl.querySelector(".seui-option-handle:not(.hide)") as HTMLElement | null;
+        const sticky = this.scrollEl.querySelector(
+            ".seui-option-handle:not(.hide)",
+        ) as HTMLElement | null;
         this.stickyCacheVal = sticky?.offsetHeight ?? 0;
         this.stickyCacheTick = now;
         return this.stickyCacheVal;
@@ -623,7 +649,7 @@ export class VirtualRecyclerView<
     private rebuildFenwick(count: number): void {
         const est = this.getEstimate();
         const arr = Array.from({ length: count }, (_, i) =>
-            this.isIndexVisible(i) ? (this.heightCache[i] ?? est) : 0
+            this.isIndexVisible(i) ? (this.heightCache[i] ?? est) : 0,
         );
         this.fenwick.buildFrom(arr);
     }
@@ -738,8 +764,12 @@ export class VirtualRecyclerView<
         const next = el.nextElementSibling as HTMLElement | null;
 
         const needsReorder =
-            (prev && Number(prev.getAttribute(VirtualRecyclerView.ATTR_INDEX)) > index) ||
-            (next && Number(next.getAttribute(VirtualRecyclerView.ATTR_INDEX)) < index);
+            (prev &&
+                Number(prev.getAttribute(VirtualRecyclerView.ATTR_INDEX)) >
+                    index) ||
+            (next &&
+                Number(next.getAttribute(VirtualRecyclerView.ATTR_INDEX)) <
+                    index);
 
         if (needsReorder) {
             el.remove();
@@ -763,7 +793,13 @@ export class VirtualRecyclerView<
         if (this.resizeObs) return;
 
         this.resizeObs = new ResizeObserver(() => {
-            if (this.suppressResize || this.suspended || !this.adapter || this.measureRaf != null) return;
+            if (
+                this.suppressResize ||
+                this.suspended ||
+                !this.adapter ||
+                this.measureRaf != null
+            )
+                return;
 
             this.measureRaf = requestAnimationFrame(() => {
                 this.measureRaf = null;
@@ -794,7 +830,9 @@ export class VirtualRecyclerView<
             if (!this.isIndexVisible(i)) continue;
 
             const item = this.adapter.items[i];
-            const el = (item as any)?.view?.getView?.() as HTMLElement | undefined;
+            const el = (item as any)?.view?.getView?.() as
+                | HTMLElement
+                | undefined;
             if (!el) continue;
 
             const newH = this.measureOuterHeight(el);
@@ -857,7 +895,8 @@ export class VirtualRecyclerView<
 
             const anchorIndex = this.findFirstVisibleIndex(stRel, count);
             const anchorTop = this.offsetTopOf(anchorIndex);
-            const anchorDelta = containerTop + anchorTop - this.scrollEl.scrollTop;
+            const anchorDelta =
+                containerTop + anchorTop - this.scrollEl.scrollTop;
 
             const firstVis = this.findFirstVisibleIndex(stRel, count);
             if (firstVis === -1) {
@@ -868,12 +907,21 @@ export class VirtualRecyclerView<
             const est = this.getEstimate();
             const overscanPx = this.opts.overscan * est;
 
-            let startIndex = this.nextVisibleFrom(
-                Math.min(count - 1, this.fenwick.lowerBoundPrefix(Math.max(0, stRel - overscanPx))),
-                count
-            ) ?? firstVis;
+            let startIndex =
+                this.nextVisibleFrom(
+                    Math.min(
+                        count - 1,
+                        this.fenwick.lowerBoundPrefix(
+                            Math.max(0, stRel - overscanPx),
+                        ),
+                    ),
+                    count,
+                ) ?? firstVis;
 
-            let endIndex = Math.min(count - 1, this.fenwick.lowerBoundPrefix(stRel + vhEff + overscanPx));
+            let endIndex = Math.min(
+                count - 1,
+                this.fenwick.lowerBoundPrefix(stRel + vhEff + overscanPx),
+            );
 
             if (startIndex === this.start && endIndex === this.end) return;
 
@@ -900,8 +948,12 @@ export class VirtualRecyclerView<
 
             // Keep anchor item stable to prevent scroll jump
             const anchorTopNew = this.offsetTopOf(anchorIndex);
-            const targetScroll = this.containerTopInScroll() + anchorTopNew - anchorDelta;
-            const maxScroll = Math.max(0, this.scrollEl.scrollHeight - this.scrollEl.clientHeight);
+            const targetScroll =
+                this.containerTopInScroll() + anchorTopNew - anchorDelta;
+            const maxScroll = Math.max(
+                0,
+                this.scrollEl.scrollHeight - this.scrollEl.clientHeight,
+            );
             const clamped = Math.min(Math.max(0, targetScroll), maxScroll);
 
             const heightChanged = Math.abs(anchorTopNew - anchorTop) > 1;
