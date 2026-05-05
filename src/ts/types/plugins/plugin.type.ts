@@ -10,8 +10,8 @@ import { SelectiveOptions } from "../utils/selective.type";
 export interface PluginContext<TTags extends Record<string, HTMLElement>> {
     selectBox: SelectBox;
     options: SelectiveOptions;
-    adapter: AdapterContract<any> | null;
-    recycler: RecyclerViewContract<AdapterContract<any>> | null;
+    adapter?: AdapterContract<any>;
+    recycler?: RecyclerViewContract<AdapterContract<any>>;
     viewTags: TTags & { id: string };
     actions: SelectBoxAction;
 }

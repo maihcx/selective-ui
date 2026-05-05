@@ -3,30 +3,31 @@
  * Configures JSDOM environment and global utilities
  */
 
-import '@testing-library/jest-dom';
-import MutationObserver from 'mutation-observer'
+import "@testing-library/jest-dom";
+import MutationObserver from "mutation-observer";
 
 class MockResizeObserver implements ResizeObserver {
-    constructor(private callback: ResizeObserverCallback) { }
+    constructor(private callback: ResizeObserverCallback) {}
 
-    disconnect(): void { }
-    observe(): void { }
-    unobserve(): void { }
+    disconnect(): void {}
+    observe(): void {}
+    unobserve(): void {}
 }
 
 class MockIntersectionObserver implements IntersectionObserver {
     readonly root: Element | null = null;
-    readonly rootMargin = '';
+    readonly rootMargin = "";
     readonly thresholds: ReadonlyArray<number> = [];
+    readonly scrollMargin: string = "";
 
     constructor(
         _callback: IntersectionObserverCallback,
-        _options?: IntersectionObserverInit
-    ) { }
+        _options?: IntersectionObserverInit,
+    ) {}
 
-    disconnect(): void { }
-    observe(): void { }
-    unobserve(): void { }
+    disconnect(): void {}
+    observe(): void {}
+    unobserve(): void {}
     takeRecords(): IntersectionObserverEntry[] {
         return [];
     }
@@ -39,14 +40,13 @@ global.IntersectionObserver = MockIntersectionObserver;
 global.requestAnimationFrame = (callback: FrameRequestCallback): number =>
     window.setTimeout(callback, 0);
 
-global.cancelAnimationFrame = (id: number): void =>
-    window.clearTimeout(id);
+global.cancelAnimationFrame = (id: number): void => window.clearTimeout(id);
 
 if (!window.HTMLElement.prototype.scrollIntoView) {
     window.HTMLElement.prototype.scrollIntoView = jest.fn();
 }
 
-document.documentElement.style.fontSize = '16px';
+document.documentElement.style.fontSize = "16px";
 
 interface SelectOption {
     value: string;
@@ -71,9 +71,9 @@ interface CreateSelectOptions {
 }
 
 global.createSelect = (
-    options: CreateSelectOptions = {}
+    options: CreateSelectOptions = {},
 ): HTMLSelectElement => {
-    const select = document.createElement('select');
+    const select = document.createElement("select");
 
     if (options.id) select.id = options.id;
     if (options.name) select.name = options.name;
@@ -81,20 +81,20 @@ global.createSelect = (
     if (options.disabled) select.disabled = true;
 
     if (options.dataset) {
-        Object.keys(options.dataset).forEach(key => {
+        Object.keys(options.dataset).forEach((key) => {
             select.dataset[key] = options.dataset![key];
         });
     }
 
     if (options.options) {
-        options.options.forEach(opt => {
-            const option = document.createElement('option');
+        options.options.forEach((opt) => {
+            const option = document.createElement("option");
             option.value = opt.value;
             option.text = opt.text;
             if (opt.selected) option.selected = true;
 
             if (opt.dataset) {
-                Object.keys(opt.dataset).forEach(key => {
+                Object.keys(opt.dataset).forEach((key) => {
                     option.dataset[key] = opt.dataset![key];
                 });
             }
@@ -104,12 +104,12 @@ global.createSelect = (
     }
 
     if (options.groups) {
-        options.groups.forEach(group => {
-            const optgroup = document.createElement('optgroup');
+        options.groups.forEach((group) => {
+            const optgroup = document.createElement("optgroup");
             optgroup.label = group.label;
 
-            group.options.forEach(opt => {
-                const option = document.createElement('option');
+            group.options.forEach((opt) => {
+                const option = document.createElement("option");
                 option.value = opt.value;
                 option.text = opt.text;
                 if (opt.selected) option.selected = true;
@@ -125,30 +125,30 @@ global.createSelect = (
 };
 
 global.waitFor = (ms = 0): Promise<void> =>
-    new Promise(resolve => setTimeout(resolve, ms));
+    new Promise((resolve) => setTimeout(resolve, ms));
 
 global.waitForCondition = async (
     condition: () => boolean,
-    timeout = 1000
+    timeout = 1000,
 ): Promise<void> => {
     const startTime = Date.now();
 
     while (!condition()) {
         if (Date.now() - startTime > timeout) {
-            throw new Error('Timeout waiting for condition');
+            throw new Error("Timeout waiting for condition");
         }
-        await (global).waitFor(10);
+        await global.waitFor(10);
     }
 };
 
 afterEach(() => {
-    document.body.innerHTML = '';
+    document.body.innerHTML = "";
     jest.clearAllTimers();
 });
 
-(global).console = {
+global.console = {
     ...console,
     log: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn()
+    error: jest.fn(),
 };

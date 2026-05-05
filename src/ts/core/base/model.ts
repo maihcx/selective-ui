@@ -43,16 +43,18 @@ export class Model<
     TTarget extends HTMLElement,
     TTags extends Record<string, HTMLElement>,
     TView extends ViewContract<TTags>,
-    TOptions = unknown
-> extends Lifecycle implements ModelContract<TTarget, TView> {
-
+    TOptions = unknown,
+>
+    extends Lifecycle
+    implements ModelContract<TTarget, TView>
+{
     /**
      * The currently bound target DOM element.
      *
      * This element typically represents the source-of-truth node in the host DOM (e.g., a native `<option>`).
      * May be replaced via {@link updateTarget} during reconciliation.
      */
-    public targetElement: TTarget | null = null;
+    public targetElement?: TTarget;
 
     /**
      * Configuration options supplied at construction time.
@@ -66,25 +68,25 @@ export class Model<
      * Ownership: this model will destroy the view on {@link destroy}.
      * The view may be attached/assigned by external orchestrators (Adapter/RecyclerView) after construction.
      */
-    public view: TView | null = null;
+    public view?: TView;
 
     /**
      * Position index used by list infrastructure for ordering/tracking.
      * Semantics are library-specific (e.g., top-level index or adapter position).
      */
-    public position = -1;
+    public position: number = -1;
 
     /**
      * Indicates whether this model has completed its initial binding step.
      * Typically set by the adapter/view binding layer to prevent duplicate listener wiring.
      */
-    public isInit = false;
+    public isInit: boolean = false;
 
     /**
      * Indicates whether this model has been removed/destroyed from the active dataset.
      * Set to `true` during {@link destroy}.
      */
-    public isRemoved = false;
+    public isRemoved: boolean = false;
 
     /**
      * Returns the current "value" associated with the bound target element.
@@ -107,13 +109,13 @@ export class Model<
      * - Calls {@link Lifecycle.init} immediately (`NEW → INITIALIZED`).
      *
      * @param {TOptions} options - Configuration options for the model.
-     * @param {TTarget | null} [targetElement=null] - Optional DOM element to bind.
-     * @param {TView | null} [view=null] - Optional view responsible for rendering this model.
+     * @param {TTarget} [targetElement=null] - Optional DOM element to bind.
+     * @param {TView} [view=null] - Optional view responsible for rendering this model.
      */
     public constructor(
         options: TOptions,
-        targetElement: TTarget | null = null,
-        view: TView | null = null
+        targetElement?: TTarget,
+        view?: TView,
     ) {
         super();
         this.options = options;
@@ -134,10 +136,10 @@ export class Model<
      * - Assigns {@link targetElement}.
      * - Calls {@link Lifecycle.update} (guarded by lifecycle state).
      *
-     * @param {TTarget | null} targetElement - The new DOM element to associate with this model.
+     * @param {TTarget} targetElement - The new DOM element to associate with this model.
      * @returns {void}
      */
-    public updateTarget(targetElement: TTarget | null): void {
+    public updateTarget(targetElement?: TTarget): void {
         this.targetElement = targetElement;
         this.update();
     }

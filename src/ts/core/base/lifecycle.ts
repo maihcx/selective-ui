@@ -1,4 +1,8 @@
-import { LifecycleHookContext, LifecycleHooks, LifecycleState } from "src/ts/types/core/base/lifecycle.type";
+import {
+    LifecycleHookContext,
+    LifecycleHooks,
+    LifecycleState,
+} from "src/ts/types/core/base/lifecycle.type";
 
 type LifecycleHookName = keyof LifecycleHooks;
 
@@ -59,7 +63,10 @@ export class Lifecycle {
      * This map is initialized with keys for all supported hooks in the constructor.
      * Callbacks are cleared on {@link destroy}.
      */
-    private hooks: Map<LifecycleHookName, Set<(ctx: LifecycleHookContext) => void>> = new Map();
+    private hooks: Map<
+        LifecycleHookName,
+        Set<(ctx: LifecycleHookContext) => void>
+    > = new Map();
 
     /**
      * Constructs the lifecycle manager and pre-registers hook containers.
@@ -98,7 +105,10 @@ export class Lifecycle {
      * @param {(ctx: LifecycleHookContext) => void} fn - Callback to remove.
      * @returns {this} The current instance (chainable).
      */
-    off(hook: LifecycleHookName, fn: (ctx: LifecycleHookContext) => void): this {
+    off(
+        hook: LifecycleHookName,
+        fn: (ctx: LifecycleHookContext) => void,
+    ): this {
         this.hooks.get(hook)!.delete(fn);
         return this;
     }

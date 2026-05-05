@@ -57,7 +57,7 @@ if (typeof globalThis.GLOBAL_SEUI == "undefined") {
         effector: Effector.bind(Effector),
         rebind: SECLASS.rebind.bind(SECLASS),
         registerPlugin: SECLASS.registerPlugin.bind(SECLASS),
-        unregisterPlugin: SECLASS.unregisterPlugin.bind(SECLASS)
+        unregisterPlugin: SECLASS.unregisterPlugin.bind(SECLASS),
     } as SelectiveUIGlobal;
 
     let domInitialized = false;
@@ -68,9 +68,7 @@ if (typeof globalThis.GLOBAL_SEUI == "undefined") {
         document.addEventListener("mousedown", () => {
             const sels = Libs.getBindedCommand();
             if (sels.length > 0) {
-                const actionApi = SECLASS.find(
-                    sels.join(", ")
-                );
+                const actionApi = SECLASS.find(sels.join(", "));
                 if (!actionApi.isEmpty) actionApi.close();
             }
         });
@@ -86,11 +84,10 @@ if (typeof globalThis.GLOBAL_SEUI == "undefined") {
         }
     }
     console.log(`[${__LIB_NAME__}] v${__LIB_VERSION__} loaded successfully`);
-}
-else {
+} else {
     console.warn(
         `[${globalThis.GLOBAL_SEUI.name}] Already loaded (v${globalThis.GLOBAL_SEUI.version}). ` +
-        `Using existing instance. Please remove duplicate <script> tags.`
+            `Using existing instance. Please remove duplicate <script> tags.`,
     );
 }
 
@@ -149,7 +146,7 @@ export function find(query: string): SelectiveActionApi {
  * // Destroy all instances
  * destroy();
  */
-export function destroy(query: string | null = null): void {
+export function destroy(query?: string): void {
     globalThis.GLOBAL_SEUI.destroy(query);
 }
 

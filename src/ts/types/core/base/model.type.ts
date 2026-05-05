@@ -11,13 +11,13 @@ export interface ModelContract<TTarget, TView> extends Lifecycle {
      * The target element that this model is bound to.
      * Can be null if not yet initialized.
      */
-    targetElement: TTarget | null;
+    targetElement?: TTarget;
 
     /**
      * The view associated with the target element.
      * Can be null if the view is not yet created.
      */
-    view: TView | null;
+    view?: TView;
 
     /**
      * The value represented by this model.

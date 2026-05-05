@@ -6,7 +6,9 @@ import type { ModelContract } from "./model.type";
  *
  * @template TItem - A model type that implements ModelContract.
  */
-export interface AdapterContract<TItem extends ModelContract<any, any>> extends Lifecycle {
+export interface AdapterContract<
+    TItem extends ModelContract<any, any>,
+> extends Lifecycle {
     /**
      * List of items managed by the adapter.
      * These items are rendered or updated in the associated container.
@@ -64,7 +66,7 @@ export interface AdapterContract<TItem extends ModelContract<any, any>> extends 
      * @param item - The item for which the viewer is being created.
      * @returns An adapter-specific viewer instance.
      */
-    viewHolder(parent: HTMLElement, item: TItem): unknown;
+    viewHolder?(parent: HTMLElement, item: TItem): unknown;
 
     /**
      * Bind an item to its viewer at a given position.
@@ -83,7 +85,10 @@ export interface AdapterContract<TItem extends ModelContract<any, any>> extends 
      * @param propName - The name of the property being changed.
      * @param callback - The handler invoked with change context/args.
      */
-    onPropChanging(propName: string, callback: (...args: unknown[]) => void): void;
+    onPropChanging(
+        propName: string,
+        callback: (...args: unknown[]) => void,
+    ): void;
 
     /**
      * Register a post-change callback for a given property.
@@ -92,7 +97,10 @@ export interface AdapterContract<TItem extends ModelContract<any, any>> extends 
      * @param propName - The name of the property that changed.
      * @param callback - The handler invoked with change context/args.
      */
-    onPropChanged(propName: string, callback: (...args: unknown[]) => void): void;
+    onPropChanged(
+        propName: string,
+        callback: (...args: unknown[]) => void,
+    ): void;
 
     /**
      * Trigger the post-change pipeline for a property.

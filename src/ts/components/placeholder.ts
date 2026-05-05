@@ -38,7 +38,7 @@ export class PlaceHolder extends Lifecycle {
      * Created during {@link initialize}. Removed from the DOM during {@link destroy}.
      * `null` before initialization and after destruction.
      */
-    public node: HTMLElement | null = null;
+    public node?: HTMLElement;
 
     /**
      * Configuration snapshot used to render and optionally persist placeholder content.
@@ -51,7 +51,7 @@ export class PlaceHolder extends Lifecycle {
      *
      * @internal
      */
-    private options: SelectiveOptions | null = null;
+    private options?: SelectiveOptions;
 
     /**
      * Creates a new {@link PlaceHolder}.
@@ -62,7 +62,7 @@ export class PlaceHolder extends Lifecycle {
      *
      * @param options - Select UI options containing placeholder content and rendering flags.
      */
-    constructor(options: SelectiveOptions | null) {
+    constructor(options?: SelectiveOptions) {
         super();
         if (options) this.initialize(options);
     }
@@ -144,7 +144,7 @@ export class PlaceHolder extends Lifecycle {
         if (this.is(LifecycleState.DESTROYED)) {
             return;
         }
-        
+
         this.node?.remove();
         this.node = null;
         this.options = null;

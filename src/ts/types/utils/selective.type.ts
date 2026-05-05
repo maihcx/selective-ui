@@ -7,9 +7,12 @@ import type { SelectivePlugin } from "../plugins/plugin.type";
  * Extends DefaultConfig with additional internal identifiers.
  */
 export type SelectiveOptions = DefaultConfig & {
-    SEID?: string;        // Unique Selective Element ID
-    SEID_LIST?: string;   // ID for the list container
-    SEID_HOLDER?: string; // ID for the holder element
+    /** Unique Selective Element ID */
+    SEID?: string;
+    /** ID for the list container */
+    SEID_LIST?: string;
+    /** ID for the holder element */
+    SEID_HOLDER?: string;
 };
 
 /**

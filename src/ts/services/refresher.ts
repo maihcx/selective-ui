@@ -37,7 +37,10 @@ export class Refresher {
      * @param select - Native `<select>` element used as the sizing reference and option source.
      * @param view - View panel element whose inline styles will be updated.
      */
-    public static resizeBox(select: HTMLSelectElement, view: HTMLElement): void {
+    public static resizeBox(
+        select: HTMLSelectElement,
+        view: HTMLElement,
+    ): void {
         const bindedMap = Libs.getBinderMap<BinderMap>(select);
         if (!bindedMap?.options) return;
 
@@ -55,7 +58,8 @@ export class Refresher {
         const cstyle = getComputedStyle(select);
 
         if (width === "0px" && cstyle.width !== "auto") width = cstyle.width;
-        if (height === "0px" && cstyle.height !== "auto") height = cstyle.height;
+        if (height === "0px" && cstyle.height !== "auto")
+            height = cstyle.height;
 
         if (cfgWidth > 0) width = options.width;
         if (cfgHeight > 0) height = options.height;

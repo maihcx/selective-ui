@@ -5,7 +5,7 @@ declare global {
     function waitFor(ms?: number): Promise<void>;
     function waitForCondition(
         condition: () => boolean,
-        timeout?: number
+        timeout?: number,
     ): Promise<void>;
 }
 
@@ -16,12 +16,12 @@ interface CreateSelectOptions {
     disabled?: boolean;
     dataset?: Record<string, string>;
 
-    options?: Array<IOptions>
+    options?: Array<IOptions>;
 
     groups?: Array<{
-        label?: string,
-        options?: Array<IOptions>
-    }>
+        label?: string;
+        options?: Array<IOptions>;
+    }>;
 }
 
 interface IOptions {

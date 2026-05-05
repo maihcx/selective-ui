@@ -184,14 +184,14 @@ describe("OptionView", () => {
             expect(root.getAttribute("tabindex")).toBe("-1");
 
             // ids from randomString
-            expect(root.id).toBe("seui-ABC1234-option");
+            expect(root.id).toBe("seui-default-ABC1234-option");
 
             // input + label linking
             const input = view.view!.tags.OptionInput;
             const label = view.view!.tags.OptionLabel;
 
-            expect(input.id).toBe("option_ABC1234");
-            expect(label.htmlFor).toBe("option_ABC1234");
+            expect(input.id).toBe("option_default_ABC1234");
+            expect(label.htmlFor).toBe("option_default_ABC1234");
         });
 
         test("mount renders checkbox and 'multiple' class when isMultiple=true", () => {

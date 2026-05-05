@@ -62,7 +62,7 @@ export class SelectObserver {
      *
      * @private
      */
-    private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    private debounceTimer?: NodeJS.Timeout;
 
     /**
      * Debounce delay in milliseconds.

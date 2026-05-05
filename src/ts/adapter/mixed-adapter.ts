@@ -3,9 +3,16 @@ import { GroupModel } from "../models/group-model";
 import { OptionModel } from "../models/option-model";
 import { GroupView } from "../views/group-view";
 import { OptionView } from "../views/option-view";
-import { MixedItem, VisibilityStats } from "../types/core/base/mixed-adapter.type";
+import {
+    MixedItem,
+    VisibilityStats,
+} from "../types/core/base/mixed-adapter.type";
 import { IEventCallback } from "../types/utils/ievents.type";
-import { ImagePosition, LabelHalign, LabelValign } from "../types/views/view.option.type";
+import {
+    ImagePosition,
+    LabelHalign,
+    LabelValign,
+} from "../types/views/view.option.type";
 import { Libs } from "../utils/libs";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
 import { Lifecycle } from "../core/base/lifecycle";
@@ -72,25 +79,27 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      *
      * @internal
      */
-    public options: SelectiveOptions | null = null;
+    public options?: SelectiveOptions;
 
     /**
      * Subscribers for aggregated visibility statistics.
      * Fired via a debounced scheduler to avoid repeated recomputation during batch updates.
      */
-    private visibilityChangedCallbacks: Array<(stats: VisibilityStats) => void> = [];
+    private visibilityChangedCallbacks: Array<
+        (stats: VisibilityStats) => void
+    > = [];
 
     /**
      * Flat index of the currently highlighted option.
      * `-1` indicates "no highlight".
      */
-    private currentHighlightIndex = -1;
+    private currentHighlightIndex: number = -1;
 
     /**
      * Cached pointer to the selected option in single-select mode.
      * Used to efficiently clear previous selection when selecting a new option.
      */
-    private selectedItemSingle: OptionModel | null = null;
+    private selectedItemSingle?: OptionModel;
 
     /** Top-level group models (if any). */
     public groups: GroupModel[] = [];
@@ -127,11 +136,13 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @returns {void}
      * @override
      */
-    public override init() {
+    public override init(): void {
         Libs.callbackScheduler.on(
             `sche_vis_${this.adapterKey}`,
             () => {
-                const visibleCount = this.flatOptions.filter((item) => item.visible).length;
+                const visibleCount = this.flatOptions.filter(
+                    (item) => item.visible,
+                ).length;
                 const totalCount = this.flatOptions.length;
 
                 this.visibilityChangedCallbacks.forEach((callback) => {
@@ -146,7 +157,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
                 // Proxy hook; allows other listeners to chain after visibility aggregation.
                 Libs.callbackScheduler.run(`sche_vis_proxy_${this.adapterKey}`);
             },
-            { debounce: 10 }
+            { debounce: 10 },
         );
 
         super.init();
@@ -187,8 +198,12 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @returns {GroupView | OptionView} A view instance matching the item type.
      * @override
      */
-    override viewHolder(parent: HTMLElement, item: MixedItem): GroupView | OptionView {
-        if (item instanceof GroupModel) return new GroupView(parent, this.options);
+    override viewHolder(
+        parent: HTMLElement,
+        item: MixedItem,
+    ): GroupView | OptionView {
+        if (item instanceof GroupModel)
+            return new GroupView(parent, this.options);
         return new OptionView(parent, this.options);
     }
 
@@ -200,12 +215,16 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * - Performs one-time listener binding guarded by `item.isInit`.
      *
      * @param {MixedItem} item - {@link GroupModel} or {@link OptionModel}.
-     * @param {GroupView | OptionView | null} viewer - The view instance that will render the model.
+     * @param {GroupView | OptionView} viewer - The view instance that will render the model.
      * @param {number} position - Position in the top-level mixed list.
      * @returns {void}
      * @override
      */
-    override onViewHolder(item: MixedItem, viewer: GroupView | OptionView | null, position: number): void {
+    override onViewHolder(
+        item: MixedItem,
+        viewer?: GroupView | OptionView,
+        position?: number,
+    ): void {
         item.position = position;
 
         if (item instanceof GroupModel) {
@@ -237,7 +256,11 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {number} position - Group index in the top-level list.
      * @returns {void}
      */
-    private handleGroupView(groupModel: GroupModel, groupView: GroupView, position: number): void {
+    private handleGroupView(
+        groupModel: GroupModel,
+        groupView: GroupView,
+        position: number,
+    ): void {
         super.onViewHolder(groupModel, groupView, position);
         groupModel.view = groupView;
 
@@ -251,16 +274,23 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
                 groupModel.toggleCollapse();
             });
 
-            groupModel.onCollapsedChanged((evtToken: IEventCallback, model: GroupModel, collapsed: boolean) => {
-                void evtToken;
+            groupModel.onCollapsedChanged(
+                (
+                    evtToken: IEventCallback,
+                    model: GroupModel,
+                    collapsed: boolean,
+                ) => {
+                    void evtToken;
 
-                model.items.forEach((optItem) => {
-                    const optView = optItem.view?.getView?.();
-                    if (optView) optView.style.display = collapsed ? "none" : "";
-                });
+                    model.items.forEach((optItem) => {
+                        const optView = optItem.view?.getView?.();
+                        if (optView)
+                            optView.style.display = collapsed ? "none" : "";
+                    });
 
-                this.onCollapsedChange(model, collapsed);
-            });
+                    this.onCollapsedChange(model, collapsed);
+                },
+            );
         }
 
         const itemsContainer = groupView.getItemsContainer();
@@ -307,7 +337,11 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {number} position - Option index within its group list (or rendering context).
      * @returns {void}
      */
-    private handleOptionView(optionModel: OptionModel, optionViewer: OptionView, position: number): void {
+    private handleOptionView(
+        optionModel: OptionModel,
+        optionViewer: OptionView,
+        position: number,
+    ): void {
         optionViewer.isMultiple = this.isMultiple;
         optionViewer.hasImage = optionModel.hasImage;
 
@@ -329,8 +363,10 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
         if (optionModel.hasImage) {
             const imageTag = optionViewer.view.tags.OptionImage;
             if (imageTag) {
-                if (imageTag.src !== optionModel.imageSrc) imageTag.src = optionModel.imageSrc;
-                if (imageTag.alt !== optionModel.text) imageTag.alt = optionModel.text;
+                if (imageTag.src !== optionModel.imageSrc)
+                    imageTag.src = optionModel.imageSrc;
+                if (imageTag.alt !== optionModel.text)
+                    imageTag.alt = optionModel.text;
             }
         }
 
@@ -338,45 +374,73 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
         optionViewer.view.tags.LabelContent.innerHTML = optionModel.text;
 
         if (!optionModel.isInit) {
-            optionViewer.view.tags.OptionView.addEventListener("click", async (ev: MouseEvent) => {
-                ev.stopPropagation();
-                ev.preventDefault();
+            optionViewer.view.tags.OptionView.addEventListener(
+                "click",
+                async (ev: MouseEvent) => {
+                    ev.stopPropagation();
+                    ev.preventDefault();
 
-                if (this.isSkipEvent) return;
+                    if (this.isSkipEvent) return;
 
-                if (this.isMultiple) {
-                    await this.changingProp("select");
-                    optionModel.selected = !optionModel.selected;
-                } else if (optionModel.selected !== true) {
-                    await this.changingProp("select");
-                    if (this.selectedItemSingle) this.selectedItemSingle.selected = false;
-                    optionModel.selected = true;
-                }
-            });
+                    if (this.isMultiple) {
+                        await this.changingProp("select");
+                        optionModel.selected = !optionModel.selected;
+                    } else if (optionModel.selected !== true) {
+                        await this.changingProp("select");
+                        if (this.selectedItemSingle)
+                            this.selectedItemSingle.selected = false;
+                        optionModel.selected = true;
+                    }
+                },
+            );
 
             optionViewer.view.tags.OptionView.title = optionModel.textContent;
 
-            optionViewer.view.tags.OptionView.addEventListener("mouseenter", () => {
-                if (this.isSkipEvent) return;
-                this.setHighlight(this.flatOptions.indexOf(optionModel), false);
-            });
+            optionViewer.view.tags.OptionView.addEventListener(
+                "mouseenter",
+                () => {
+                    if (this.isSkipEvent) return;
+                    this.setHighlight(
+                        this.flatOptions.indexOf(optionModel),
+                        false,
+                    );
+                },
+            );
 
             // External selection notification (user-facing semantics).
-            optionModel.onSelected((_evtToken: IEventCallback, _el: OptionModel, _selected: boolean) => {
-                this.changeProp("selected");
-            });
+            optionModel.onSelected(
+                (
+                    _evtToken: IEventCallback,
+                    _el: OptionModel,
+                    _selected: boolean,
+                ) => {
+                    this.changeProp("selected");
+                },
+            );
 
             // Internal selection notification (non-trigger semantics).
-            optionModel.onInternalSelected((_evtToken: IEventCallback, _el: OptionModel, selected: boolean) => {
-                if (selected) this.selectedItemSingle = optionModel;
-                this.changeProp("selected_internal");
-            });
+            optionModel.onInternalSelected(
+                (
+                    _evtToken: IEventCallback,
+                    _el: OptionModel,
+                    selected: boolean,
+                ) => {
+                    if (selected) this.selectedItemSingle = optionModel;
+                    this.changeProp("selected_internal");
+                },
+            );
 
             // Visibility changes affect group visibility and aggregated visibility stats.
-            optionModel.onVisibilityChanged((_evtToken: IEventCallback, model: OptionModel, _visible: boolean) => {
-                model.group?.updateVisibility();
-                this.notifyVisibilityChanged();
-            });
+            optionModel.onVisibilityChanged(
+                (
+                    _evtToken: IEventCallback,
+                    model: OptionModel,
+                    _visible: boolean,
+                ) => {
+                    model.group?.updateVisibility();
+                    this.notifyVisibilityChanged();
+                },
+            );
         }
 
         // Ensure single-select cache and suppress re-trigger when model is already selected.
@@ -453,7 +517,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
 
         Libs.callbackScheduler.clear(`sche_vis_${this.adapterKey}`);
 
-        this.groups.forEach(group => {
+        this.groups.forEach((group) => {
             group.destroy();
         });
 
@@ -506,7 +570,9 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {(stats: VisibilityStats) => void} callback - Invoked with `{ visibleCount, totalCount, hasVisible, isEmpty }`.
      * @returns {void}
      */
-    public onVisibilityChanged(callback: (stats: VisibilityStats) => void): void {
+    public onVisibilityChanged(
+        callback: (stats: VisibilityStats) => void,
+    ): void {
         this.visibilityChangedCallbacks.push(callback);
     }
 
@@ -525,7 +591,9 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @returns {VisibilityStats} Aggregated stats: `{ visibleCount, totalCount, hasVisible, isEmpty }`.
      */
     public getVisibilityStats(): VisibilityStats {
-        const visibleCount = this.flatOptions.filter((item) => item.visible).length;
+        const visibleCount = this.flatOptions.filter(
+            (item) => item.visible,
+        ).length;
         const totalCount = this.flatOptions.length;
 
         return {
@@ -560,7 +628,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
         if (visibleOptions.length === 0) return;
 
         let currentVisibleIndex = visibleOptions.findIndex(
-            (opt) => opt === this.flatOptions[this.currentHighlightIndex]
+            (opt) => opt === this.flatOptions[this.currentHighlightIndex],
         );
         if (currentVisibleIndex === -1) currentVisibleIndex = -1;
 
@@ -589,7 +657,10 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @returns {void}
      */
     public selectHighlighted(): void {
-        if (this.currentHighlightIndex > -1 && this.flatOptions[this.currentHighlightIndex]) {
+        if (
+            this.currentHighlightIndex > -1 &&
+            this.flatOptions[this.currentHighlightIndex]
+        ) {
             const item = this.flatOptions[this.currentHighlightIndex];
             if (item.visible) {
                 const viewEl = item.view?.getView?.();
@@ -614,7 +685,10 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {boolean} [isScrollToView=true] - Whether to scroll the highlighted item into view.
      * @returns {void}
      */
-    public setHighlight(target: number | OptionModel, isScrollToView: boolean = true): void {
+    public setHighlight(
+        target: number | OptionModel,
+        isScrollToView: boolean = true,
+    ): void {
         let index = 0;
 
         if (typeof target === "number") {
@@ -626,7 +700,10 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
             index = 0;
         }
 
-        if (this.currentHighlightIndex > -1 && this.flatOptions[this.currentHighlightIndex]) {
+        if (
+            this.currentHighlightIndex > -1 &&
+            this.flatOptions[this.currentHighlightIndex]
+        ) {
             this.flatOptions[this.currentHighlightIndex].highlighted = false;
         }
 
@@ -640,10 +717,12 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
             if (isScrollToView) {
                 const el = item.view?.getView?.();
                 if (el) {
-                    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                    el.scrollIntoView({ block: "center", behavior: "smooth" });
                 } else {
                     // If virtualized, ensure the item is rendered before trying to scroll.
-                    this.recyclerView?.ensureRendered?.(i, { scrollIntoView: true });
+                    this.recyclerView?.ensureRendered?.(i, {
+                        scrollIntoView: true,
+                    });
                 }
             }
 
@@ -664,7 +743,7 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {string} [id] - Optional DOM id of the highlighted view element (when available).
      * @returns {void}
      */
-    public onHighlightChange(index: number, id?: string): void { }
+    public onHighlightChange(index: number, id?: string): void {}
 
     /**
      * Hook called whenever a group's collapsed state changes.
@@ -678,5 +757,5 @@ export class MixedAdapter extends Adapter<MixedItem, GroupView | OptionView> {
      * @param {boolean} collapsed - New collapsed state.
      * @returns {void}
      */
-    public onCollapsedChange(model: GroupModel, collapsed: boolean): void { }
+    public onCollapsedChange(model: GroupModel, collapsed: boolean): void {}
 }

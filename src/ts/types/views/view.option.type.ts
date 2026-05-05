@@ -5,11 +5,16 @@ import { MountViewResult } from "../utils/libs.type";
  * These tags correspond to key elements of the option UI.
  */
 export type OptionViewTags = {
-    OptionView: HTMLDivElement;      // Root container for the option view
-    OptionInput: HTMLInputElement;   // Input element (checkbox or radio)
-    OptionLabel: HTMLLabelElement;   // Label element for the option
-    LabelContent: HTMLDivElement;    // Container for label text content
-    OptionImage: HTMLImageElement;   // Image element for options with images
+    /** Root container for the option view */
+    OptionView: HTMLDivElement;
+    /** Input element (checkbox or radio) */
+    OptionInput: HTMLInputElement;
+    /** Label element for the option */
+    OptionLabel: HTMLLabelElement;
+    /** Container for label text content */
+    LabelContent: HTMLDivElement;
+    /** Image element for options with images */
+    OptionImage: HTMLImageElement;
 };
 
 /**
@@ -17,7 +22,8 @@ export type OptionViewTags = {
  * Extends MountViewResult with a guaranteed root element (`view`).
  */
 export type OptionViewResult = MountViewResult<OptionViewTags> & {
-    view: Element; // The root element of the mounted option view
+    /** The root element of the mounted option view */
+    view: Element;
 };
 
 /**
@@ -39,20 +45,36 @@ export type LabelHalign = "left" | "center" | "right";
  * Configuration options for rendering an option.
  */
 export type OptionConfig = {
-    isMultiple: boolean;           // Indicates if multiple selection is allowed
-    hasImage: boolean;             // Indicates if the option includes an image
-    imagePosition: ImagePosition;  // Position of the image relative to the label
-    imageWidth: string;            // Width of the image
-    imageHeight: string;           // Height of the image
-    imageBorderRadius: string;     // Border radius for the image
-    labelValign: LabelValign;      // Vertical alignment of the label
-    labelHalign: LabelHalign;      // Horizontal alignment of the label
+    /** Indicates if multiple selection is allowed */
+    isMultiple: boolean;
+    /** Indicates if the option includes an image */
+    hasImage: boolean;
+    /** Position of the image relative to the label */
+    imagePosition: ImagePosition;
+    /** Width of the image */
+    imageWidth: string;
+    /** Height of the image */
+    imageHeight: string;
+    /** Border radius for the image */
+    imageBorderRadius: string;
+    /** Vertical alignment of the label */
+    labelValign: LabelValign;
+    /** Horizontal alignment of the label */
+    labelHalign: LabelHalign;
 };
 
 /**
  * Partial configuration patch for updating specific option properties.
  * Includes only image and label alignment-related properties.
  */
-export type OptionConfigPatch = Partial<Pick<OptionConfig,
-    "imageWidth" | "imageHeight" | "imageBorderRadius" | "imagePosition" | "labelValign" | "labelHalign"
->>;
+export type OptionConfigPatch = Partial<
+    Pick<
+        OptionConfig,
+        | "imageWidth"
+        | "imageHeight"
+        | "imageBorderRadius"
+        | "imagePosition"
+        | "labelValign"
+        | "labelHalign"
+    >
+>;

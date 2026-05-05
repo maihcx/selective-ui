@@ -55,24 +55,35 @@ import { LifecycleState } from "../types/core/base/lifecycle.type";
  * @see {@link GroupModel}
  * @see {@link OptionView}
  */
-export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, OptionView, SelectiveOptions> {
+export class OptionModel extends Model<
+    HTMLOptionElement,
+    OptionViewTags,
+    OptionView,
+    SelectiveOptions
+> {
     /**
      * External selection subscribers (emitted by the {@link selected} setter).
      * Use this for user-facing selection flows.
      */
-    private privOnSelected: Array<(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void> = [];
+    private privOnSelected: Array<
+        (evtToken: IEventCallback, el: OptionModel, selected: boolean) => void
+    > = [];
 
     /**
      * Internal selection subscribers (emitted by the {@link selectedNonTrigger} setter).
      * Use this for silent synchronization flows.
      */
-    private privOnInternalSelected: Array<(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void> = [];
+    private privOnInternalSelected: Array<
+        (evtToken: IEventCallback, el: OptionModel, selected: boolean) => void
+    > = [];
 
     /**
      * Visibility subscribers (emitted by the {@link visible} setter).
      * Commonly used to recompute group visibility and update aggregated visibility stats.
      */
-    private privOnVisibilityChanged: Array<(evtToken: IEventCallback, model: OptionModel, visible: boolean) => void> = [];
+    private privOnVisibilityChanged: Array<
+        (evtToken: IEventCallback, model: OptionModel, visible: boolean) => void
+    > = [];
 
     /**
      * Visibility flag used for filtering/search.
@@ -87,19 +98,19 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      * Parent group model (if this option belongs to a group).
      * Assigned by grouping logic (e.g., GroupModel/MixedAdapter).
      */
-    public group: GroupModel | null = null;
+    public group?: GroupModel;
 
     /**
      * Creates an option model.
      *
      * @param {SelectiveOptions} options - Shared configuration for models/views.
-     * @param {HTMLOptionElement | null} [targetElement=null] - Backing `<option>` element.
-     * @param {OptionView | null} [view=null] - Optional view used to render this model.
+     * @param {HTMLOptionElement} [targetElement=null] - Backing `<option>` element.
+     * @param {OptionView} [view=null] - Optional view used to render this model.
      */
     public constructor(
         options: SelectiveOptions,
-        targetElement: HTMLOptionElement | null = null,
-        view: OptionView | null = null
+        targetElement?: HTMLOptionElement,
+        view?: OptionView,
     ) {
         super(options, targetElement, view);
     }
@@ -168,7 +179,10 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      */
     public set selected(value: boolean) {
         this.selectedNonTrigger = value;
-        iEvents.callEvent<[OptionModel, boolean]>([this, value], ...this.privOnSelected);
+        iEvents.callEvent<[OptionModel, boolean]>(
+            [this, value],
+            ...this.privOnSelected,
+        );
     }
 
     /**
@@ -199,7 +213,10 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
         const viewEl = this.view?.getView?.();
         if (viewEl) viewEl.classList.toggle("hide", !value);
 
-        iEvents.callEvent<[OptionModel, boolean]>([this, value], ...this.privOnVisibilityChanged);
+        iEvents.callEvent<[OptionModel, boolean]>(
+            [this, value],
+            ...this.privOnVisibilityChanged,
+        );
     }
 
     /**
@@ -243,7 +260,10 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
             this.targetElement.selected = value;
         }
 
-        iEvents.callEvent<[OptionModel, boolean]>([this, value], ...this.privOnInternalSelected);
+        iEvents.callEvent<[OptionModel, boolean]>(
+            [this, value],
+            ...this.privOnInternalSelected,
+        );
     }
 
     /**
@@ -273,7 +293,9 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      * @returns {string}
      */
     public get textContent(): string {
-        return this.options.allowHtml ? Libs.stripHtml(this.text).trim() : this.text.trim();
+        return this.options.allowHtml
+            ? Libs.stripHtml(this.text).trim()
+            : this.text.trim();
     }
 
     /**
@@ -323,7 +345,13 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      * @param {(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void} callback - Listener callback.
      * @returns {void}
      */
-    public onSelected(callback: (evtToken: IEventCallback, el: OptionModel, selected: boolean) => void): void {
+    public onSelected(
+        callback: (
+            evtToken: IEventCallback,
+            el: OptionModel,
+            selected: boolean,
+        ) => void,
+    ): void {
         this.privOnSelected.push(callback);
     }
 
@@ -333,7 +361,13 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      * @param {(evtToken: IEventCallback, el: OptionModel, selected: boolean) => void} callback - Listener callback.
      * @returns {void}
      */
-    public onInternalSelected(callback: (evtToken: IEventCallback, el: OptionModel, selected: boolean) => void): void {
+    public onInternalSelected(
+        callback: (
+            evtToken: IEventCallback,
+            el: OptionModel,
+            selected: boolean,
+        ) => void,
+    ): void {
         this.privOnInternalSelected.push(callback);
     }
 
@@ -343,7 +377,13 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
      * @param {(evtToken: IEventCallback, model: OptionModel, visible: boolean) => void} callback - Listener callback.
      * @returns {void}
      */
-    public onVisibilityChanged(callback: (evtToken: IEventCallback, model: OptionModel, visible: boolean) => void): void {
+    public onVisibilityChanged(
+        callback: (
+            evtToken: IEventCallback,
+            model: OptionModel,
+            visible: boolean,
+        ) => void,
+    ): void {
         this.privOnVisibilityChanged.push(callback);
     }
 
@@ -389,7 +429,8 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
             }
         }
 
-        if (this.targetElement) this.selectedNonTrigger = this.targetElement.selected;
+        if (this.targetElement)
+            this.selectedNonTrigger = this.targetElement.selected;
 
         super.update();
     }
@@ -416,7 +457,7 @@ export class OptionModel extends Model<HTMLOptionElement, OptionViewTags, Option
         this.privOnVisibilityChanged = [];
         this.group = null;
         this.textToFind = null;
-        
+
         super.destroy();
     }
 }

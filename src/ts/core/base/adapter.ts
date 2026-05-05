@@ -62,9 +62,12 @@ import { LifecycleState } from "src/ts/types/core/base/lifecycle.type";
  * @see {@link ModelContract}
  */
 export class Adapter<
-    TItem extends ModelContract<any, any> & { view: TViewer | null; isInit: boolean },
-    TViewer extends ViewContract<any>
-> extends Lifecycle implements AdapterContract<TItem> {
+    TItem extends ModelContract<any, any> & { view?: TViewer; isInit: boolean },
+    TViewer extends ViewContract<any>,
+>
+    extends Lifecycle
+    implements AdapterContract<TItem>
+{
     /**
      * Current list of items managed by the adapter.
      *
@@ -118,7 +121,11 @@ export class Adapter<
      * @param {number} position - Index of the item within the adapter item list.
      * @returns {void}
      */
-    public onViewHolder(item: TItem, viewer: TViewer | null, position: number): void {
+    public onViewHolder(
+        item: TItem,
+        viewer?: TViewer,
+        position?: number,
+    ): void {
         void position;
 
         const v = viewer;
@@ -142,8 +149,15 @@ export class Adapter<
      * @returns {void}
      * @see {@link changingProp}
      */
-    public onPropChanging(propName: string, callback: (...args: unknown[]) => void): void {
-        Libs.callbackScheduler.on(`${propName}ing_${this.adapterKey}`, callback, { debounce: 0 });
+    public onPropChanging(
+        propName: string,
+        callback: (...args: unknown[]) => void,
+    ): void {
+        Libs.callbackScheduler.on(
+            `${propName}ing_${this.adapterKey}`,
+            callback,
+            { debounce: 0 },
+        );
     }
 
     /**
@@ -159,8 +173,13 @@ export class Adapter<
      * @returns {void}
      * @see {@link changeProp}
      */
-    public onPropChanged(propName: string, callback: (...args: unknown[]) => void): void {
-        Libs.callbackScheduler.on(`${propName}_${this.adapterKey}`, callback, { debounce: 0 });
+    public onPropChanged(
+        propName: string,
+        callback: (...args: unknown[]) => void,
+    ): void {
+        Libs.callbackScheduler.on(`${propName}_${this.adapterKey}`, callback, {
+            debounce: 0,
+        });
     }
 
     /**
@@ -174,7 +193,10 @@ export class Adapter<
      * @returns {Promise<void>} Resolves when scheduled callbacks complete.
      */
     public changeProp(propName: string, ...params: unknown[]): Promise<void> {
-        return Libs.callbackScheduler.run(`${propName}_${this.adapterKey}`, ...params);
+        return Libs.callbackScheduler.run(
+            `${propName}_${this.adapterKey}`,
+            ...params,
+        );
     }
 
     /**
@@ -188,7 +210,10 @@ export class Adapter<
      * @returns {Promise<void>} Resolves when scheduled callbacks complete.
      */
     public changingProp(propName: string, ...params: unknown[]): Promise<void> {
-        return Libs.callbackScheduler.run(`${propName}ing_${this.adapterKey}`, ...params);
+        return Libs.callbackScheduler.run(
+            `${propName}ing_${this.adapterKey}`,
+            ...params,
+        );
     }
 
     /**
@@ -198,9 +223,9 @@ export class Adapter<
      *
      * @param {HTMLElement} parent - Container element that will host the viewer.
      * @param {TItem} item - The model for which the viewer is created.
-     * @returns {TViewer | null} The created viewer instance; `null` by default.
+     * @returns {TViewer} The created viewer instance; `null` by default.
      */
-    public viewHolder(parent: HTMLElement, item: TItem): TViewer | null {
+    public viewHolder?(parent: HTMLElement, item: TItem): TViewer {
         void parent;
         void item;
         return null;
@@ -317,7 +342,7 @@ export class Adapter<
         }
 
         this.recyclerView = null;
-        this.items.forEach(item => {
+        this.items.forEach((item) => {
             item?.destroy?.();
         });
         this.items = [];

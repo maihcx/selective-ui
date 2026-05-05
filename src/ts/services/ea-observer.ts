@@ -43,7 +43,7 @@ export class ElementAdditionObserver<T extends Element = Element> {
      *
      * @internal
      */
-    private observer: MutationObserver | null = null;
+    private observer?: MutationObserver;
 
     /**
      * Registered detection callbacks.
