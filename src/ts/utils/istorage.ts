@@ -61,10 +61,12 @@ export class iStorage {
     };
 
     /** Bound instance map (keyed by select element). */
-    public bindedMap: Map<HTMLSelectElement|HTMLElement, BinderMap> = new Map();
+    public bindedMap: Map<HTMLSelectElement | HTMLElement, BinderMap> =
+        new Map();
 
     /** Unbind cache map (keyed by select element). */
-    public unbindedMap: Map<HTMLSelectElement|HTMLElement, BinderMap> = new Map();
+    public unbindedMap: Map<HTMLSelectElement | HTMLElement, BinderMap> =
+        new Map();
 
     /** List of bound selectors/commands. */
     public bindedCommand: string[] = [];

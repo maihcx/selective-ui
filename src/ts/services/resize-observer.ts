@@ -63,7 +63,7 @@ export class ResizeObserverService {
      * @remarks
      * Set by {@link connect} and cleared by {@link disconnect}.
      */
-    public element: HTMLElement | null = null;
+    public element?: HTMLElement;
 
     /**
      * Underlying `ResizeObserver` instance.
@@ -71,7 +71,7 @@ export class ResizeObserverService {
      * @remarks
      * Allocated on {@link connect}. Disconnected and nulled on {@link disconnect}.
      */
-    private resizeObserver: ResizeObserver | null = null;
+    private resizeObserver?: ResizeObserver;
 
     /**
      * Underlying `MutationObserver` instance watching `style` and `class` attribute changes.
@@ -79,7 +79,7 @@ export class ResizeObserverService {
      * @remarks
      * Allocated on {@link connect}. Disconnected and nulled on {@link disconnect}.
      */
-    private mutationObserver: MutationObserver | null = null;
+    private mutationObserver?: MutationObserver;
 
     /**
      * Stable, `this`-bound handler shared by observers and global event listeners.
@@ -115,7 +115,7 @@ export class ResizeObserverService {
      * @param metrics - Snapshot of geometry and box edges (padding/border/margin).
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onChanged(metrics: ElementMetrics): void { }
+    public onChanged(metrics: ElementMetrics): void {}
 
     /**
      * Computes metrics for the current {@link element} and forwards them to {@link onChanged}.
@@ -150,7 +150,8 @@ export class ResizeObserverService {
 
         const rect = el.getBoundingClientRect();
         const style =
-            typeof window !== "undefined" && typeof window.getComputedStyle === "function"
+            typeof window !== "undefined" &&
+            typeof window.getComputedStyle === "function"
                 ? window.getComputedStyle(el)
                 : null;
 
@@ -233,8 +234,14 @@ export class ResizeObserverService {
         window.addEventListener("resize", this.boundUpdateChanged);
 
         if (window.visualViewport) {
-            window.visualViewport.addEventListener("resize", this.boundUpdateChanged);
-            window.visualViewport.addEventListener("scroll", this.boundUpdateChanged);
+            window.visualViewport.addEventListener(
+                "resize",
+                this.boundUpdateChanged,
+            );
+            window.visualViewport.addEventListener(
+                "scroll",
+                this.boundUpdateChanged,
+            );
         }
     }
 
@@ -254,14 +261,20 @@ export class ResizeObserverService {
         this.resizeObserver?.disconnect();
         this.mutationObserver?.disconnect();
 
-        this.onChanged = (_metrics: ElementMetrics) => { };
+        this.onChanged = (_metrics: ElementMetrics) => {};
 
         window.removeEventListener("scroll", this.boundUpdateChanged, true);
         window.removeEventListener("resize", this.boundUpdateChanged);
 
         if (window.visualViewport) {
-            window.visualViewport.removeEventListener("resize", this.boundUpdateChanged);
-            window.visualViewport.removeEventListener("scroll", this.boundUpdateChanged);
+            window.visualViewport.removeEventListener(
+                "resize",
+                this.boundUpdateChanged,
+            );
+            window.visualViewport.removeEventListener(
+                "scroll",
+                this.boundUpdateChanged,
+            );
         }
 
         this.resizeObserver = null;

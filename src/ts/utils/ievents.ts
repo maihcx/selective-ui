@@ -1,4 +1,8 @@
-import { IEventCallback, IEventHandler, IEventToken } from "../types/utils/ievents.type";
+import {
+    IEventCallback,
+    IEventHandler,
+    IEventToken,
+} from "../types/utils/ievents.type";
 
 /**
  * iEvents
@@ -58,7 +62,10 @@ export class iEvents {
      * - `token`: immutable view of the dispatch state.
      * - `callback`: controller passed into handlers to modify dispatch flow.
      */
-    public static buildEventToken(): { token: IEventToken; callback: IEventCallback } {
+    public static buildEventToken(): {
+        token: IEventToken;
+        callback: IEventCallback;
+    } {
         const privToken = { isContinue: true, isCancel: false };
 
         const token: IEventToken = {
@@ -104,7 +111,7 @@ export class iEvents {
      * @returns The {@link IEventToken} describing the final dispatch state.
      */
     public static callEvent<TParams extends unknown[]>(
-        params: TParams | null,
+        params?: TParams,
         ...handles: Array<IEventHandler<TParams> | unknown>
     ): IEventToken {
         const { token, callback } = this.buildEventToken();
@@ -139,7 +146,7 @@ export class iEvents {
     public static trigger(
         element: HTMLElement | Window | Document,
         eventType: string,
-        opts: EventInit = { bubbles: true, cancelable: true }
+        opts: EventInit = { bubbles: true, cancelable: true },
     ): Event {
         const evt = new Event(eventType, opts);
         element.dispatchEvent(evt);

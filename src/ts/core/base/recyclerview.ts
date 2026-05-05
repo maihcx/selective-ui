@@ -22,9 +22,11 @@ import { LifecycleState } from "src/ts/types/core/base/lifecycle.type";
  */
 export class RecyclerView<
     TItem extends ModelContract<any, any>,
-    TAdapter extends AdapterContract<TItem>
-> extends Lifecycle implements RecyclerViewContract<TAdapter> {
-
+    TAdapter extends AdapterContract<TItem>,
+>
+    extends Lifecycle
+    implements RecyclerViewContract<TAdapter>
+{
     /** Root container that hosts rendered item views. */
     public viewElement: HTMLDivElement | null = null;
 
@@ -113,7 +115,7 @@ export class RecyclerView<
         if (this.is(LifecycleState.DESTROYED)) {
             return;
         }
-        
+
         this.viewElement = null;
         this.adapter = null;
 

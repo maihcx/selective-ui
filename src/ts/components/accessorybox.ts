@@ -61,13 +61,13 @@ export class AccessoryBox extends Lifecycle {
      * Mounted structure returned by the node mounting helper.
      * Contains the root element (`view`) and any tag handles (if present).
      */
-    private nodeMounted: MountViewResult | null = null;
+    private nodeMounted?: MountViewResult;
 
     /**
      * Root DOM element of the accessory box (hidden by default).
      * Created during {@link init} and removed during {@link destroy}.
      */
-    private node: HTMLDivElement | null = null;
+    private node?: HTMLDivElement;
 
     /**
      * Component configuration (texts, behavior, placement).
@@ -77,25 +77,25 @@ export class AccessoryBox extends Lifecycle {
      * - `multiple` (multi-select mode)
      * - `textAccessoryDeselect` (a11y label prefix)
      */
-    private options: SelectiveOptions | null = null;
+    private options?: SelectiveOptions;
 
     /**
      * The Select UI mask element used as the positioning reference.
      * Provided by {@link setRoot}.
      */
-    private selectUIMask: HTMLDivElement | null = null;
+    private selectUIMask?: HTMLDivElement;
 
     /**
      * Parent container that hosts both the Select UI mask and the accessory box.
      * Computed from `selectUIMask.parentElement`.
      */
-    private parentMask: HTMLDivElement | null = null;
+    private parentMask?: HTMLDivElement;
 
     /**
      * ModelManager used to run selection pipelines and coordinate state updates.
      * This component does not own selection state; it delegates to the model layer.
      */
-    private modelManager: ModelManager<MixedItem, MixedAdapter> | null = null;
+    private modelManager?: ModelManager<MixedItem, MixedAdapter>;
 
     /**
      * Current selected option models rendered as chips.
@@ -106,9 +106,9 @@ export class AccessoryBox extends Lifecycle {
     /**
      * Creates an AccessoryBox and optionally initializes it with configuration.
      *
-     * @param {SelectiveOptions | null} [options=null] - Configuration controlling placement/visibility and texts.
+     * @param {SelectiveOptions} [options=null] - Configuration controlling placement/visibility and texts.
      */
-    public constructor(options: SelectiveOptions | null = null) {
+    public constructor(options?: SelectiveOptions) {
         super();
         if (options) this.initialize(options);
     }
@@ -211,7 +211,8 @@ export class AccessoryBox extends Lifecycle {
             !this.node ||
             !this.selectUIMask ||
             !this.options
-        ) return;
+        )
+            return;
 
         const ref =
             this.options.accessoryStyle === "top"
@@ -281,7 +282,9 @@ export class AccessoryBox extends Lifecycle {
                                         title: `${this.options!.textAccessoryDeselect}${modelData.textContent}`,
                                         onclick: async (evt: MouseEvent) => {
                                             evt.preventDefault();
-                                            await this.modelManager?.triggerChanging?.("select");
+                                            await this.modelManager?.triggerChanging?.(
+                                                "select",
+                                            );
                                             modelData.selected = false;
                                         },
                                     },

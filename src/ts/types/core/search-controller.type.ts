@@ -87,8 +87,24 @@ export type AjaxOptGroupItem = {
 export type NormalizedAjaxItem =
     | HTMLOptionElement
     | HTMLOptGroupElement
-    | { type: "option"; value: string; text: string; selected?: boolean; data?: Record<string, any> }
-    | { type: "optgroup"; label: string; data?: Record<string, any>; options: Array<{ value: string; text: string; selected?: boolean; data?: Record<string, any> }> };
+    | {
+          type: "option";
+          value: string;
+          text: string;
+          selected?: boolean;
+          data?: Record<string, any>;
+      }
+    | {
+          type: "optgroup";
+          label: string;
+          data?: Record<string, any>;
+          options: Array<{
+              value: string;
+              text: string;
+              selected?: boolean;
+              data?: Record<string, any>;
+          }>;
+      };
 
 /**
  * Represents the result of parsing an AJAX response.

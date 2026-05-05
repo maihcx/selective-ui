@@ -38,7 +38,7 @@ export class DatasetObserver {
      * Debounce timer handle for coalescing rapid attribute mutations.
      * Cleared/replaced whenever a new relevant mutation arrives within the debounce window.
      */
-    private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    private debounceTimer?: NodeJS.Timeout;
 
     /**
      * Creates a {@link DatasetObserver} for the given element.
@@ -62,7 +62,10 @@ export class DatasetObserver {
             let datasetChanged = false;
 
             for (const mutation of mutations) {
-                if (mutation.type === "attributes" && mutation.attributeName?.startsWith("data-")) {
+                if (
+                    mutation.type === "attributes" &&
+                    mutation.attributeName?.startsWith("data-")
+                ) {
                     datasetChanged = true;
                     break;
                 }

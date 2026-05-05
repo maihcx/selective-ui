@@ -2,7 +2,10 @@ import { Libs } from "./libs";
 import { iEvents } from "./ievents";
 import { SelectBox } from "../components/selectbox";
 import { ElementAdditionObserver } from "../services/ea-observer";
-import { SelectiveActionApi, SelectiveOptions } from "../types/utils/selective.type";
+import {
+    SelectiveActionApi,
+    SelectiveOptions,
+} from "../types/utils/selective.type";
 import { BinderMap, PropertiesType } from "../types/utils/istorage.type";
 import { Lifecycle } from "../core/base/lifecycle";
 import { LifecycleState } from "../types/core/base/lifecycle.type";
@@ -172,7 +175,9 @@ export class Selective extends Lifecycle {
 
         // Ensure hooks exist
         merged.on = merged.on ?? {};
-        merged.on.load = (merged.on.load ?? []) as Array<(...args: any[]) => void>;
+        merged.on.load = (merged.on.load ?? []) as Array<
+            (...args: any[]) => void
+        >;
 
         this.bindedQueries.set(query, merged);
 
@@ -531,7 +536,11 @@ export class Selective extends Lifecycle {
      * @returns {void}
      */
     private destroyElement(selectElement: HTMLSelectElement): void {
-        const bindMap = Libs.getBinderMap<BinderMap<{element: HTMLElement}, Record<string, any>, SelectBox> | null>(selectElement);
+        const bindMap = Libs.getBinderMap<BinderMap<
+            { element: HTMLElement },
+            Record<string, any>,
+            SelectBox
+        > | null>(selectElement);
         if (!bindMap) return;
 
         const selfBox = bindMap.self;
@@ -543,7 +552,8 @@ export class Selective extends Lifecycle {
 
         bindMap.self?.deInit?.();
 
-        const wrapper = (bindMap.container?.element) ?? selectElement.parentElement;
+        const wrapper =
+            bindMap.container?.element ?? selectElement.parentElement;
 
         selectElement.style.display = "";
         selectElement.style.visibility = "";
@@ -627,10 +637,7 @@ export class Selective extends Lifecycle {
         }
 
         const SEID = Libs.randomString(8);
-        const options_cfg = Libs.buildConfig(
-            selectElement,
-            options,
-        );
+        const options_cfg = Libs.buildConfig(selectElement, options);
 
         options_cfg.SEID = SEID;
         options_cfg.SEID_LIST = `seui-${SEID}-optionlist`;

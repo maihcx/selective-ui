@@ -4,7 +4,7 @@ import type {
     OptionViewTags,
     OptionViewResult,
     OptionConfig,
-    OptionConfigPatch
+    OptionConfigPatch,
 } from "../types/views/view.option.type";
 import { SelectiveOptions } from "../types/utils/selective.type";
 
@@ -77,7 +77,6 @@ import { SelectiveOptions } from "../types/utils/selective.type";
  * @see {@link View}
  */
 export class OptionView extends View<OptionViewTags> {
-
     /**
      * Strongly-typed reference to the mounted option view structure.
      *
@@ -91,7 +90,7 @@ export class OptionView extends View<OptionViewTags> {
      *
      * @public
      */
-    public view: OptionViewResult | null = null;
+    public view?: OptionViewResult;
 
     /**
      * Parsed configuration (bound from the `<select>` element via binder map).
@@ -101,7 +100,7 @@ export class OptionView extends View<OptionViewTags> {
      *
      * @internal
      */
-    private options: SelectiveOptions | null = null;
+    private options?: SelectiveOptions;
 
     /**
      * Internal configuration object (Proxy target).
@@ -116,7 +115,7 @@ export class OptionView extends View<OptionViewTags> {
      *
      * @private
      */
-    private config: OptionConfig | null = null;
+    private config?: OptionConfig;
 
     /**
      * Reactive Proxy wrapper around {@link config}.
@@ -131,7 +130,7 @@ export class OptionView extends View<OptionViewTags> {
      *
      * @private
      */
-    private configProxy: OptionConfig | null = null;
+    private configProxy?: OptionConfig;
 
     /**
      * Flag indicating whether the initial render has completed.
@@ -324,7 +323,7 @@ export class OptionView extends View<OptionViewTags> {
      * - Each changed property triggers {@link applyPartialChange} individually.
      *
      * @public
-     * @param {OptionConfigPatch | null} config - Partial configuration patch; `null` is no-op.
+     * @param {OptionConfigPatch} config - Partial configuration patch; `null` is no-op.
      * @returns {void}
      */
     public set optionConfig(config: OptionConfigPatch | null) {
@@ -332,22 +331,40 @@ export class OptionView extends View<OptionViewTags> {
 
         const changes: OptionConfigPatch = {};
 
-        if (config.imageWidth !== undefined && config.imageWidth !== this.config.imageWidth)
+        if (
+            config.imageWidth !== undefined &&
+            config.imageWidth !== this.config.imageWidth
+        )
             changes.imageWidth = config.imageWidth;
 
-        if (config.imageHeight !== undefined && config.imageHeight !== this.config.imageHeight)
+        if (
+            config.imageHeight !== undefined &&
+            config.imageHeight !== this.config.imageHeight
+        )
             changes.imageHeight = config.imageHeight;
 
-        if (config.imageBorderRadius !== undefined && config.imageBorderRadius !== this.config.imageBorderRadius)
+        if (
+            config.imageBorderRadius !== undefined &&
+            config.imageBorderRadius !== this.config.imageBorderRadius
+        )
             changes.imageBorderRadius = config.imageBorderRadius;
 
-        if (config.imagePosition !== undefined && config.imagePosition !== this.config.imagePosition)
+        if (
+            config.imagePosition !== undefined &&
+            config.imagePosition !== this.config.imagePosition
+        )
             changes.imagePosition = config.imagePosition;
 
-        if (config.labelValign !== undefined && config.labelValign !== this.config.labelValign)
+        if (
+            config.labelValign !== undefined &&
+            config.labelValign !== this.config.labelValign
+        )
             changes.labelValign = config.labelValign;
 
-        if (config.labelHalign !== undefined && config.labelHalign !== this.config.labelHalign)
+        if (
+            config.labelHalign !== undefined &&
+            config.labelHalign !== this.config.labelHalign
+        )
             changes.labelHalign = config.labelHalign;
 
         if (Object.keys(changes).length > 0) {
@@ -485,7 +502,7 @@ export class OptionView extends View<OptionViewTags> {
     private applyPartialChange<K extends keyof OptionConfig>(
         prop: K,
         newValue: OptionConfig[K],
-        oldValue: OptionConfig[K]
+        oldValue: OptionConfig[K],
     ): void {
         const v = this.view;
         if (!v || !v.view) return;
@@ -540,9 +557,11 @@ export class OptionView extends View<OptionViewTags> {
                 const img = v.tags?.OptionImage;
                 if (img) {
                     const styleProp =
-                        prop === "imageWidth" ? "width" :
-                        prop === "imageHeight" ? "height" :
-                        "borderRadius";
+                        prop === "imageWidth"
+                            ? "width"
+                            : prop === "imageHeight"
+                              ? "height"
+                              : "borderRadius";
 
                     img.style[styleProp] = String(newValue);
                 }

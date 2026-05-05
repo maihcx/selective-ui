@@ -41,7 +41,7 @@ export class LoadingState extends Lifecycle {
      * - Intended to be appended by the parent container (component does not auto-attach).
      * - Removed from DOM during {@link destroy}.
      */
-    public node: HTMLDivElement | null = null;
+    public node?: HTMLDivElement;
 
     /**
      * Configuration source for loading message text.
@@ -49,7 +49,7 @@ export class LoadingState extends Lifecycle {
      * Expected to provide:
      * - `textLoading` (displayed while loading is active)
      */
-    public options: SelectiveOptions | null = null;
+    public options?: SelectiveOptions;
 
     /**
      * Creates a new {@link LoadingState}.
@@ -57,9 +57,9 @@ export class LoadingState extends Lifecycle {
      * If `options` are provided, initialization runs immediately (creates {@link node} and
      * transitions to `INITIALIZED`).
      *
-     * @param {SelectiveOptions | null} [options=null] - Configuration containing the loading message text.
+     * @param {SelectiveOptions} [options=null] - Configuration containing the loading message text.
      */
-    public constructor(options: SelectiveOptions | null = null) {
+    public constructor(options?: SelectiveOptions) {
         super();
         if (options) this.initialize(options);
     }

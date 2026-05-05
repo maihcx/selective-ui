@@ -1,6 +1,9 @@
 import { View } from "../core/base/view";
 import { Libs } from "../utils/libs";
-import type { GroupViewTags, GroupViewResult } from "../types/views/view.group.type";
+import type {
+    GroupViewTags,
+    GroupViewResult,
+} from "../types/views/view.group.type";
 import { SelectiveOptions } from "../types/utils/selective.type";
 
 /**
@@ -53,7 +56,6 @@ import { SelectiveOptions } from "../types/utils/selective.type";
  * @see {@link View}
  */
 export class GroupView extends View<GroupViewTags> {
-
     /**
      * Strongly-typed reference to the mounted group view structure.
      *
@@ -67,7 +69,7 @@ export class GroupView extends View<GroupViewTags> {
      *
      * @public
      */
-    public view: GroupViewResult | null = null;
+    public view?: GroupViewResult;
 
     /**
      * Parsed configuration (bound from the `<select>` element via binder map).
@@ -77,7 +79,7 @@ export class GroupView extends View<GroupViewTags> {
      *
      * @internal
      */
-    private options: SelectiveOptions | null = null;
+    private options?: SelectiveOptions;
 
     /**
      * Creates a new GroupView bound to the given parent element.
@@ -190,10 +192,10 @@ export class GroupView extends View<GroupViewTags> {
      * - Safe to call multiple times with same value (idempotent).
      *
      * @public
-     * @param {string | null} [label=null] - New label to display; `null` preserves current label.
+     * @param {string} [label=null] - New label to display; `null` preserves current label.
      * @returns {void}
      */
-    public updateLabel(label: string | null = null): void {
+    public updateLabel(label?: string): void {
         if (!this.view) return;
 
         const headerEl = this.view.tags.GroupHeader;
@@ -243,7 +245,7 @@ export class GroupView extends View<GroupViewTags> {
 
         const items = this.view.tags.GroupItems;
         const visibleItems = Array.from(items.children).filter(
-            child => !child.classList.contains("hide")
+            (child) => !child.classList.contains("hide"),
         );
 
         this.view.view.classList.toggle("hide", visibleItems.length === 0);
@@ -275,7 +277,7 @@ export class GroupView extends View<GroupViewTags> {
         this.view.view.classList.toggle("collapsed", collapsed);
         this.view.tags.GroupHeader.setAttribute(
             "aria-expanded",
-            collapsed ? "false" : "true"
+            collapsed ? "false" : "true",
         );
     }
 }

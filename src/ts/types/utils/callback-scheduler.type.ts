@@ -63,7 +63,7 @@ export interface TimerEntry<T extends any[] = any[]> {
  *    - `null` when `run()` is called without parameters
  */
 export type StoredEntry = {
-    callback: (payload: any[] | null) => void;
+    callback: (payload?: any[]) => void;
     timeout: number;
     once: boolean;
 };

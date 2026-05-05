@@ -27,7 +27,7 @@ import type {
  * @param query - CSS selector or element to control. When `null`, the effector is unbound.
  * @returns An effector instance implementing {@link EffectorInterface}.
  */
-export function Effector(query?: string | HTMLElement | null): EffectorInterface {
+export function Effector(query?: string | HTMLElement): EffectorInterface {
     return new EffectorImpl(query ?? null);
 }
 
@@ -57,13 +57,13 @@ class EffectorImpl implements EffectorInterface {
      * Timeout used to finalize expand/collapse/swipe animations.
      * Cleared by {@link cancel}.
      */
-    private timeOut: ReturnType<typeof setTimeout> | null = null;
+    private timeOut?: NodeJS.Timeout;
 
     /**
      * Timeout used to clear transitions after resize in non-animated scenarios.
      * Cleared by {@link cancel}.
      */
-    private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+    private resizeTimeout?: NodeJS.Timeout;
 
     /**
      * Internal animation flag set while a timed animation is in-flight.
@@ -80,7 +80,7 @@ class EffectorImpl implements EffectorInterface {
      *
      * @param query - CSS selector or element to control. When `null`, instance starts unbound.
      */
-    public constructor(query: string | HTMLElement | null = null) {
+    public constructor(query?: string | HTMLElement) {
         if (query) this.setElement(query);
     }
 
@@ -145,7 +145,9 @@ class EffectorImpl implements EffectorInterface {
      * @param display - The display style to use for measurement (defaults to `"flex"`).
      * @returns A dimension snapshot including `scrollHeight` adjusted for vertical borders.
      */
-    public getHiddenDimensions(display: "flex" | string = "flex"): DimensionObject {
+    public getHiddenDimensions(
+        display: "flex" | string = "flex",
+    ): DimensionObject {
         // Guard: element may not be set yet.
         if (!this.element) return { width: 0, height: 0, scrollHeight: 0 };
 
@@ -169,7 +171,8 @@ class EffectorImpl implements EffectorInterface {
         const borderTopWidth = parseFloat(cs.borderTopWidth);
         const borderBottomWidth = parseFloat(cs.borderBottomWidth);
 
-        const scrollHeight = this.element.scrollHeight + borderTopWidth + borderBottomWidth;
+        const scrollHeight =
+            this.element.scrollHeight + borderTopWidth + borderBottomWidth;
         const rect = this.element.getBoundingClientRect();
 
         const dimensions: DimensionObject = {
@@ -286,10 +289,14 @@ class EffectorImpl implements EffectorInterface {
 
         const currentHeight = this.element.offsetHeight;
         const currentTop = this.element.offsetTop;
-        const position = this.element.classList.contains("position-top") ? "top" : "bottom";
-        const isScrollable = this.element.scrollHeight - this.element.offsetHeight > 0;
+        const position = this.element.classList.contains("position-top")
+            ? "top"
+            : "bottom";
+        const isScrollable =
+            this.element.scrollHeight - this.element.offsetHeight > 0;
 
-        const finalTop = position === "top" ? currentTop + currentHeight : currentTop;
+        const finalTop =
+            position === "top" ? currentTop + currentHeight : currentTop;
 
         requestAnimationFrame(() => {
             Object.assign(this.element.style, {
@@ -459,7 +466,9 @@ class EffectorImpl implements EffectorInterface {
             onComplete,
         } = config;
 
-        const currentPosition = this.element.classList.contains("position-top") ? "top" : "bottom";
+        const currentPosition = this.element.classList.contains("position-top")
+            ? "top"
+            : "bottom";
         const isPositionChanged = currentPosition !== position;
         const isScrollable = this.element.scrollHeight > maxHeight;
 
@@ -471,7 +480,8 @@ class EffectorImpl implements EffectorInterface {
         }
 
         requestAnimationFrame(() => {
-            const styles: Partial<CSSStyleDeclaration> & Record<string, string> = {
+            const styles: Partial<CSSStyleDeclaration> &
+                Record<string, string> = {
                 width: `${width}px`,
                 left: `${left}px`,
                 top: `${top}px`,

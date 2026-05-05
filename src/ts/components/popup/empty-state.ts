@@ -42,7 +42,7 @@ export class EmptyState extends Lifecycle {
      * - Intended to be appended by the parent container (component does not auto-attach).
      * - Removed from DOM during {@link destroy}.
      */
-    public node: HTMLDivElement | null = null;
+    public node?: HTMLDivElement;
 
     /**
      * Configuration source for empty state messages.
@@ -51,7 +51,7 @@ export class EmptyState extends Lifecycle {
      * - `textNoData` (for `"nodata"`)
      * - `textNotFound` (for `"notfound"`)
      */
-    public options: SelectiveOptions | null = null;
+    public options?: SelectiveOptions;
 
     /**
      * Creates a new {@link EmptyState}.
@@ -59,9 +59,9 @@ export class EmptyState extends Lifecycle {
      * If `options` are provided, initialization runs immediately (creates {@link node} and
      * transitions to `INITIALIZED`).
      *
-     * @param {SelectiveOptions | null} [options=null] - Configuration containing empty state messages.
+     * @param {SelectiveOptions} [options=null] - Configuration containing empty state messages.
      */
-    public constructor(options: SelectiveOptions | null = null) {
+    public constructor(options?: SelectiveOptions) {
         super();
         if (options) this.initialize(options);
     }

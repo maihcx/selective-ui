@@ -1,4 +1,3 @@
-
 import { Libs } from "../utils/libs";
 import { Refresher } from "../services/refresher";
 import { PlaceHolder } from "./placeholder";
@@ -23,11 +22,18 @@ import type { SelectiveOptions } from "../types/utils/selective.type";
 import { IEventToken, IEventCallback } from "../types/utils/ievents.type";
 import { MixedItem } from "../types/core/base/mixed-adapter.type";
 import { BinderMap } from "../types/utils/istorage.type";
-import { ContainerRuntime, SelectBoxAction, SelectBoxTags } from "../types/components/searchbox.type";
+import {
+    ContainerRuntime,
+    SelectBoxAction,
+    SelectBoxTags,
+} from "../types/components/searchbox.type";
 import { AjaxConfig } from "../types/core/search-controller.type";
 import { Selective } from "../utils/selective";
 import { VirtualRecyclerView } from "../core/base/virtual-recyclerview";
-import type { PluginContext, SelectivePlugin } from "../types/plugins/plugin.type";
+import type {
+    PluginContext,
+    SelectivePlugin,
+} from "../types/plugins/plugin.type";
 
 /**
  * SelectBox
@@ -97,7 +103,7 @@ export class SelectBox extends Lifecycle {
      * Created during {@link init} via {@link Libs.mountNode}, inserted into the DOM during {@link mount},
      * and removed during {@link destroy}.
      */
-    private node: HTMLDivElement | null = null;
+    private node?: HTMLDivElement;
 
     /**
      * Parsed configuration (bound from the `<select>` element via binder map).
@@ -107,7 +113,7 @@ export class SelectBox extends Lifecycle {
      *
      * @internal
      */
-    private options: SelectiveOptions | null = null;
+    private options?: SelectiveOptions;
 
     /**
      * Manager that owns model resources and bridges the Adapter ↔ RecyclerView pipeline.
@@ -117,7 +123,7 @@ export class SelectBox extends Lifecycle {
      *
      * @internal
      */
-    private optionModelManager: ModelManager<MixedItem, MixedAdapter> | null = null;
+    private optionModelManager?: ModelManager<MixedItem, MixedAdapter>;
 
     /**
      * Whether the popup/list UI is currently open.
@@ -159,7 +165,7 @@ export class SelectBox extends Lifecycle {
      *
      * Used to locate the instance wrapper via `Selective.find(...)` and to close other open instances.
      */
-    public Selective: Selective | null = null;
+    public Selective?: Selective;
 
     /**
      * Registered plugins for this SelectBox instance.
@@ -169,7 +175,7 @@ export class SelectBox extends Lifecycle {
     /**
      * Cached plugin context for this SelectBox instance.
      */
-    private pluginContext: PluginContext<SelectBoxTags> | null = null;
+    private pluginContext?: PluginContext<SelectBoxTags>;
 
     /**
      * Creates a {@link SelectBox} bound to a native `<select>` element.
@@ -201,7 +207,10 @@ export class SelectBox extends Lifecycle {
         this.options.disabled = value;
         this.node.classList.toggle("disabled", value);
         this.node.setAttribute("aria-disabled", String(value));
-        this.container.tags?.ViewPanel?.setAttribute("aria-disabled", String(value));
+        this.container.tags?.ViewPanel?.setAttribute(
+            "aria-disabled",
+            String(value),
+        );
     }
 
     /**
@@ -250,7 +259,7 @@ export class SelectBox extends Lifecycle {
         const bindedMap = Libs.getBinderMap<BinderMap>(select);
         this.options = bindedMap.options;
         this.Selective = Selective;
-        
+
         this.init(select);
     }
 
@@ -290,15 +299,22 @@ export class SelectBox extends Lifecycle {
         const directive = new Directive();
         const searchbox = new SearchBox(options);
         const effector = Effector();
-        const optionModelManager = new ModelManager<MixedItem, MixedAdapter>(options);
+        const optionModelManager = new ModelManager<MixedItem, MixedAdapter>(
+            options,
+        );
         const accessoryBox = new AccessoryBox(options);
-        const searchController = new SearchController(select, optionModelManager, this);
+        const searchController = new SearchController(
+            select,
+            optionModelManager,
+            this,
+        );
 
         const selectObserver = new SelectObserver(select);
         const datasetObserver = new DatasetObserver(select);
 
         // ensure placeholder has id for aria-labelledby usage
-        if (placeholder.node) placeholder.node.id = String(options.SEID_HOLDER ?? "");
+        if (placeholder.node)
+            placeholder.node.id = String(options.SEID_HOLDER ?? "");
 
         const container = Libs.mountNode<ContainerRuntime>(
             {
@@ -311,7 +327,11 @@ export class SelectBox extends Lifecycle {
                                 classList: "seui-view",
                                 tabIndex: 0,
                                 onkeydown: (e: KeyboardEvent) => {
-                                    if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+                                    if (
+                                        e.key === "Enter" ||
+                                        e.key === " " ||
+                                        e.key === "ArrowDown"
+                                    ) {
                                         e.preventDefault();
                                         this.getAction()?.open();
                                     }
@@ -326,7 +346,7 @@ export class SelectBox extends Lifecycle {
                     },
                 },
             },
-            null
+            null,
         );
 
         this.container = container;
@@ -350,7 +370,9 @@ export class SelectBox extends Lifecycle {
         } else {
             optionModelManager.setupRecyclerView(RecyclerView);
         }
-        optionModelManager.createModelResources(Libs.parseSelectToArray(select));
+        optionModelManager.createModelResources(
+            Libs.parseSelectToArray(select),
+        );
 
         optionModelManager.on("onUpdate", () => {
             container.popup?.triggerResize?.();
@@ -360,7 +382,7 @@ export class SelectBox extends Lifecycle {
 
         // Popup
         const popup = new Popup(select, options, optionModelManager);
-        container.popup = popup
+        container.popup = popup;
         popup!.setupEffector(effector);
         popup!.setupInfiniteScroll(searchController, options);
 
@@ -377,8 +399,19 @@ export class SelectBox extends Lifecycle {
         accessoryBox.setRoot(container.tags.ViewPanel);
         accessoryBox.setModelManager(optionModelManager);
 
-        this.setupEventHandlers(select, container, options, searchController, searchbox);
-        this.setupObservers(selectObserver, datasetObserver, select, optionModelManager);
+        this.setupEventHandlers(
+            select,
+            container,
+            options,
+            searchController,
+            searchbox,
+        );
+        this.setupObservers(
+            selectObserver,
+            datasetObserver,
+            select,
+            optionModelManager,
+        );
 
         this.plugins = this.Selective?.getPlugins?.() ?? [];
         if (this.plugins.length) {
@@ -392,7 +425,9 @@ export class SelectBox extends Lifecycle {
                 actions: this.getAction(),
             };
             this.pluginContext = pluginContext;
-            this.runPluginHook("init", (plugin) => plugin.init?.(pluginContext));
+            this.runPluginHook("init", (plugin) =>
+                plugin.init?.(pluginContext),
+            );
         }
 
         // Initial states
@@ -427,10 +462,13 @@ export class SelectBox extends Lifecycle {
         select.parentNode?.insertBefore(this.node, select);
         this.node.insertBefore(select, container.tags.ViewPanel);
 
-        container.tags.ViewPanel.addEventListener("mousedown", (e: MouseEvent) => {
-            e.stopPropagation();
-            e.preventDefault();
-        });
+        container.tags.ViewPanel.addEventListener(
+            "mousedown",
+            (e: MouseEvent) => {
+                e.stopPropagation();
+                e.preventDefault();
+            },
+        );
 
         Refresher.resizeBox(select, container.tags.ViewPanel);
         select.classList.add("init");
@@ -495,10 +533,10 @@ export class SelectBox extends Lifecycle {
         container: ContainerRuntime,
         options: SelectiveOptions,
         searchController: SearchController,
-        searchbox: SearchBox
+        searchbox: SearchBox,
     ): void {
         const optionAdapter = container.popup!.optionAdapter;
-        let hightlightTimer: ReturnType<typeof setTimeout> | null = null;
+        let hightlightTimer: NodeJS.Timeout | null = null;
 
         const searchHandle = (keyword: string, isTrigger: boolean) => {
             if (!isTrigger && keyword === "") {
@@ -510,7 +548,9 @@ export class SelectBox extends Lifecycle {
                     .search(keyword)
                     .then((result: any) => {
                         clearTimeout(hightlightTimer!);
-                        Libs.callbackScheduler.clear(`sche_vis_proxy_${optionAdapter.adapterKey}`);
+                        Libs.callbackScheduler.clear(
+                            `sche_vis_proxy_${optionAdapter.adapterKey}`,
+                        );
                         Libs.callbackScheduler.on(
                             `sche_vis_proxy_${optionAdapter.adapterKey}`,
                             () => {
@@ -523,7 +563,7 @@ export class SelectBox extends Lifecycle {
                                     }, options.animationtime ?? 0);
                                 }
                             },
-                            { debounce: 10 }
+                            { debounce: 10 },
                         );
                     })
                     .catch((error: unknown) => {
@@ -532,7 +572,7 @@ export class SelectBox extends Lifecycle {
             }
         };
 
-        let searchHandleTimer: ReturnType<typeof setTimeout> | null = null;
+        let searchHandleTimer: NodeJS.Timeout | null = null;
 
         searchbox.onSearch = (keyword: string, isTrigger: boolean) => {
             if (!searchController.compareSearchTrigger(keyword)) return;
@@ -600,7 +640,7 @@ export class SelectBox extends Lifecycle {
         selectObserver: SelectObserver,
         datasetObserver: DatasetObserver,
         select: HTMLSelectElement,
-        optionModelManager: ModelManager<MixedItem, MixedAdapter>
+        optionModelManager: ModelManager<MixedItem, MixedAdapter>,
     ): void {
         selectObserver.connect();
         selectObserver.onChanged = (sel) => {
@@ -727,7 +767,7 @@ export class SelectBox extends Lifecycle {
      *
      * @returns An action facade for controlling this instance, or `null` if not bound.
      */
-    public getAction(): SelectBoxAction | null {
+    public getAction?(): SelectBoxAction {
         const container = this.container;
         const superThis = this;
         const getInstance = () => {
@@ -764,7 +804,11 @@ export class SelectBox extends Lifecycle {
             get value() {
                 const item_list = this.valueArray as string[];
                 const valLength = item_list.length;
-                return valLength > 1 ? item_list : valLength === 0 ? "" : item_list[0];
+                return valLength > 1
+                    ? item_list
+                    : valLength === 0
+                      ? ""
+                      : item_list[0];
             },
 
             get valueArray() {
@@ -803,7 +847,11 @@ export class SelectBox extends Lifecycle {
                     item_list.push(m.text);
                 });
                 const valLength = item_list.length;
-                return valLength > 1 ? item_list : valLength === 0 ? "" : item_list[0];
+                return valLength > 1
+                    ? item_list
+                    : valLength === 0
+                      ? ""
+                      : item_list[0];
             },
 
             get isOpen() {
@@ -814,10 +862,16 @@ export class SelectBox extends Lifecycle {
                 return container.view.parentElement;
             },
 
-            valueDataset(_evtToken?: IEventCallback, strDataset: string = null, isArray: boolean = false) {
+            valueDataset(
+                _evtToken?: IEventCallback,
+                strDataset: string = null,
+                isArray: boolean = false,
+            ) {
                 var item_list = [];
                 superThis.getModelOption(true).forEach((m) => {
-                    item_list.push(strDataset ? m.dataset[strDataset] : m.dataset);
+                    item_list.push(
+                        strDataset ? m.dataset[strDataset] : m.dataset,
+                    );
                 });
 
                 if (!isArray) {
@@ -833,13 +887,21 @@ export class SelectBox extends Lifecycle {
 
             selectAll(_evtToken?: IEventCallback, trigger: boolean = true) {
                 if (bindedOptions.multiple && bindedOptions.maxSelected > 0) {
-                    if (superThis.getModelOption().length > bindedOptions.maxSelected) return;
+                    if (
+                        superThis.getModelOption().length >
+                        bindedOptions.maxSelected
+                    )
+                        return;
                 }
 
-                if (this.disabled || this.readonly || !bindedOptions.multiple) return;
+                if (this.disabled || this.readonly || !bindedOptions.multiple)
+                    return;
 
                 if (trigger) {
-                    const beforeChangeToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeChange);
+                    const beforeChangeToken = iEvents.callEvent(
+                        [getInstance()],
+                        ...bindedOptions.on.beforeChange,
+                    );
                     if (beforeChangeToken.isCancel) return;
                     superThis.oldValue = this.value;
                 }
@@ -852,10 +914,14 @@ export class SelectBox extends Lifecycle {
             },
 
             deSelectAll(_evtToken?: IEventCallback, trigger: boolean = true) {
-                if (this.disabled || this.readonly || !bindedOptions.multiple) return;
+                if (this.disabled || this.readonly || !bindedOptions.multiple)
+                    return;
 
                 if (trigger) {
-                    const beforeChangeToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeChange);
+                    const beforeChangeToken = iEvents.callEvent(
+                        [getInstance()],
+                        ...bindedOptions.on.beforeChange,
+                    );
                     if (beforeChangeToken.isCancel) return;
                     superThis.oldValue = this.value;
                 }
@@ -867,14 +933,22 @@ export class SelectBox extends Lifecycle {
                 this.change(false, trigger);
             },
 
-            deSelectByDataset(_evtToken?: IEventCallback, dataset?: any, trigger: boolean = true) {
+            deSelectByDataset(
+                _evtToken?: IEventCallback,
+                dataset?: any,
+                trigger: boolean = true,
+            ) {
                 if (dataset) {
-                    superThis.getModelOption().forEach(optionModel => {
+                    superThis.getModelOption().forEach((optionModel) => {
                         if (optionModel.dataset) {
                             for (let searchKey in dataset) {
                                 let value = dataset[searchKey];
                                 !Array.isArray(value) && (value = [value]);
-                                if (value.includes(optionModel.dataset[searchKey])) {
+                                if (
+                                    value.includes(
+                                        optionModel.dataset[searchKey],
+                                    )
+                                ) {
                                     optionModel.selectedNonTrigger = false;
                                 }
                             }
@@ -884,19 +958,28 @@ export class SelectBox extends Lifecycle {
                 }
             },
 
-            setValue(_evtToken: IEventCallback | null = null, value: any, trigger: boolean = true, force: boolean = false) {
+            setValue(
+                _evtToken?: IEventCallback,
+                value?: any,
+                trigger: boolean = true,
+                force: boolean = false,
+            ) {
                 if (!Array.isArray(value)) value = [value];
                 value = value.filter((v: any) => v !== "" && v != null);
 
                 if (value.length === 0) {
-                    superThis.getModelOption().forEach((m) => (m.selectedNonTrigger = false));
+                    superThis
+                        .getModelOption()
+                        .forEach((m) => (m.selectedNonTrigger = false));
                     this.change(false, trigger);
                     return;
                 }
 
                 if (bindedOptions.multiple && bindedOptions.maxSelected > 0) {
                     if (value.length > bindedOptions.maxSelected) {
-                        console.warn(`Cannot select more than ${bindedOptions.maxSelected} items`);
+                        console.warn(
+                            `Cannot select more than ${bindedOptions.maxSelected} items`,
+                        );
                         return;
                     }
                 }
@@ -905,33 +988,53 @@ export class SelectBox extends Lifecycle {
 
                 // AJAX: load missing values
                 if (container.searchController?.isAjax?.()) {
-                    const { missing } = container.searchController.checkMissingValues(value);
+                    const { missing } =
+                        container.searchController.checkMissingValues(value);
 
                     if (missing.length > 0) {
                         (async () => {
-                            if (bindedOptions.loadingfield) container.popup?.showLoading?.();
+                            if (bindedOptions.loadingfield)
+                                container.popup?.showLoading?.();
 
                             try {
                                 container.searchController.resetPagination();
-                                const result = await container.searchController.loadByValues(missing);
+                                const result =
+                                    await container.searchController.loadByValues(
+                                        missing,
+                                    );
                                 if (result.success && result.items.length > 0) {
                                     result.items.forEach((it: any) => {
-                                        if (missing.includes(it.value) || missing.includes(it.text)) it.selected = true;
+                                        if (
+                                            missing.includes(it.value) ||
+                                            missing.includes(it.text)
+                                        )
+                                            it.selected = true;
                                     });
 
-                                    container.searchController.applyAjaxResult?.(result.items, false, false);
-                                    
+                                    container.searchController.applyAjaxResult?.(
+                                        result.items,
+                                        false,
+                                        false,
+                                    );
+
                                     setTimeout(() => {
                                         container.searchController.resetPagination();
                                         this.change(false, trigger);
                                     }, 200);
                                 } else if (missing.length > 0) {
-                                    console.warn(`Could not load ${missing.length} values:`, missing);
+                                    console.warn(
+                                        `Could not load ${missing.length} values:`,
+                                        missing,
+                                    );
                                 }
                             } catch (error) {
-                                console.error("Error loading missing values:", error);
+                                console.error(
+                                    "Error loading missing values:",
+                                    error,
+                                );
                             } finally {
-                                if (bindedOptions.loadingfield) container.popup?.hideLoading?.();
+                                if (bindedOptions.loadingfield)
+                                    container.popup?.hideLoading?.();
                             }
                         })();
                         return;
@@ -939,7 +1042,10 @@ export class SelectBox extends Lifecycle {
                 }
 
                 if (trigger) {
-                    const beforeChangeToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeChange);
+                    const beforeChangeToken = iEvents.callEvent(
+                        [getInstance()],
+                        ...bindedOptions.on.beforeChange,
+                    );
                     if (beforeChangeToken.isCancel) return;
                     superThis.oldValue = this.value;
                 }
@@ -956,18 +1062,24 @@ export class SelectBox extends Lifecycle {
             },
 
             load() {
-                if ((!superThis.hasLoadedOnce || superThis.isBeforeSearch) && bindedOptions?.ajax) {
+                if (
+                    (!superThis.hasLoadedOnce || superThis.isBeforeSearch) &&
+                    bindedOptions?.ajax
+                ) {
                     container.searchController.resetPagination();
                     container.popup.showLoading();
                     superThis.hasLoadedOnce = true;
                     superThis.isBeforeSearch = false;
 
                     setTimeout(() => {
-                        if (!container.popup || !container.searchController) return;
+                        if (!container.popup || !container.searchController)
+                            return;
                         container.searchController
                             .search("")
                             .then(() => container.popup?.triggerResize?.())
-                            .catch((err: unknown) => console.error("Initial ajax load error:", err));
+                            .catch((err: unknown) =>
+                                console.error("Initial ajax load error:", err),
+                            );
                     }, bindedOptions.animationtime);
                     container.popup.load();
                 } else {
@@ -988,7 +1100,10 @@ export class SelectBox extends Lifecycle {
                     return;
                 }
 
-                const beforeShowToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeShow);
+                const beforeShowToken = iEvents.callEvent(
+                    [getInstance()],
+                    ...bindedOptions.on.beforeShow,
+                );
                 if (beforeShowToken.isCancel) {
                     return;
                 }
@@ -1005,15 +1120,24 @@ export class SelectBox extends Lifecycle {
                 }
 
                 this.load();
-                container.popup.open(null, !container.popup.loadingState.isVisible);
+                container.popup.open(
+                    null,
+                    !container.popup.loadingState.isVisible,
+                );
 
                 container.searchbox.show();
 
                 const ViewPanel: HTMLElement = container.tags.ViewPanel;
                 ViewPanel.setAttribute("aria-expanded", "true");
-                ViewPanel.setAttribute("aria-controls", bindedOptions.SEID_LIST);
+                ViewPanel.setAttribute(
+                    "aria-controls",
+                    bindedOptions.SEID_LIST,
+                );
                 ViewPanel.setAttribute("aria-haspopup", "listbox");
-                ViewPanel.setAttribute("aria-labelledby", bindedOptions.SEID_HOLDER);
+                ViewPanel.setAttribute(
+                    "aria-labelledby",
+                    bindedOptions.SEID_HOLDER,
+                );
 
                 if (bindedOptions.multiple) {
                     ViewPanel.setAttribute("aria-multiselectable", "true");
@@ -1021,7 +1145,9 @@ export class SelectBox extends Lifecycle {
 
                 iEvents.callEvent([getInstance()], ...bindedOptions.on.show);
                 if (superThis.pluginContext) {
-                    superThis.runPluginHook("onOpen", (plugin) => plugin.onOpen?.(superThis.pluginContext));
+                    superThis.runPluginHook("onOpen", (plugin) =>
+                        plugin.onOpen?.(superThis.pluginContext),
+                    );
                 }
                 return;
             },
@@ -1029,7 +1155,10 @@ export class SelectBox extends Lifecycle {
             close() {
                 if (!superThis.isOpen) return;
 
-                const beforeCloseToken = iEvents.callEvent([getInstance()], ...bindedOptions.on.beforeClose);
+                const beforeCloseToken = iEvents.callEvent(
+                    [getInstance()],
+                    ...bindedOptions.on.beforeClose,
+                );
                 if (beforeCloseToken.isCancel) return;
 
                 superThis.isOpen = false;
@@ -1044,7 +1173,9 @@ export class SelectBox extends Lifecycle {
 
                 iEvents.callEvent([getInstance()], ...bindedOptions.on.close);
                 if (superThis.pluginContext) {
-                    superThis.runPluginHook("onClose", (plugin) => plugin.onClose?.(superThis.pluginContext));
+                    superThis.runPluginHook("onClose", (plugin) =>
+                        plugin.onClose?.(superThis.pluginContext),
+                    );
                 }
                 return;
             },
@@ -1054,10 +1185,15 @@ export class SelectBox extends Lifecycle {
                 else this.open();
             },
 
-            change(_evtToken: IEventCallback | null = null, canTrigger: boolean = true) {
+            change(_evtToken?: IEventCallback, canTrigger: boolean = true) {
                 if (canTrigger) {
-                    if (bindedOptions.multiple && bindedOptions.maxSelected > 0) {
-                        if (this.valueArray.length > bindedOptions.maxSelected) {
+                    if (
+                        bindedOptions.multiple &&
+                        bindedOptions.maxSelected > 0
+                    ) {
+                        if (
+                            this.valueArray.length > bindedOptions.maxSelected
+                        ) {
                             this.setValue(null, this.oldValue, false, true);
                         }
                     }
@@ -1067,7 +1203,10 @@ export class SelectBox extends Lifecycle {
                         return;
                     }
 
-                    const beforeChangeToken = iEvents.callEvent([getInstance(), this.value], ...bindedOptions.on.beforeChange);
+                    const beforeChangeToken = iEvents.callEvent(
+                        [getInstance(), this.value],
+                        ...bindedOptions.on.beforeChange,
+                    );
                     if (beforeChangeToken.isCancel) {
                         this.setValue(null, this.oldValue, false);
                         return;
@@ -1078,8 +1217,12 @@ export class SelectBox extends Lifecycle {
                 container.accessorybox.setModelData(this.valueOptions);
 
                 if (canTrigger) {
-                    if (container.targetElement) iEvents.trigger(container.targetElement, "change");
-                    iEvents.callEvent([getInstance(), this.value], ...bindedOptions.on.change);
+                    if (container.targetElement)
+                        iEvents.trigger(container.targetElement, "change");
+                    iEvents.callEvent(
+                        [getInstance(), this.value],
+                        ...bindedOptions.on.change,
+                    );
 
                     if (superThis.options?.autoclose) this.close();
                 }
@@ -1090,9 +1233,15 @@ export class SelectBox extends Lifecycle {
                 }
 
                 if (superThis.pluginContext && superThis.optionModelManager) {
-                    const resources = superThis.optionModelManager.getResources();
+                    const resources =
+                        superThis.optionModelManager.getResources();
                     superThis.runPluginHook("onChange", (plugin) =>
-                        plugin.onChange?.(this.value, resources.modelList, resources.adapter, superThis.pluginContext)
+                        plugin.onChange?.(
+                            this.value,
+                            resources.modelList,
+                            resources.adapter,
+                            superThis.pluginContext,
+                        ),
                     );
                 }
             },
@@ -1100,7 +1249,10 @@ export class SelectBox extends Lifecycle {
             refreshMask() {
                 let mask = bindedOptions.placeholder;
 
-                if (!bindedOptions.multiple && superThis.getModelOption().length > 0) {
+                if (
+                    !bindedOptions.multiple &&
+                    superThis.getModelOption().length > 0
+                ) {
                     mask = this.mask[0];
                 }
 
@@ -1110,7 +1262,11 @@ export class SelectBox extends Lifecycle {
                 container.searchbox.setPlaceHolder(mask);
             },
 
-            on(_evtToken: IEventCallback, evtName: string, handle: (...args: any[]) => any) {
+            on(
+                _evtToken: IEventCallback,
+                evtName: string,
+                handle: (...args: any[]) => any,
+            ) {
                 if (!bindedOptions.on[evtName]) bindedOptions.on[evtName] = [];
                 bindedOptions.on[evtName].push(handle);
             },
@@ -1183,7 +1339,7 @@ export class SelectBox extends Lifecycle {
     private createSymProp(
         obj: Record<string, any>,
         prop: "disabled" | "readonly" | "visible",
-        privateProp: "isDisabled" | "isReadOnly" | "isVisible"
+        privateProp: "isDisabled" | "isReadOnly" | "isVisible",
     ): void {
         const superThis = this;
 
@@ -1194,7 +1350,8 @@ export class SelectBox extends Lifecycle {
             set(value: any) {
                 superThis[privateProp] = !!value;
                 if (superThis.container?.targetElement?.dataset) {
-                    superThis.container.targetElement.dataset[prop] = String(!!value);
+                    superThis.container.targetElement.dataset[prop] =
+                        String(!!value);
                 }
             },
             enumerable: true,
@@ -1223,7 +1380,7 @@ export class SelectBox extends Lifecycle {
      * @returns A flat array of option models (possibly filtered).
      * @internal
      */
-    private getModelOption(isSelected: boolean | null = null): OptionModel[] {
+    private getModelOption(isSelected?: boolean): OptionModel[] {
         if (!this.optionModelManager) return [];
 
         const { modelList } = this.optionModelManager.getResources();
@@ -1233,7 +1390,8 @@ export class SelectBox extends Lifecycle {
             if (m instanceof OptionModel) {
                 flatOptions.push(m);
             } else if (m instanceof GroupModel) {
-                if (Array.isArray(m.items) && m.items.length) flatOptions.push(...m.items);
+                if (Array.isArray(m.items) && m.items.length)
+                    flatOptions.push(...m.items);
             }
         }
 
@@ -1253,7 +1411,10 @@ export class SelectBox extends Lifecycle {
      * @param runner - Hook invocation handler.
      * @internal
      */
-    private runPluginHook(hook: string, runner: (plugin: SelectivePlugin) => void): void {
+    private runPluginHook(
+        hook: string,
+        runner: (plugin: SelectivePlugin) => void,
+    ): void {
         if (!this.plugins.length) return;
 
         this.plugins.forEach((plugin) => {

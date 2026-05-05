@@ -49,7 +49,7 @@ export class OptionHandle extends Lifecycle {
      *
      * @internal
      */
-    private nodeMounted: MountViewResult | null = null;
+    private nodeMounted?: MountViewResult;
 
     /**
      * Root element of this control.
@@ -57,7 +57,7 @@ export class OptionHandle extends Lifecycle {
      * Created during {@link initialize}. This node is used by {@link show}/{@link hide}
      * and removed during {@link destroy}.
      */
-    public node: HTMLDivElement | null = null;
+    public node?: HTMLDivElement;
 
     /**
      * Configuration snapshot used for:
@@ -68,7 +68,7 @@ export class OptionHandle extends Lifecycle {
      *
      * @internal
      */
-    private options: SelectiveOptions | null = null;
+    private options?: SelectiveOptions;
 
     /**
      * Callback list invoked when the "Select all" control is activated.
@@ -99,7 +99,7 @@ export class OptionHandle extends Lifecycle {
      *
      * @param options - Feature flags and labels for the two actions.
      */
-    public constructor(options: SelectiveOptions | null = null) {
+    public constructor(options?: SelectiveOptions) {
         super();
         if (options) this.initialize(options);
     }
@@ -172,7 +172,10 @@ export class OptionHandle extends Lifecycle {
      */
     private available(): boolean {
         if (!this.options) return false;
-        return Libs.string2Boolean(this.options.multiple) && Libs.string2Boolean(this.options.selectall);
+        return (
+            Libs.string2Boolean(this.options.multiple) &&
+            Libs.string2Boolean(this.options.selectall)
+        );
     }
 
     /**
@@ -231,7 +234,7 @@ export class OptionHandle extends Lifecycle {
      *
      * @param action - Callback invoked on activation; ignored when not a function.
      */
-    public onSelectAll(action: ((...args: unknown[]) => unknown) | null = null): void {
+    public onSelectAll(action?: (...args: unknown[]) => unknown): void {
         if (typeof action === "function") {
             this.actionOnSelectAll.push(action);
         }
@@ -248,7 +251,7 @@ export class OptionHandle extends Lifecycle {
      *
      * @param action - Callback invoked on activation; ignored when not a function.
      */
-    public onDeSelectAll(action: ((...args: unknown[]) => unknown) | null = null): void {
+    public onDeSelectAll(action?: (...args: unknown[]) => unknown): void {
         if (typeof action === "function") {
             this.actionOnDeSelectAll.push(action);
         }
@@ -277,7 +280,7 @@ export class OptionHandle extends Lifecycle {
         this.options = null;
         this.actionOnSelectAll = null;
         this.actionOnDeSelectAll = null;
-        this.node = null
+        this.node = null;
 
         super.destroy();
     }
